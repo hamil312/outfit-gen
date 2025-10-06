@@ -1,8 +1,7 @@
 import type { Config } from "tailwindcss";
-//Hamilton: Añadidos los estilos para Frame
 export default {
   darkMode: ["class"],
-  content: ["./client/index.html", "./client/src/**/*.{js,jsx,ts,tsx}"],
+  content: ["./client/index.html", "./client/src/**/*.{js,jsx,ts,tsx}", "./src/app/globals.css"],
   theme: {
     extend: {
       borderRadius: {

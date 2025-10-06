@@ -1,10 +1,11 @@
+"use client";
 import React from "react";
 import { Badge } from "./components/ui/badge";
 import { Button } from "./components/ui/button";
 import { Card, CardContent } from "./components/ui/card";
 import { JSX } from "react/jsx-runtime";
 
-export const Frame = (): JSX.Element => {
+export const home = (): JSX.Element => {
   const categoryTags = [
     "Atuendo deportivo",
     "Ocasion elegante",
@@ -347,3 +348,4 @@ export const Frame = (): JSX.Element => {
     </div>
   );
 };
+export default home;
