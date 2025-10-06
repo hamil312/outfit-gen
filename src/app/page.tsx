@@ -1,103 +1,349 @@
-import Image from "next/image";
+import React from "react";
+import { Badge } from "./components/ui/badge";
+import { Button } from "./components/ui/button";
+import { Card, CardContent } from "./components/ui/card";
+import { JSX } from "react/jsx-runtime";
 
-export default function Home() {
+export const Frame = (): JSX.Element => {
+  const categoryTags = [
+    "Atuendo deportivo",
+    "Ocasion elegante",
+    "Outfit casual",
+    "Noche de fiesta",
+    "Salida a la playa",
+  ];
+
+  const teamMembers = [
+    {
+      name: "Mario Fernando Santacruz Pantoja",
+      role: "Estudiante de Ingenieria de Software",
+      image: "/figmaAssets/image-10.png",
+      linkedin: "Linkedin personal",
+      profileIcon: "/figmaAssets/intersect.svg",
+    },
+    {
+      name: "Hamilton Santiago Insandara Alvarez",
+      role: "Estudiante de Ingeniería de Software",
+      image: "/figmaAssets/image-9.png",
+      linkedin: "Linkedin personal",
+      profileIcon: "/figmaAssets/intersect.svg",
+    },
+  ];
+
+  const contactInfo = [
+    {
+      icon: "/figmaAssets/image-11.png",
+      text: "3148328356",
+    },
+    {
+      icon: "/figmaAssets/image-12.png",
+      text: "github",
+    },
+    {
+      icon: "/figmaAssets/image-13.png",
+      text: "outfitgen@gmail.com",
+      isLink: true,
+    },
+  ];
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <div className="bg-[#ffffff] overflow-hidden w-full min-w-[1280px] h-[2836px] relative">
+      <header className="absolute top-0 left-0 w-[1280px] h-[110px] flex items-center gap-[47px] bg-[#ffffff] shadow-small">
+        <div className="-mt-px h-[43px] w-[122px] relative ml-8 bg-white rounded-sm overflow-hidden border-2 border-solid border-[#1a1a1a]">
+          <img
+            className="absolute w-[96.89%] h-[96.89%] top-0 left-0"
+            alt="Vector"
+            src="/figmaAssets/vector-364.svg"
+          />
+          <img
+            className="absolute w-[96.89%] h-[96.89%] top-0 left-0"
+            alt="Vector"
+            src="/figmaAssets/vector-365.svg"
+          />
         </div>
+
+        <nav className="inline-flex h-7 w-[387px] relative items-start gap-[33px]">
+          <div className="relative w-fit mt-[-1.00px] font-patrick-hand-body-lg font-[number:var(--patrick-hand-body-lg-font-weight)] text-black text-[length:var(--patrick-hand-body-lg-font-size)] text-center tracking-[var(--patrick-hand-body-lg-letter-spacing)] leading-[var(--patrick-hand-body-lg-line-height)] whitespace-nowrap [font-style:var(--patrick-hand-body-lg-font-style)]">
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            Acerca de
+          </div>
+          <div className="relative w-fit mt-[-1.00px] font-patrick-hand-body-lg font-[number:var(--patrick-hand-body-lg-font-weight)] text-black text-[length:var(--patrick-hand-body-lg-font-size)] text-center tracking-[var(--patrick-hand-body-lg-letter-spacing)] leading-[var(--patrick-hand-body-lg-line-height)] whitespace-nowrap [font-style:var(--patrick-hand-body-lg-font-style)]">
+            Contactanos
+          </div>
+        </nav>
+
+        <Button
+          className="h-auto inline-flex items-center gap-1.5 pt-[5px] pb-[7px] px-2.5 absolute top-[35px] left-[885px] bg-white rounded-lg border-2 border-solid border-[#1a1a1a]"
+          variant="outline"
+        >
+          <div className="relative flex items-center justify-center w-fit mt-[-2.00px] font-patrick-hand-body-lg font-[number:var(--patrick-hand-body-lg-font-weight)] text-black text-[length:var(--patrick-hand-body-lg-font-size)] text-center tracking-[var(--patrick-hand-body-lg-letter-spacing)] leading-[var(--patrick-hand-body-lg-line-height)] whitespace-nowrap [font-style:var(--patrick-hand-body-lg-font-style)]">
+            Iniciar sesion
+          </div>
+        </Button>
+
+        <Button
+          className="h-auto inline-flex top-9 left-[180px] items-center gap-1.5 pt-[5px] pb-[7px] px-2.5 absolute bg-white rounded-lg border-2 border-solid border-[#1a1a1a]"
+          variant="outline"
+          onClick={() => window.location.href = "/generator"}
+        >
+          <div className="relative flex items-center justify-center w-fit mt-[-2.00px] font-patrick-hand-body-lg font-[number:var(--patrick-hand-body-lg-font-weight)] text-black text-[length:var(--patrick-hand-body-lg-font-size)] text-center tracking-[var(--patrick-hand-body-lg-letter-spacing)] leading-[var(--patrick-hand-body-lg-line-height)] whitespace-nowrap [font-style:var(--patrick-hand-body-lg-font-style)]">
+            Empieza a generar
+          </div>
+        </Button>
+
+        <Button
+          className="h-auto inline-flex top-[35px] left-[1030px] items-center gap-1.5 pt-[5px] pb-[7px] px-2.5 absolute bg-white rounded-lg border-2 border-solid border-[#1a1a1a]"
+          variant="outline"
+        >
+          <div className="relative flex items-center justify-center w-fit mt-[-2.00px] font-patrick-hand-body-lg font-[number:var(--patrick-hand-body-lg-font-weight)] text-black text-[length:var(--patrick-hand-body-lg-font-size)] text-center tracking-[var(--patrick-hand-body-lg-letter-spacing)] leading-[var(--patrick-hand-body-lg-line-height)] whitespace-nowrap [font-style:var(--patrick-hand-body-lg-font-style)]">
+            Registrarse
+          </div>
+        </Button>
+
+        <div className="absolute top-[26px] left-[1179px] w-[58px] h-[58px] flex bg-white rounded-[100px] overflow-hidden border-2 border-solid border-[#1a1a1a]">
+          <img
+            className="mt-[14.5px] w-[54.34px] h-[43.5px] ml-[1.8px]"
+            alt="Intersect"
+            src="/figmaAssets/intersect.svg"
+          />
+        </div>
+      </header>
+
+      <main>
+        <section className="absolute top-[150px] left-[calc(50.00%_-_500px)] w-[1000px] font-inter-display-lg font-[number:var(--inter-display-lg-font-weight)] text-black text-[length:var(--inter-display-lg-font-size)] text-center tracking-[var(--inter-display-lg-letter-spacing)] leading-[var(--inter-display-lg-line-height)] [font-style:var(--inter-display-lg-font-style)]">
+          Sube, personaliza y crea tu atuendo
+        </section>
+
+        <div className="top-[344px] h-[2743px] bg-[#d9d9d9] shadow-m3-elevation-light-2 absolute left-0 w-[1280px]" />
+
+        <div className="flex gap-[29px] absolute top-[257px] left-[271px]">
+          {categoryTags.map((tag, index) => (
+            <Badge
+              key={index}
+              variant="outline"
+              className="flex w-[125px] h-[34px] items-center justify-center gap-2.5 px-2 py-1 rounded-[30px] border border-solid border-[#000000]"
+            >
+              <div className="relative w-fit [font-family:'Inter',Helvetica] font-normal text-[#000000] text-xs text-center tracking-[0.20px] leading-[normal]">
+                {tag}
+              </div>
+            </Badge>
+          ))}
+        </div>
+
+        <div className="absolute top-[369px] left-[281px] w-[719px] [font-family:'Patrick_Hand',Helvetica] font-normal text-[#000000] text-[32px] text-center tracking-[0] leading-7">
+          ¿Necesitas ayuda para crear un atuendo? Aquí podras generar un atuendo
+          de forma rapida para cada ocasión.
+        </div>
+
+        <Button
+          className="h-auto flex w-[171px] h-[70px] top-[466px] left-[calc(50.00%_-_85px)] items-center gap-1.5 pt-[5px] pb-[7px] px-2.5 absolute bg-white rounded-lg border-2 border-solid border-[#1a1a1a]"
+          variant="outline"
+          onClick={() => window.location.href = "/generator"}
+        >
+          <div className="relative flex items-center justify-center w-fit font-patrick-hand-body-lg font-[number:var(--patrick-hand-body-lg-font-weight)] text-black text-[length:var(--patrick-hand-body-lg-font-size)] text-center tracking-[var(--patrick-hand-body-lg-letter-spacing)] leading-[var(--patrick-hand-body-lg-line-height)] whitespace-nowrap [font-style:var(--patrick-hand-body-lg-font-style)]">
+            Empieza a generar
+          </div>
+        </Button>
+
+        <div className="flex w-[91px] h-1.5 items-center px-0 py-1.5 absolute top-[528px] left-[442px] rotate-[-10deg]">
+          <img
+            className="relative flex-1 grow h-[20.77px] mt-[-13.68px] mb-[-13.09px] ml-[-0.64px] mr-[-0.64px] rotate-[10deg]"
+            alt="Vector"
+            src="/figmaAssets/vector-488-1.svg"
+          />
+          <img
+            className="absolute top-[calc(50.00%_-_12px)] right-[-9px] w-[21px] h-[22px] rotate-[10deg]"
+            alt="Vector"
+            src="/figmaAssets/vector-489.svg"
+          />
+        </div>
+
+        <div className="top-[474px] left-[442px] rotate-[10deg] flex w-[91px] h-1.5 items-center px-0 py-1.5 absolute">
+          <img
+            className="h-[18.36px] mt-[-12.18px] mb-[-12.18px] rotate-[-10deg] relative flex-1 grow"
+            alt="Vector"
+            src="/figmaAssets/vector-488-3.svg"
+          />
+          <img
+            className="rotate-[-10deg] absolute top-[calc(50.00%_-_12px)] right-[-9px] w-[21px] h-[22px]"
+            alt="Vector"
+            src="/figmaAssets/vector-489-1.svg"
+          />
+        </div>
+
+        <div className="top-[468px] left-[752px] rotate-[170deg] flex w-[91px] h-1.5 items-center px-0 py-1.5 absolute">
+          <img
+            className="h-[20.77px] mt-[-13.68px] mb-[-13.09px] ml-[-0.64px] mr-[-0.64px] rotate-[-170deg] relative flex-1 grow"
+            alt="Vector"
+            src="/figmaAssets/vector-488.svg"
+          />
+          <img
+            className="rotate-[-170deg] absolute top-[calc(50.00%_-_12px)] right-[-9px] w-[21px] h-[22px]"
+            alt="Vector"
+            src="/figmaAssets/vector-489-3.svg"
+          />
+        </div>
+
+        <div className="top-[524px] left-[755px] rotate-[-170deg] flex w-[91px] h-1.5 items-center px-0 py-1.5 absolute">
+          <img
+            className="h-[18.36px] mt-[-12.18px] mb-[-12.18px] rotate-[170deg] relative flex-1 grow"
+            alt="Vector"
+            src="/figmaAssets/vector-488-2.svg"
+          />
+          <img
+            className="rotate-[170deg] absolute top-[calc(50.00%_-_12px)] right-[-9px] w-[21px] h-[22px]"
+            alt="Vector"
+            src="/figmaAssets/vector-489-2.svg"
+          />
+        </div>
+
+        <div className="absolute top-[600px] left-[166px] w-[758px] font-inter-display font-[number:var(--inter-display-font-weight)] text-black text-[length:var(--inter-display-font-size)] tracking-[var(--inter-display-letter-spacing)] leading-[var(--inter-display-line-height)] [font-style:var(--inter-display-font-style)]">
+          Dinos tu ocasión, proporciona tus prendas y dejanos el resto...
+        </div>
+
+        <img
+          className="absolute top-[750px] left-[182px] w-[292px] h-[329px]"
+          alt="Image"
+          src="/figmaAssets/image-4.png"
+        />
+
+        <img
+          className="absolute top-[750px] left-[810px] w-[213px] h-[329px] rounded-[11px] object-cover"
+          alt="Image"
+          src="/figmaAssets/image-8.png"
+        />
+
+        <div className="absolute top-[1137px] left-[166px] w-[394px] [font-family:'Patrick_Hand',Helvetica] font-normal text-[#000000] text-[32px] tracking-[0] leading-7">
+          Explora nuestras opciones, muestranos tus ideas y prendas para crear
+          un atuendo ideal para tu ocasión.
+        </div>
+
+        <div className="absolute top-[1137px] left-[730px] w-[394px] [font-family:'Patrick_Hand',Helvetica] font-normal text-[#000000] text-[32px] tracking-[0] leading-7">
+          ¿No te parece aduecuado el atuendo generado? No pasa nada! vuelve a
+          intentarlo las veces que quieras hasta que creas que es el indicado
+        </div>
+
+        <div className="absolute top-[1363px] left-[172px] w-[381px] font-inter-display font-[number:var(--inter-display-font-weight)] text-black text-[length:var(--inter-display-font-size)] tracking-[var(--inter-display-letter-spacing)] leading-[var(--inter-display-line-height)] [font-style:var(--inter-display-font-style)]">
+          ¡Dale provecho a tu guarda ropa!
+        </div>
+
+        <div className="absolute top-[1363px] left-[726px] w-[381px] font-inter-display font-[number:var(--inter-display-font-weight)] text-black text-[length:var(--inter-display-font-size)] tracking-[var(--inter-display-letter-spacing)] leading-[var(--inter-display-line-height)] [font-style:var(--inter-display-font-style)]">
+          ¡No pierdas mas tu Tiempo!
+        </div>
+
+        <div className="absolute top-[1511px] left-[172px] w-[381px] [font-family:'Patrick_Hand',Helvetica] font-normal text-[#000000] text-[32px] tracking-[0] leading-7">
+          El guardarropa promedio cuenta con 152 artículos de los cuales se usan
+          con regularidad tan solo el 44%
+        </div>
+
+        <div className="absolute top-[1503px] left-[726px] w-[439px] [font-family:'Patrick_Hand',Helvetica] font-normal text-[#000000] text-[32px] tracking-[0] leading-7">
+          En promedio las mujeres tardan 17 minutos en elegir un atuendo y los
+          hombres tardan 13, esto se traduce en 4 y 3 días respectivamente cada
+          año.
+        </div>
+
+        <img
+          className="absolute top-[1670px] left-[289px] w-[146px] h-[146px] object-cover"
+          alt="Image"
+          src="/figmaAssets/image-10.png"
+        />
+
+        <img
+          className="absolute top-[1664px] left-[838px] w-[157px] h-[157px] object-cover"
+          alt="Image"
+          src="/figmaAssets/image-9.png"
+        />
+
+        <div className="top-[calc(50.00%_-_797px)] left-32 absolute w-5 h-5 bg-black rounded-[10px]" />
+        <div className="top-[calc(50.00%_+_484px)] left-[97px] absolute w-5 h-5 bg-black rounded-[10px]" />
+
+        <section className="absolute top-[1878px] left-[calc(50.00%_-_502px)] w-[1000px] font-inter-display-lg font-[number:var(--inter-display-lg-font-weight)] text-black text-[length:var(--inter-display-lg-font-size)] tracking-[var(--inter-display-lg-letter-spacing)] leading-[var(--inter-display-lg-line-height)] [font-style:var(--inter-display-lg-font-style)]">
+          Acerca de nosotros
+        </section>
+
+        <Card className="flex flex-col w-[478px] h-[203px] items-start gap-3 pt-3 pb-[18px] px-4 absolute top-[1978px] left-[138px] bg-white rounded-xl border-[3px] border-solid border-[#1a1a1a] rotate-180 shadow-small">
+          <CardContent className="p-0">
+            <img
+              className="absolute -top-2.5 left-[calc(50.00%_-_13px)] w-[25px] h-4 -rotate-180"
+              alt="Top beak"
+              src="/figmaAssets/top-beak.svg"
+            />
+          </CardContent>
+        </Card>
+
+        <Card className="flex flex-col w-[478px] h-[203px] items-start gap-3 pt-3 pb-[18px] px-4 absolute top-[1980px] left-[708px] bg-white rounded-xl border-[3px] border-solid border-[#1a1a1a] rotate-180 shadow-small">
+          <CardContent className="p-0">
+            <img
+              className="absolute -top-2.5 left-[calc(50.00%_-_13px)] w-[25px] h-4 -rotate-180"
+              alt="Top beak"
+              src="/figmaAssets/top-beak.svg"
+            />
+          </CardContent>
+        </Card>
+
+        {teamMembers.map((member, index) => (
+          <div key={index}>
+            <div
+              className={`absolute top-[2042px] ${index === 0 ? "left-[166px]" : "left-[732px]"} w-[424px] [font-family:'Patrick_Hand',Helvetica] font-normal text-[#000000] text-[32px] text-center tracking-[0] leading-7`}
+            >
+              {member.name}
+              <br />
+              {member.role}
+            </div>
+            <div
+              className={`${index === 0 ? "left-[351px]" : "left-[922px]"} absolute top-[2211px] w-[52px] h-[52px] flex bg-white rounded-[100px] overflow-hidden border-2 border-solid border-[#1a1a1a]`}
+            >
+              <img
+                className="mt-[13px] w-[48.72px] h-[39px] ml-[1.6px]"
+                alt="Intersect"
+                src={member.profileIcon}
+              />
+            </div>
+            <div
+              className={`absolute top-[2277px] ${index === 0 ? "left-[270px]" : "left-[842px]"} w-[214px] [font-family:'Patrick_Hand',Helvetica] font-normal text-[#000000] text-[32px] text-center tracking-[0] leading-7`}
+            >
+              {member.linkedin}
+            </div>
+          </div>
+        ))}
+
+        <div className="absolute w-[15.78%] h-0 top-[81.52%] left-[21.56%] bg-black rounded-[40px]" />
+        <div className="absolute w-[15.78%] h-0 top-[81.52%] left-[66.17%] bg-black rounded-[40px]" />
       </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
+
+      <footer className="absolute top-[2444px] left-0 w-[1280px] h-[392px]">
+        <div className="top-0 h-[392px] bg-[#000000] absolute left-0 w-[1280px]" />
+
+        <div className="absolute top-[30px] left-[calc(50.00%_-_640px)] w-full text-center font-inter-display-lg font-[number:var(--inter-display-lg-font-weight)] text-neutral-50 text-[length:var(--inter-display-lg-font-size)] tracking-[var(--inter-display-lg-letter-spacing)] leading-[var(--inter-display-lg-line-height)] [font-style:var(--inter-display-lg-font-style)]">
+          Contactanos
+        </div>
+
+        <div className="flex flex-col items-center justify-center absolute top-[120px] left-[calc(50.00%_-_200px)] w-[400px]">
+          {contactInfo.map((contact, index) => (
+            <div key={index} className="flex items-center mb-6 w-full justify-center">
+              <img
+                className="w-[41px] h-[41px] object-cover mr-4"
+                alt="Contact icon"
+                src={contact.icon}
+              />
+              {contact.isLink ? (
+                <a
+                  className="[font-family:'Patrick_Hand',Helvetica] font-normal text-[#ffffff] text-[28px] tracking-[0] leading-7 underline hover:text-gray-300 transition-colors"
+                  href={`mailto:${contact.text}`}
+                  rel="noopener noreferrer"
+                  target="_blank"
+                >
+                  {contact.text}
+                </a>
+              ) : (
+                <div className="[font-family:'Patrick_Hand',Helvetica] font-normal text-[#ffffff] text-[28px] tracking-[0] leading-7">
+                  {contact.text}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
       </footer>
     </div>
   );
-}
+};
