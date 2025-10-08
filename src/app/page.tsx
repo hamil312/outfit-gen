@@ -1,9 +1,9 @@
 "use client";
 import React from "react";
 import { Badge } from "./components/ui/badge";
-import { Button } from "./components/ui/button";
 import { Card, CardContent } from "./components/ui/card";
 import { JSX } from "react/jsx-runtime";
+import Button from 'react-bootstrap/Button';
 
 export const home = (): JSX.Element => {
   const categoryTags = [
@@ -48,65 +48,54 @@ export const home = (): JSX.Element => {
   ];
 
   return (
-    <div className="bg-[#ffffff] overflow-hidden w-full min-w-[1280px] h-[2836px] relative">
-      <header className="absolute top-0 left-0 w-[1280px] h-[110px] flex items-center gap-[47px] bg-[#ffffff] shadow-small">
-        <div className="-mt-px h-[43px] w-[122px] relative ml-8 bg-white rounded-sm overflow-hidden border-2 border-solid border-[#1a1a1a]">
+    <div className="bg-[#ffffff] overflow-hidden w-full min-w-full h-[2836px] relative">
+      <header className="w-full h-[110px] flex items-center justify-between bg-[#ffffff] shadow-small px-8">
+        <div className="h-[100px] w-[100px] bg-white rounded-sm overflow-hidden border-2 border-solid border-[#1a1a1a] flex items-center justify-center">
           <img
-            className="absolute w-[96.89%] h-[96.89%] top-0 left-0"
+            className="w-[96.89%] h-[96.89%]"
             alt="Vector"
             src="/figmaAssets/vector-364.svg"
           />
           <img
-            className="absolute w-[96.89%] h-[96.89%] top-0 left-0"
+            className="w-[96.89%] h-[96.89%]"
             alt="Vector"
             src="/figmaAssets/vector-365.svg"
           />
         </div>
 
-        <nav className="inline-flex h-7 w-[387px] relative items-start gap-[33px]">
-          <div className="relative w-fit mt-[-1.00px] font-patrick-hand-body-lg font-[number:var(--patrick-hand-body-lg-font-weight)] text-black text-[length:var(--patrick-hand-body-lg-font-size)] text-center tracking-[var(--patrick-hand-body-lg-letter-spacing)] leading-[var(--patrick-hand-body-lg-line-height)] whitespace-nowrap [font-style:var(--patrick-hand-body-lg-font-style)]">
-            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-            Acerca de
-          </div>
-          <div className="relative w-fit mt-[-1.00px] font-patrick-hand-body-lg font-[number:var(--patrick-hand-body-lg-font-weight)] text-black text-[length:var(--patrick-hand-body-lg-font-size)] text-center tracking-[var(--patrick-hand-body-lg-letter-spacing)] leading-[var(--patrick-hand-body-lg-line-height)] whitespace-nowrap [font-style:var(--patrick-hand-body-lg-font-style)]">
-            Contactanos
-          </div>
+        <nav className="flex items-center gap-2">
+          
+          <Button
+            variant="primary"
+            className="bg-white rounded-lg border-2 border-solid border-[#1a1a1a] px-10 py-2"
+            onClick={() => window.location.href = "/generator"}
+          >
+            <span className="font-patrick-hand-body-lg text-black">Empieza a generar</span>
+          </Button>
+          <span className="font-patrick-hand-body-lg text-black">Acerca de</span>
+          <span className="font-patrick-hand-body-lg text-black">Contactanos</span>
         </nav>
 
-        <Button
-          className="h-auto inline-flex items-center gap-1.5 pt-[5px] pb-[7px] px-2.5 absolute top-[35px] left-[885px] bg-white rounded-lg border-2 border-solid border-[#1a1a1a]"
-          variant="outline"
-        >
-          <div className="relative flex items-center justify-center w-fit mt-[-2.00px] font-patrick-hand-body-lg font-[number:var(--patrick-hand-body-lg-font-weight)] text-black text-[length:var(--patrick-hand-body-lg-font-size)] text-center tracking-[var(--patrick-hand-body-lg-letter-spacing)] leading-[var(--patrick-hand-body-lg-line-height)] whitespace-nowrap [font-style:var(--patrick-hand-body-lg-font-style)]">
-            Iniciar sesion
+        <div className="flex items-center gap-4">
+          <Button
+            className="bg-white rounded-lg border-2 border-solid border-[#1a1a1a] px-4 py-2"
+            variant="outline"
+          >
+            <span className="font-patrick-hand-body-lg text-black">Iniciar sesion</span>
+          </Button>
+          <Button
+            className="bg-white rounded-lg border-2 border-solid border-[#1a1a1a] px-4 py-2"
+            variant="outline"
+          >
+            <span className="font-patrick-hand-body-lg text-black">Registrarse</span>
+          </Button>
+          <div className="w-[58px] h-[58px] flex items-center justify-center bg-white rounded-full overflow-hidden border-2 border-solid border-[#1a1a1a]">
+            <img
+              className="w-[54px] h-[44px]"
+              alt="Intersect"
+              src="/figmaAssets/intersect.svg"
+            />
           </div>
-        </Button>
-
-        <Button
-          className="h-auto inline-flex top-9 left-[180px] items-center gap-1.5 pt-[5px] pb-[7px] px-2.5 absolute bg-white rounded-lg border-2 border-solid border-[#1a1a1a]"
-          variant="outline"
-          onClick={() => window.location.href = "/generator"}
-        >
-          <div className="relative flex items-center justify-center w-fit mt-[-2.00px] font-patrick-hand-body-lg font-[number:var(--patrick-hand-body-lg-font-weight)] text-black text-[length:var(--patrick-hand-body-lg-font-size)] text-center tracking-[var(--patrick-hand-body-lg-letter-spacing)] leading-[var(--patrick-hand-body-lg-line-height)] whitespace-nowrap [font-style:var(--patrick-hand-body-lg-font-style)]">
-            Empieza a generar
-          </div>
-        </Button>
-
-        <Button
-          className="h-auto inline-flex top-[35px] left-[1030px] items-center gap-1.5 pt-[5px] pb-[7px] px-2.5 absolute bg-white rounded-lg border-2 border-solid border-[#1a1a1a]"
-          variant="outline"
-        >
-          <div className="relative flex items-center justify-center w-fit mt-[-2.00px] font-patrick-hand-body-lg font-[number:var(--patrick-hand-body-lg-font-weight)] text-black text-[length:var(--patrick-hand-body-lg-font-size)] text-center tracking-[var(--patrick-hand-body-lg-letter-spacing)] leading-[var(--patrick-hand-body-lg-line-height)] whitespace-nowrap [font-style:var(--patrick-hand-body-lg-font-style)]">
-            Registrarse
-          </div>
-        </Button>
-
-        <div className="absolute top-[26px] left-[1179px] w-[58px] h-[58px] flex bg-white rounded-[100px] overflow-hidden border-2 border-solid border-[#1a1a1a]">
-          <img
-            className="mt-[14.5px] w-[54.34px] h-[43.5px] ml-[1.8px]"
-            alt="Intersect"
-            src="/figmaAssets/intersect.svg"
-          />
         </div>
       </header>
 
@@ -115,7 +104,7 @@ export const home = (): JSX.Element => {
           Sube, personaliza y crea tu atuendo
         </section>
 
-        <div className="top-[344px] h-[2743px] bg-[#d9d9d9] shadow-m3-elevation-light-2 absolute left-0 w-[1280px]" />
+        <div className="top-[344px] h-[2743px] bg-[#d9d9d9] shadow-m3-elevation-light-2 absolute left-0 w-full" />
 
         <div className="flex gap-[29px] absolute top-[257px] left-[271px]">
           {categoryTags.map((tag, index) => (
@@ -137,7 +126,7 @@ export const home = (): JSX.Element => {
         </div>
 
         <Button
-          className="h-auto flex w-[171px] h-[70px] top-[466px] left-[calc(50.00%_-_85px)] items-center gap-1.5 pt-[5px] pb-[7px] px-2.5 absolute bg-white rounded-lg border-2 border-solid border-[#1a1a1a]"
+          className="h-auto flex w-[171px] top-[466px] left-[calc(50.00%_-_85px)] items-center gap-1.5 pt-[5px] pb-[7px] px-2.5 absolute bg-white rounded-lg border-2 border-solid border-[#1a1a1a]"
           variant="outline"
           onClick={() => window.location.href = "/generator"}
         >
@@ -312,8 +301,8 @@ export const home = (): JSX.Element => {
         <div className="absolute w-[15.78%] h-0 top-[81.52%] left-[66.17%] bg-black rounded-[40px]" />
       </main>
 
-      <footer className="absolute top-[2444px] left-0 w-[1280px] h-[392px]">
-        <div className="top-0 h-[392px] bg-[#000000] absolute left-0 w-[1280px]" />
+      <footer className="absolute top-[2444px] left-0 w-full h-[392px]">
+        <div className="top-0 h-[392px] bg-[#000000] absolute left-0 w-full" />
 
         <div className="absolute top-[30px] left-[calc(50.00%_-_640px)] w-full text-center font-inter-display-lg font-[number:var(--inter-display-lg-font-weight)] text-neutral-50 text-[length:var(--inter-display-lg-font-size)] tracking-[var(--inter-display-lg-letter-spacing)] leading-[var(--inter-display-lg-line-height)] [font-style:var(--inter-display-lg-font-style)]">
           Contactanos
