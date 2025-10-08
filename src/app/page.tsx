@@ -4,8 +4,9 @@ import { Badge } from "./components/ui/badge";
 import { Card, CardContent } from "./components/ui/card";
 import { JSX } from "react/jsx-runtime";
 import Button from 'react-bootstrap/Button';
+import Link from "next/link";
 
-export const home = (): JSX.Element => {
+export default function Home() {
   const categoryTags = [
     "Atuendo deportivo",
     "Ocasion elegante",
@@ -65,13 +66,9 @@ export const home = (): JSX.Element => {
 
         <nav className="flex items-center gap-2">
           
-          <Button
-            variant="primary"
-            className="bg-white rounded-lg border-2 border-solid border-[#1a1a1a] px-10 py-2"
-            onClick={() => window.location.href = "/generator"}
-          >
-            <span className="font-patrick-hand-body-lg text-black">Empieza a generar</span>
-          </Button>
+          <Link href="/generator">
+            <Button variant="primary">Empieza a generar</Button>
+          </Link>
           <span className="font-patrick-hand-body-lg text-black">Acerca de</span>
           <span className="font-patrick-hand-body-lg text-black">Contactanos</span>
         </nav>
@@ -125,15 +122,9 @@ export const home = (): JSX.Element => {
           de forma rapida para cada ocasión.
         </div>
 
-        <Button
-          className="h-auto flex w-[171px] top-[466px] left-[calc(50.00%_-_85px)] items-center gap-1.5 pt-[5px] pb-[7px] px-2.5 absolute bg-white rounded-lg border-2 border-solid border-[#1a1a1a]"
-          variant="outline"
-          onClick={() => window.location.href = "/generator"}
-        >
-          <div className="relative flex items-center justify-center w-fit font-patrick-hand-body-lg font-[number:var(--patrick-hand-body-lg-font-weight)] text-black text-[length:var(--patrick-hand-body-lg-font-size)] text-center tracking-[var(--patrick-hand-body-lg-letter-spacing)] leading-[var(--patrick-hand-body-lg-line-height)] whitespace-nowrap [font-style:var(--patrick-hand-body-lg-font-style)]">
-            Empieza a generar
-          </div>
-        </Button>
+        <Link href="/generator">
+          <Button variant="primary">Empieza a generar</Button>
+        </Link>
 
         <div className="flex w-[91px] h-1.5 items-center px-0 py-1.5 absolute top-[528px] left-[442px] rotate-[-10deg]">
           <img
@@ -337,4 +328,3 @@ export const home = (): JSX.Element => {
     </div>
   );
 };
-export default home;
