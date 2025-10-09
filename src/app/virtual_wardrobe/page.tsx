@@ -4,7 +4,6 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { Resizable } from 'react-resizable';
 
-// Importaciones de react-bootstrap
 import Accordion from 'react-bootstrap/Accordion';
 import Button from 'react-bootstrap/Button';
 import Container from 'react-bootstrap/Container';

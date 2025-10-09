@@ -3,20 +3,25 @@ import React from "react";
 import { JSX } from "react/jsx-runtime";
 import Button from 'react-bootstrap/Button';
 import { useState } from 'react';
+import Link from "next/link";
 
-export const Generator = (): JSX.Element => {
-    const [selectedContext, setSelectedContext] = useState<string[]>([]);
-    const [selectedColor, setSelectedColor] = useState<string[]>([]);
-
-    const handleSelectContext = (event: React.ChangeEvent<HTMLSelectElement>) => {
-        const values = Array.from(event.target.selectedOptions, (o) => o.value);
-        setSelectedContext(values);
-    };
-
-    const handleSelectColor = (event: React.ChangeEvent<HTMLSelectElement>) => {
-        const values = Array.from(event.target.selectedOptions, (o) => o.value);
-        setSelectedColor(values);
-    };
+export default function Generator() {
+    const [selectedContext, setSelectedContext] = useState<string>("");
+    const [selectedColor, setSelectedColor] = useState<string>("");
+    const [showContextDropdown, setShowContextDropdown] = useState(false);
+    const [showColorDropdown, setShowColorDropdown] = useState(false);
+    
+    React.useEffect(() => {
+        const handleClickOutside = (e: MouseEvent) => {
+            const target = e.target as HTMLElement;
+            if (!target.closest(".dropdown-container")) {
+                setShowContextDropdown(false);
+                setShowColorDropdown(false);
+            }
+        };
+        document.addEventListener("click", handleClickOutside);
+        return () => document.removeEventListener("click", handleClickOutside);
+    }, []);
 
     const contactInfo = [
         {
@@ -35,152 +40,212 @@ export const Generator = (): JSX.Element => {
     ];
 
     return (
-        <div className="bg-[#ffffff] overflow-hidden w-full min-w-full h-[2836px] relative">
+        <div className="flex flex-col min-h-screen bg-[#ffffff] w-full">
             <header className="w-full h-[110px] flex items-center justify-between bg-[#ffffff] shadow-small px-8">
-            <div className="h-[100px] w-[100px] bg-white rounded-sm overflow-hidden border-2 border-solid border-[#1a1a1a] flex items-center justify-center">
-                <img
-                    className="w-[96.89%] h-[96.89%]"
-                    alt="Vector"
-                    src="/figmaAssets/vector-364.svg"
-                />
-                <img
-                    className="w-[96.89%] h-[96.89%]"
-                    alt="Vector"
-                    src="/figmaAssets/vector-365.svg"
-                />
-            </div>
-
-            <nav className="flex items-center gap-2">
-                
-                <Button
-                    variant="primary"
-                    className="bg-white rounded-lg border-2 border-solid border-[#1a1a1a] px-10 py-2"
-                    onClick={() => window.location.href = "/generator"}
-                    >
-                    <span className="font-patrick-hand-body-lg text-black">Empieza a generar</span>
-                </Button>
-                <span className="font-patrick-hand-body-lg text-black">Acerca de</span>
-                <span className="font-patrick-hand-body-lg text-black">Contactanos</span>
-            </nav>
-
-            <div className="flex items-center gap-4">
-                <Button
-                    className="bg-white rounded-lg border-2 border-solid border-[#1a1a1a] px-4 py-2"
-                    variant="outline"
-                    >
-                    <span className="font-patrick-hand-body-lg text-black">Iniciar sesion</span>
-                </Button>
-                <Button
-                    className="bg-white rounded-lg border-2 border-solid border-[#1a1a1a] px-4 py-2"
-                    variant="outline"
-                    >
-                    <span className="font-patrick-hand-body-lg text-black">Registrarse</span>
-                </Button>
-                <div className="w-[58px] h-[58px] flex items-center justify-center bg-white rounded-full overflow-hidden border-2 border-solid border-[#1a1a1a]">
-                <img
-                    className="w-[54px] h-[44px]"
-                    alt="Intersect"
-                    src="/figmaAssets/intersect.svg"
-                />
-                </div>
-            </div>
-            </header>
-
-            <main>
-                <section className="absolute top-[150px] left-[calc(50.00%_-_500px)] w-[1000px] font-inter-display-lg font-[number:var(--inter-display-lg-font-weight)] text-black text-[length:var(--inter-display-lg-font-size)] text-center tracking-[var(--inter-display-lg-letter-spacing)] leading-[var(--inter-display-lg-line-height)] [font-style:var(--inter-display-lg-font-style)]">
-                    ¿Qué tipo de Outfit quieres hoy?
-                </section>
-
-                <div className="top-[344px] h-[2743px] bg-[#d9d9d9] shadow-m3-elevation-light-2 absolute left-0 w-full" />
-
-                <Button
-                    className="h-auto flex w-[171px] top-[466px] left-[calc(50.00%_-_85px)] items-center gap-1.5 pt-[5px] pb-[7px] px-2.5 absolute bg-white rounded-lg border-2 border-solid border-[#1a1a1a]"
-                    variant="outline"
-                >
-                    <div className="relative flex items-center justify-center w-fit font-patrick-hand-body-lg font-[number:var(--patrick-hand-body-lg-font-weight)] text-black text-[length:var(--patrick-hand-body-lg-font-size)] text-center tracking-[var(--patrick-hand-body-lg-letter-spacing)] leading-[var(--patrick-hand-body-lg-line-height)] whitespace-nowrap [font-style:var(--patrick-hand-body-lg-font-style)]">
-                        Generate
-                    </div>
-                </Button>
-
-                <div className="flex ">
-                    <label htmlFor="context-select">Context:</label>
-                        <select
-                            id="context-select"
-                            multiple={true}
-                            value={selectedContext}
-                            onChange={handleSelectContext}
-                        >
-                            <option value="formal">Formal</option>
-                            <option value="informal">Informal</option>
-                        </select>
-                    <label htmlFor="color-select">Color:</label>
-                        <select
-                            id="color-select"
-                            multiple={true}
-                            value={selectedColor}
-                            onChange={handleSelectColor}
-                        >
-                            <option value="red">Red</option>
-                            <option value="blue">Blue</option>
-                            <option value="yellow">Yellow</option>
-                            <option value="green">Green</option>
-                            <option value="black">Black</option>
-                            <option value="white">White</option>
-                        </select>
+                <div className="h-[100px] w-[100px] bg-white rounded-sm overflow-hidden border-2 border-solid border-[#FCC4C4] flex items-center justify-center">
+                    <img
+                        className="w-[96.89%] h-[96.89%]"
+                        alt="Vector"
+                        src="/figmaAssets/vector-364.svg"
+                    />
+                    <img
+                        className="w-[96.89%] h-[96.89%]"
+                        alt="Vector"
+                        src="/figmaAssets/vector-365.svg"
+                    />
                 </div>
 
-                <div className="flex ">
+                <nav className="flex items-center gap-2">
+                    
                     <Button
                         variant="primary"
-                        className="bg-white rounded-lg border-2 border-solid border-[#1a1a1a] px-10 py-2"
-                        onClick={() => window.location.href = "/wardrobe"}
+                        className="bg-white rounded-lg border-2 border-solid border-[#FCC4C4] px-10 py-2"
+                        onClick={() => window.location.href = "/generator"}
                         >
                         <span className="font-patrick-hand-body-lg text-black">Empieza a generar</span>
                     </Button>
+                    <span className="font-patrick-hand-body-lg text-black">Acerca de</span>
+                    <span className="font-patrick-hand-body-lg text-black">Contactanos</span>
+                </nav>
 
+                <div className="flex items-center gap-4">
                     <Button
-                        variant="primary"
-                        className="bg-white rounded-lg border-2 border-solid border-[#1a1a1a] px-10 py-2"
+                        className="bg-white rounded-lg border-2 border-solid border-[#FCC4C4] px-4 py-2"
+                        variant="outline"
                         >
-                        <span className="font-patrick-hand-body-lg text-black">Seleccionar Ropa</span>
+                        <span className="font-patrick-hand-body-lg text-black">Iniciar sesion</span>
                     </Button>
+                    <Button
+                        className="bg-white rounded-lg border-2 border-solid border-[#FCC4C4] px-4 py-2"
+                        variant="outline"
+                        >
+                        <span className="font-patrick-hand-body-lg text-black">Registrarse</span>
+                    </Button>
+                    <div className="w-[58px] h-[58px] flex items-center justify-center bg-white rounded-full overflow-hidden border-2 border-solid border-[#FCC4C4]">
+                    <img
+                        className="w-[54px] h-[44px]"
+                        alt="Intersect"
+                        src="/figmaAssets/intersect.svg"
+                    />
+                    </div>
                 </div>
+            </header>
 
-                
+            <main className="flex-grow mt-[50px] flex flex-col items-center">
+                <h2 className="text-3xl font-semibold text-center mb-8">
+                    ¿Qué tipo de Outfit quieres hoy?
+                </h2>
+
+                {/* Sección gris principal */}
+                <section className="w-full bg-[#FCC4C4] py-12 flex flex-col items-center gap-10">
+                    {/* Botón Generate */}
+                    <Button
+                    variant="outline-primary"
+                    className="bg-white rounded-lg border-2 border-solid border-[#FCC4C4] px-8 py-3 text-lg font-patrick-hand-body-lg text-black"
+                    >
+                    Generate
+                    </Button>
+                    
+                    <div className="w-[90%] max-w-6xl flex flex-row md:flex-row justify-between gap-8">
+                        <div className="flex flex-col items-center justify-start p-8 rounded-lg border-2 border-solid border-[#FCC4C4] w-full md:w-1/4 gap-4">
+
+                            <div className="relative dropdown-container">
+                                <button
+                                    onClick={() => setShowContextDropdown(!showContextDropdown)}
+                                    className="w-[100%] bg-white border border-gray-400 rounded-md p-2 flex justify-between items-center"
+                                >
+                                    <span>{selectedContext ? selectedContext : "Contexto"}</span>
+                                    <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    className={`h-5 w-5 transition-transform ${
+                                        showContextDropdown ? "rotate-180" : "rotate-0"
+                                    }`}
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                    >
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </button>
+
+                                {showContextDropdown && (
+                                    <div className="absolute mt-2 w-[100%] bg-white border border-gray-300 rounded-md shadow-lg z-10">
+                                    {["Formal", "Informal"].map((option) => (
+                                        <div
+                                        key={option}
+                                        className={`p-2 cursor-pointer hover:bg-gray-100 ${
+                                            selectedContext === option.toLowerCase() ? "bg-gray-200" : ""
+                                        }`}
+                                        onClick={() => {
+                                            setSelectedContext(option.toLowerCase());
+                                            setShowContextDropdown(false); // cerrar después de elegir
+                                        }}
+                                        >
+                                        {option}
+                                        </div>
+                                    ))}
+                                    </div>
+                                )}
+                                </div>
+
+                                {/* COLOR */}
+                                <div className="relative dropdown-container">
+                                <button
+                                    onClick={() => setShowColorDropdown(!showColorDropdown)}
+                                    className="w-[100%] bg-white border border-gray-400 rounded-md p-2 flex justify-between items-center"
+                                >
+                                    <span>{selectedColor ? selectedColor : "Seleccionar color"}</span>
+                                    <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    className={`h-5 w-5 transition-transform ${
+                                        showColorDropdown ? "rotate-180" : "rotate-0"
+                                    }`}
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                    >
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </button>
+
+                                {showColorDropdown && (
+                                    <div className="absolute mt-2 w-[100%] bg-white border border-gray-300 rounded-md shadow-lg z-10 max-h-[200px] overflow-auto">
+                                    {["Rojo", "Azul", "Amarillo", "Verde", "Negro", "Blanco"].map((option) => (
+                                        <div
+                                        key={option}
+                                        className={`p-2 cursor-pointer hover:bg-gray-100 ${
+                                            selectedColor === option.toLowerCase() ? "bg-gray-200" : ""
+                                        }`}
+                                        onClick={() => {
+                                            setSelectedColor(option.toLowerCase());
+                                            setShowColorDropdown(false); // cerrar después de elegir
+                                        }}
+                                        >
+                                        {option}
+                                        </div>
+                                    ))}
+                                    </div>
+                                )}
+                                </div>
+                        </div>
+
+                        {/* Columna 2: Cards de atuendos */}
+                        <div className="flex flex-col items-center justify-center bg-white p-6 rounded-lg border-2 border-solid border-[#FCC4C4] w-full md:w-2/4 min-h-[250px]">
+                            <p className="text-gray-700 text-center">
+                            Aquí se mostrarán las prendas seleccionadas o generadas.
+                            </p>
+                        </div>
+
+                        {/* Columna 3: Botones de acción */}
+                        <div className="flex flex-col items-center justify-start p-6 rounded-lg border-2 border-solid border-[#FCC4C4] w-full md:w-1/4 gap-4">
+                            <Link href="/virtual_wardrobe">
+                                <Button
+                                    variant="outline-primary"
+                                    className="bg-white rounded-lg border-2 border-solid border-[#FCC4C4] px-6 py-2"
+                                    >
+                                    Guardarropa
+                                </Button>
+                            </Link>
+
+                            <Button
+                                variant="outline-primary"
+                                className="bg-white rounded-lg border-2 border-solid border-[#FCC4C4] px-6 py-2"
+                                >
+                                Seleccionar ropa
+                            </Button>
+                        </div>
+                    </div>
+                </section>
             </main>
 
-            <footer className="absolute top-[2444px] left-0 w-full h-[392px]">
-            <div className="top-0 h-[392px] bg-[#000000] absolute left-0 w-full" />
+            <footer className="w-full bg-black text-white py-10 flex flex-col items-center justify-center mt-auto">
+                <h3 className="text-2xl font-semibold mb-6">Contáctanos</h3>
 
-            <div className="absolute top-[30px] left-[calc(50.00%_-_640px)] w-full text-center font-inter-display-lg font-[number:var(--inter-display-lg-font-weight)] text-neutral-50 text-[length:var(--inter-display-lg-font-size)] tracking-[var(--inter-display-lg-letter-spacing)] leading-[var(--inter-display-lg-line-height)] [font-style:var(--inter-display-lg-font-style)]">
-                Contactanos
-            </div>
-
-            <div className="flex flex-col items-center justify-center absolute top-[120px] left-[calc(50.00%_-_200px)] w-[400px]">
-                {contactInfo.map((contact, index) => (
-                <div key={index} className="flex items-center mb-6 w-full justify-center">
-                    <img
-                    className="w-[41px] h-[41px] object-cover mr-4"
-                    alt="Contact icon"
-                    src={contact.icon}
-                    />
-                    {contact.isLink ? (
-                    <a
-                        className="[font-family:'Patrick_Hand',Helvetica] font-normal text-[#ffffff] text-[28px] tracking-[0] leading-7 underline hover:text-gray-300 transition-colors"
-                        href={`mailto:${contact.text}`}
-                        rel="noopener noreferrer"
-                        target="_blank"
-                    >
-                        {contact.text}
-                    </a>
-                    ) : (
-                    <div className="[font-family:'Patrick_Hand',Helvetica] font-normal text-[#ffffff] text-[28px] tracking-[0] leading-7">
-                        {contact.text}
-                    </div>
-                    )}
+                <div className="flex flex-col items-center justify-center space-y-4">
+                    {contactInfo.map((contact, index) => (
+                        <div key={index} className="flex items-center gap-4">
+                            <img
+                                className="w-[41px] h-[41px] object-cover"
+                                alt="Contact icon"
+                                src={contact.icon}
+                            />
+                            {contact.isLink ? (
+                                <a
+                                    className="font-patrick-hand-body-lg text-white text-xl underline hover:text-gray-300 transition-colors"
+                                    href={`mailto:${contact.text}`}
+                                    rel="noopener noreferrer"
+                                    target="_blank"
+                                >
+                                    {contact.text}
+                                </a>
+                            ) : (
+                                <div className="font-patrick-hand-body-lg text-white text-xl">
+                                    {contact.text}
+                                </div>
+                            )}
+                        </div>
+                    ))}
                 </div>
-                ))}
-            </div>
             </footer>
         </div>
     );
