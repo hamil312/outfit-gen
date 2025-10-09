@@ -162,6 +162,19 @@
   animation: var(--animate-spin);
 }
 
+.react-resizable {
+  position: relative;
+}
+
+.react-resizable-handle {
+  position: absolute;
+  user-select: none;
+}
+
+.react-resizable-handle-e {
+  cursor: ew-resize;
+}
+
 @keyframes spin {
   to {
     transform: rotate(1turn);
