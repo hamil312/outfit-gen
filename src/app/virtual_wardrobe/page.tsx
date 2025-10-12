@@ -10,8 +10,10 @@ import Card from 'react-bootstrap/Card';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Container from 'react-bootstrap/Container';
+import Nav from 'react-bootstrap/Nav';
+import Navbar from 'react-bootstrap/Navbar';
 
-import { MdDragHandle } from 'react-icons/md';
+import { SlOptionsVertical } from "react-icons/sl";
 import { BsGrid3X3Gap } from 'react-icons/bs';
 import { BiSolidTShirt } from "react-icons/bi";
 import { PiPantsFill } from "react-icons/pi";
@@ -234,57 +236,68 @@ const VirtualWardrobe = () => {
   return (
     <div className="min-h-screen">
       {/* Navbar */}
-      <header className="w-full h-[110px] flex items-center justify-between bg-[#ffffff] shadow-small px-8">
-        <div className="h-[100px] w-[100px] bg-white rounded-sm overflow-hidden border-2 border-solid border-[#5CA2AE] flex items-center justify-center">
-          <img
-              className="w-[96.89%] h-[96.89%]"
-              alt="Vector"
-              src="/figmaAssets/vector-364.svg"
-          />
-          <img
-              className="w-[96.89%] h-[96.89%]"
-              alt="Vector"
-              src="/figmaAssets/vector-365.svg"
-          />
-        </div>
-        <nav className="flex items-center gap-2">
-          <Button
-            variant="primary"
-            className="bg-white rounded-lg border-2 border-solid border-[#5CA2AE] px-10 py-2"
-            onClick={() => window.location.href = "/generator"}
+      <Navbar className="bg-white shadow-sm py-3">
+        <Container fluid className="px-8">
+          <Navbar.Brand 
+            href="/"
+            className="font-bold text-xl hover:text-[#5CA2AE] transition-colors"
+          >
+            PickurFit
+          </Navbar.Brand>
+          
+          <Nav className="me-auto gap-4 align-items-center">
+            <Button
+              variant="outline-dark"
+              className="border-2 hover:bg-[#5CA2AE] hover:border-[#5CA2AE] hover:text-white transition-colors"
+              onClick={() => window.location.href = "/generator"}
             >
-            <span className="font-patrick-hand-body-lg text-black">Empieza a generar</span>
-          </Button>
-          <span className="font-patrick-hand-body-lg text-black">Acerca de</span>
-          <span className="font-patrick-hand-body-lg text-black">Contactanos</span>
-        </nav>
+              Empieza a generar
+            </Button>
+            <Nav.Link 
+              href="/about"
+              className="text-dark hover:text-[#5CA2AE] transition-colors"
+            >
+              Acerca de
+            </Nav.Link>
+            <Nav.Link 
+              href="/contact"
+              className="text-dark hover:text-[#5CA2AE] transition-colors"
+            >
+              Contactanos
+            </Nav.Link>
+          </Nav>
 
-        <div className="flex items-center gap-4">
-          <Button
-            className="bg-white rounded-lg border-2 border-solid border-[#5CA2AE] px-4 py-2"
-            variant="outline"
+          <Nav className="gap-3 align-items-center">
+            <Button
+              variant="outline-dark"
+              className="border-2 hover:bg-[#5CA2AE] hover:border-[#5CA2AE] hover:text-white transition-colors"
             >
-            <span className="font-patrick-hand-body-lg text-black">Iniciar sesion</span>
-          </Button>
-          <Button
-            className="bg-white rounded-lg border-2 border-solid border-[#5CA2AE] px-4 py-2"
-            variant="outline"
+              Iniciar sesion
+            </Button>
+            <Button
+              variant="outline-dark"
+              className="border-2 hover:bg-[#5CA2AE] hover:border-[#5CA2AE] hover:text-white transition-colors"
             >
-            <span className="font-patrick-hand-body-lg text-black">Registrarse</span>
-          </Button>
-          <div className="w-[58px] h-[58px] flex items-center justify-center bg-white rounded-full overflow-hidden border-2 border-solid border-[#5CA2AE]">
-          <img
-            className="w-[54px] h-[44px]"
-            alt="Intersect"
-            src="/figmaAssets/intersect.svg"
-          />
-          </div>
-        </div>    
-      </header> 
-      <h1 className="text-3xl font-semibold text-center mb-8">
-        Tu guardarropa virtual
-      </h1>
-
+              Registrarse
+            </Button>
+            <Nav.Link 
+              href="/profile"
+              className="w-[45px] h-[45px] flex items-center justify-center bg-white rounded-full overflow-hidden border-2 border-black hover:border-[#1a2b32] transition-colors p-0"
+            >
+              <img
+                className="w-[35px] h-[35px]"
+                alt="User"
+                src="/figmaAssets/intersect.svg"
+              />
+            </Nav.Link>
+          </Nav>
+        </Container>
+      </Navbar> 
+      <header className="py-2 border-b border-gray-200">
+        <h1 className="text-3xl font-semibold text-center">
+          Tu guardarropa virtual
+        </h1>
+      </header>
       {/* Wardrobe section */}
       <div className="flex">
         {/* Side bar */}
@@ -301,7 +314,7 @@ const VirtualWardrobe = () => {
             handle={(
               <div className="react-resizable-handle react-resizable-handle-e flex items-center justify-center h-full absolute right-0 w-4 cursor-ew-resize hover:bg-[#5CA2AE]/10 transition-colors">
                 <div className="h-16 w-6 rounded flex items-center justify-center">
-                  <MdDragHandle size={28} className="text-[#1a2b32]" />
+                  <SlOptionsVertical size={28} className="text-[#1a2b32] rotate-45" />
                 </div>
               </div>
             )}
@@ -313,9 +326,9 @@ const VirtualWardrobe = () => {
                 fontSize: '1.1rem'
               }}
             >
-              <Accordion defaultActiveKey={['0']} alwaysOpen className="mb-4">
+              <Accordion defaultActiveKey={['0']} alwaysOpen className="mb-4 mx-2">
                 {/* Tus prendas section */}
-                <Accordion.Item eventKey="0" className="border-0">
+                <Accordion.Item eventKey="0" className="border-0 bg-transparent">
                   <Accordion.Header className="py-2">
                     <BiCloset className="me-2 text-[#1a2b32]" size={24} />
                     <span className="fw-semibold text-[#1a2b32]">Tus prendas</span>
@@ -359,7 +372,7 @@ const VirtualWardrobe = () => {
                 </Accordion.Item>
 
                 {/* Tus atuendos section */}
-                <Accordion.Item eventKey="1" className="border-0">
+                <Accordion.Item eventKey="1" className="border-0 bg-transparent">
                   <Accordion.Header className="py-2">
                     <BiSolidTShirt className="me-2 text-[#1a2b32]" size={24} />
                     <span className="fw-semibold text-[#1a2b32]">Tus atuendos</span>
@@ -408,7 +421,7 @@ const VirtualWardrobe = () => {
           </Resizable>
         </div>
         {/* Main content area */}
-        <main className="flex-1 p-8">
+        <main className="flex-1 m-4 p-8">
           {/* Breadcrumb */}
           <Breadcrumb className="mb-6">
             <Breadcrumb.Item 

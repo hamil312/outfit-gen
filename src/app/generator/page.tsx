@@ -4,6 +4,9 @@ import { JSX } from "react/jsx-runtime";
 import Button from 'react-bootstrap/Button';
 import { useState } from 'react';
 import Link from "next/link";
+import Container from 'react-bootstrap/Container';
+import Nav from 'react-bootstrap/Nav';
+import Navbar from 'react-bootstrap/Navbar';
 
 export default function Generator() {
     const [selectedContext, setSelectedContext] = useState<string>("");
@@ -41,58 +44,66 @@ export default function Generator() {
 
     return (
         <div className="flex flex-col min-h-screen bg-[#ffffff] w-full">
-            <header className="w-full h-[110px] flex items-center justify-between bg-[#ffffff] shadow-small px-8">
-                <div className="h-[100px] w-[100px] bg-white rounded-sm overflow-hidden border-2 border-solid border-[#FCC4C4] flex items-center justify-center">
-                    <img
-                        className="w-[96.89%] h-[96.89%]"
-                        alt="Vector"
-                        src="/figmaAssets/vector-364.svg"
-                    />
-                    <img
-                        className="w-[96.89%] h-[96.89%]"
-                        alt="Vector"
-                        src="/figmaAssets/vector-365.svg"
-                    />
-                </div>
+            <Navbar className="bg-white shadow-sm py-3">
+                <Container fluid className="px-8">
+                <Navbar.Brand 
+                    href="/"
+                    className="font-bold text-xl hover:text-[#FCC4C4] transition-colors"
+                >
+                    PickurFit
+                </Navbar.Brand>
+                
+                <Nav className="me-auto gap-4 align-items-center">
+                    <Button
+                    variant="outline-dark"
+                    className="border-2 hover:bg-[#FCC4C4] hover:border-[#FCC4C4] hover:text-white transition-colors"
+                    onClick={() => window.location.href = "/generator"}
+                    >
+                    Empieza a generar
+                    </Button>
+                    <Nav.Link 
+                    href="/about"
+                    className="text-dark hover:text-[#FCC4C4] transition-colors"
+                    >
+                    Acerca de
+                    </Nav.Link>
+                    <Nav.Link 
+                    href="/contact"
+                    className="text-dark hover:text-[#FCC4C4] transition-colors"
+                    >
+                    Contactanos
+                    </Nav.Link>
+                </Nav>
 
-                <nav className="flex items-center gap-2">
-                    
+                <Nav className="gap-3 align-items-center">
                     <Button
-                        variant="primary"
-                        className="bg-white rounded-lg border-2 border-solid border-[#FCC4C4] px-10 py-2"
-                        onClick={() => window.location.href = "/generator"}
-                        >
-                        <span className="font-patrick-hand-body-lg text-black">Empieza a generar</span>
-                    </Button>
-                    <span className="font-patrick-hand-body-lg text-black">Acerca de</span>
-                    <span className="font-patrick-hand-body-lg text-black">Contactanos</span>
-                </nav>
-
-                <div className="flex items-center gap-4">
-                    <Button
-                        className="bg-white rounded-lg border-2 border-solid border-[#FCC4C4] px-4 py-2"
-                        variant="outline"
-                        >
-                        <span className="font-patrick-hand-body-lg text-black">Iniciar sesion</span>
+                    variant="outline-dark"
+                    className="border-2 hover:bg-[#FCC4C4] hover:border-[#FCC4C4] hover:text-white transition-colors"
+                    >
+                    Iniciar sesion
                     </Button>
                     <Button
-                        className="bg-white rounded-lg border-2 border-solid border-[#FCC4C4] px-4 py-2"
-                        variant="outline"
-                        >
-                        <span className="font-patrick-hand-body-lg text-black">Registrarse</span>
+                    variant="outline-dark"
+                    className="border-2 hover:bg-[#FCC4C4] hover:border-[#FCC4C4] hover:text-white transition-colors"
+                    >
+                    Registrarse
                     </Button>
-                    <div className="w-[58px] h-[58px] flex items-center justify-center bg-white rounded-full overflow-hidden border-2 border-solid border-[#FCC4C4]">
+                    <Nav.Link 
+                    href="/profile"
+                    className="w-[45px] h-[45px] flex items-center justify-center bg-white rounded-full overflow-hidden border-2 border-black hover:border-[#FCC4C4] transition-colors p-0"
+                    >
                     <img
-                        className="w-[54px] h-[44px]"
-                        alt="Intersect"
+                        className="w-[35px] h-[35px]"
+                        alt="User"
                         src="/figmaAssets/intersect.svg"
                     />
-                    </div>
-                </div>
-            </header>
+                    </Nav.Link>
+                </Nav>
+                </Container>
+            </Navbar>
 
-            <main className="flex-grow mt-[50px] flex flex-col items-center">
-                <h2 className="text-3xl font-semibold text-center mb-8">
+            <main className="flex-grow mt-[50px] flex flex-col items-center ">
+                <h2 className="text-3xl font-semibold text-center">
                     ¿Qué tipo de Outfit quieres hoy?
                 </h2>
 
