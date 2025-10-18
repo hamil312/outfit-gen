@@ -5,9 +5,7 @@ import { Card, CardContent } from "./components/ui/card";
 import { JSX } from "react/jsx-runtime";
 import Button from 'react-bootstrap/Button';
 import Link from "next/link";
-import Container from 'react-bootstrap/Container';
-import Nav from 'react-bootstrap/Nav';
-import Navbar from 'react-bootstrap/Navbar';
+import AppNavbar from "@/app/components/ui/Navbar";
 
 export default function Home() {
   const categoryTags = [
@@ -53,63 +51,7 @@ export default function Home() {
 
   return (
     <div className="bg-[#ffffff] overflow-hidden w-full min-w-full h-[2836px] relative">
-      <Navbar className="bg-white shadow-sm py-3">
-        <Container fluid className="px-8">
-          <Navbar.Brand 
-            href="/"
-            className="font-bold text-xl hover:text-[#5CA2AE] transition-colors"
-          >
-            PickurFit
-          </Navbar.Brand>
-          
-          <Nav className="me-auto gap-4 align-items-center">
-            <Button
-              variant="outline-dark"
-              className="border-2 hover:bg-[#5CA2AE] hover:border-[#5CA2AE] hover:text-white transition-colors"
-              onClick={() => window.location.href = "/generator"}
-            >
-              Empieza a generar
-            </Button>
-            <Nav.Link 
-              href="/about"
-              className="text-dark hover:text-[#5CA2AE] transition-colors"
-            >
-              Acerca de
-            </Nav.Link>
-            <Nav.Link 
-              href="/contact"
-              className="text-dark hover:text-[#5CA2AE] transition-colors"
-            >
-              Contactanos
-            </Nav.Link>
-          </Nav>
-
-          <Nav className="gap-3 align-items-center">
-            <Button
-              variant="outline-dark"
-              className="border-2 hover:bg-[#5CA2AE] hover:border-[#5CA2AE] hover:text-white transition-colors"
-            >
-              Iniciar sesion
-            </Button>
-            <Button
-              variant="outline-dark"
-              className="border-2 hover:bg-[#5CA2AE] hover:border-[#5CA2AE] hover:text-white transition-colors"
-            >
-              Registrarse
-            </Button>
-            <Nav.Link 
-              href="/profile"
-              className="w-[45px] h-[45px] flex items-center justify-center bg-white rounded-full overflow-hidden border-2 border-black hover:border-[#1a2b32] transition-colors p-0"
-            >
-              <img
-                className="w-[35px] h-[35px]"
-                alt="User"
-                src="/figmaAssets/intersect.svg"
-              />
-            </Nav.Link>
-          </Nav>
-        </Container>
-      </Navbar> 
+      <AppNavbar />
 
       <main>
         <section className="absolute top-[150px] left-[calc(50.00%_-_500px)] w-[1000px] font-inter-display-lg font-[number:var(--inter-display-lg-font-weight)] text-black text-[length:var(--inter-display-lg-font-size)] text-center tracking-[var(--inter-display-lg-letter-spacing)] leading-[var(--inter-display-lg-line-height)] [font-style:var(--inter-display-lg-font-style)]">

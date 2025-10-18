@@ -9,9 +9,7 @@ import Breadcrumb from 'react-bootstrap/Breadcrumb';
 import Card from 'react-bootstrap/Card';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
-import Container from 'react-bootstrap/Container';
-import Nav from 'react-bootstrap/Nav';
-import Navbar from 'react-bootstrap/Navbar';
+import AppNavbar from "@/app/components/ui/Navbar";
 
 import { SlOptionsVertical } from "react-icons/sl";
 import { BsGrid3X3Gap } from 'react-icons/bs';
@@ -26,6 +24,7 @@ import { FaEdit, FaTrash } from 'react-icons/fa';
 
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'react-resizable/css/styles.css';
+import ProtectedRoute from "../components/ui/ProtectedRoute";
 
 
 
@@ -234,214 +233,159 @@ const VirtualWardrobe = () => {
 };
 
   return (
-    <div className="min-h-screen">
-      {/* Navbar */}
-      <Navbar className="bg-white shadow-sm py-3">
-        <Container fluid className="px-8">
-          <Navbar.Brand 
-            href="/"
-            className="font-bold text-xl hover:text-[#5CA2AE] transition-colors"
-          >
-            PickurFit
-          </Navbar.Brand>
-          
-          <Nav className="me-auto gap-4 align-items-center">
-            <Button
-              variant="outline-dark"
-              className="border-2 hover:bg-[#5CA2AE] hover:border-[#5CA2AE] hover:text-white transition-colors"
-              onClick={() => window.location.href = "/generator"}
-            >
-              Empieza a generar
-            </Button>
-            <Nav.Link 
-              href="/about"
-              className="text-dark hover:text-[#5CA2AE] transition-colors"
-            >
-              Acerca de
-            </Nav.Link>
-            <Nav.Link 
-              href="/contact"
-              className="text-dark hover:text-[#5CA2AE] transition-colors"
-            >
-              Contactanos
-            </Nav.Link>
-          </Nav>
-
-          <Nav className="gap-3 align-items-center">
-            <Button
-              variant="outline-dark"
-              className="border-2 hover:bg-[#5CA2AE] hover:border-[#5CA2AE] hover:text-white transition-colors"
-            >
-              Iniciar sesion
-            </Button>
-            <Button
-              variant="outline-dark"
-              className="border-2 hover:bg-[#5CA2AE] hover:border-[#5CA2AE] hover:text-white transition-colors"
-            >
-              Registrarse
-            </Button>
-            <Nav.Link 
-              href="/profile"
-              className="w-[45px] h-[45px] flex items-center justify-center bg-white rounded-full overflow-hidden border-2 border-black hover:border-[#1a2b32] transition-colors p-0"
-            >
-              <img
-                className="w-[35px] h-[35px]"
-                alt="User"
-                src="/figmaAssets/intersect.svg"
-              />
-            </Nav.Link>
-          </Nav>
-        </Container>
-      </Navbar> 
-      <header className="py-2 border-b border-gray-200">
-        <h1 className="text-3xl font-semibold text-center">
-          Tu guardarropa virtual
-        </h1>
-      </header>
-      {/* Wardrobe section */}
-      <div className="flex">
-        {/* Side bar */}
-        <div className="relative"> 
-          {/* Contenedor para el sidebar y el botón de arrastre */}
-          <Resizable
-            width={sidebarWidth}
-            height={windowHeight}
-            onResize={handleResize}
-            minConstraints={[384, windowHeight]}
-            maxConstraints={[600, windowHeight]}
-            resizeHandles={['e']}
-            axis="x"
-            handle={(
-              <div className="react-resizable-handle react-resizable-handle-e flex items-center justify-center h-full absolute right-0 w-4 cursor-ew-resize hover:bg-[#5CA2AE]/10 transition-colors">
-                <div className="h-16 w-6 rounded flex items-center justify-center">
-                  <SlOptionsVertical size={28} className="text-[#1a2b32] rotate-45" />
+    <ProtectedRoute>
+      <div className="min-h-screen">
+        <AppNavbar /> 
+        <header className="py-2 border-b border-gray-200">
+          <h1 className="text-3xl font-semibold text-center">
+            Tu guardarropa virtual
+          </h1>
+        </header>
+        {/* Wardrobe section */}
+        <div className="flex">
+          {/* Side bar */}
+          <div className="relative"> 
+            {/* Contenedor para el sidebar y el botón de arrastre */}
+            <Resizable
+              width={sidebarWidth}
+              height={windowHeight}
+              onResize={handleResize}
+              minConstraints={[384, windowHeight]}
+              maxConstraints={[600, windowHeight]}
+              resizeHandles={['e']}
+              axis="x"
+              handle={(
+                <div className="react-resizable-handle react-resizable-handle-e flex items-center justify-center h-full absolute right-0 w-4 cursor-ew-resize hover:bg-[#5CA2AE]/10 transition-colors">
+                  <div className="h-16 w-6 rounded flex items-center justify-center">
+                    <SlOptionsVertical size={28} className="text-[#1a2b32] rotate-45" />
+                  </div>
                 </div>
-              </div>
-            )}
-          >
-            <aside 
-              className="min-h-screen bg-[#5CA2AE] p-6" 
-              style={{ 
-                width: `${sidebarWidth}px`,
-                fontSize: '1.1rem'
-              }}
+              )}
             >
-              <Accordion defaultActiveKey={['0']} alwaysOpen className="mb-4 mx-2">
-                {/* Tus prendas section */}
-                <Accordion.Item eventKey="0" className="border-0 bg-transparent">
-                  <Accordion.Header className="py-2">
-                    <BiCloset className="me-2 text-[#1a2b32]" size={24} />
-                    <span className="fw-semibold text-[#1a2b32]">Tus prendas</span>
-                  </Accordion.Header>
-                  <Accordion.Body className="bg-[#5CA2AE]">
-                    <div className="d-flex flex-column gap-2">
-                      <Button 
-                        variant="outline-light" 
-                        className="d-flex align-items-center gap-2 py-2 px-3 text-[#1a2b32]"
-                        onClick={() => handleCategoryClick('prendas', 'todas')}
-                      >
-                        <BsGrid3X3Gap size={20} className="text-[#1a2b32]" />
-                        <span>Todas</span>
-                      </Button>
-                      <Button 
-                        variant="outline-light" 
-                        className="d-flex align-items-center gap-2 py-2 px-3 text-[#1a2b32]"
-                        onClick={() => handleCategoryClick('prendas', 'superiores')}
-                      >
-                        <FaTshirt size={20} className="text-[#1a2b32]" />
-                        <span>Superiores</span>
-                      </Button>
-                      <Button 
-                        variant="outline-light" 
-                        className="d-flex align-items-center gap-2 py-2 px-3 text-[#1a2b32]"
-                        onClick={() => handleCategoryClick('prendas', 'inferiores')}
-                      >
-                        <PiPantsFill size={20} className="text-[#1a2b32]" />
-                        <span>Inferiores</span>
-                      </Button>
-                      <Button 
-                        variant="outline-light" 
-                        className="d-flex align-items-center gap-2 py-2 px-3 text-[#1a2b32]"
-                        onClick={() => handleCategoryClick('prendas', 'calzado')}
-                      >
-                        <PiSneakerFill size={20} className="text-[#1a2b32]" />
-                        <span>Calzado</span>
-                      </Button>
-                    </div>
-                  </Accordion.Body>
-                </Accordion.Item>
+              <aside 
+                className="min-h-screen bg-[#5CA2AE] p-6" 
+                style={{ 
+                  width: `${sidebarWidth}px`,
+                  fontSize: '1.1rem'
+                }}
+              >
+                <Accordion defaultActiveKey={['0']} alwaysOpen className="mb-4 mx-2">
+                  {/* Tus prendas section */}
+                  <Accordion.Item eventKey="0" className="border-0 bg-transparent">
+                    <Accordion.Header className="py-2">
+                      <BiCloset className="me-2 text-[#1a2b32]" size={24} />
+                      <span className="fw-semibold text-[#1a2b32]">Tus prendas</span>
+                    </Accordion.Header>
+                    <Accordion.Body className="bg-[#5CA2AE]">
+                      <div className="d-flex flex-column gap-2">
+                        <Button 
+                          variant="outline-light" 
+                          className="d-flex align-items-center gap-2 py-2 px-3 text-[#1a2b32]"
+                          onClick={() => handleCategoryClick('prendas', 'todas')}
+                        >
+                          <BsGrid3X3Gap size={20} className="text-[#1a2b32]" />
+                          <span>Todas</span>
+                        </Button>
+                        <Button 
+                          variant="outline-light" 
+                          className="d-flex align-items-center gap-2 py-2 px-3 text-[#1a2b32]"
+                          onClick={() => handleCategoryClick('prendas', 'superiores')}
+                        >
+                          <FaTshirt size={20} className="text-[#1a2b32]" />
+                          <span>Superiores</span>
+                        </Button>
+                        <Button 
+                          variant="outline-light" 
+                          className="d-flex align-items-center gap-2 py-2 px-3 text-[#1a2b32]"
+                          onClick={() => handleCategoryClick('prendas', 'inferiores')}
+                        >
+                          <PiPantsFill size={20} className="text-[#1a2b32]" />
+                          <span>Inferiores</span>
+                        </Button>
+                        <Button 
+                          variant="outline-light" 
+                          className="d-flex align-items-center gap-2 py-2 px-3 text-[#1a2b32]"
+                          onClick={() => handleCategoryClick('prendas', 'calzado')}
+                        >
+                          <PiSneakerFill size={20} className="text-[#1a2b32]" />
+                          <span>Calzado</span>
+                        </Button>
+                      </div>
+                    </Accordion.Body>
+                  </Accordion.Item>
 
-                {/* Tus atuendos section */}
-                <Accordion.Item eventKey="1" className="border-0 bg-transparent">
-                  <Accordion.Header className="py-2">
-                    <BiSolidTShirt className="me-2 text-[#1a2b32]" size={24} />
-                    <span className="fw-semibold text-[#1a2b32]">Tus atuendos</span>
-                  </Accordion.Header>
-                  <Accordion.Body className="bg-[#5CA2AE]">
-                    <div className="d-flex flex-column gap-2">
-                      <Button 
-                        variant="outline-light" 
-                        className="d-flex align-items-center gap-2 py-2 px-3 text-[#1a2b32]"
-                        onClick={() => handleCategoryClick('atuendos', 'todos')}
-                      >
-                        <BsGrid3X3Gap size={20} className="text-[#1a2b32]" />
-                        <span>Todos</span>
-                      </Button>
-                      <Button 
-                        variant="outline-light" 
-                        className="d-flex align-items-center gap-2 py-2 px-3 text-[#1a2b32]"
-                        onClick={() => handleCategoryClick('atuendos', 'favoritos')}
-                      >
-                        <FaHeart size={20} className="text-[#1a2b32]" />
-                        <span>Favoritos</span>
-                      </Button>
-                    </div>
-                  </Accordion.Body>
-                </Accordion.Item>
-              </Accordion>
+                  {/* Tus atuendos section */}
+                  <Accordion.Item eventKey="1" className="border-0 bg-transparent">
+                    <Accordion.Header className="py-2">
+                      <BiSolidTShirt className="me-2 text-[#1a2b32]" size={24} />
+                      <span className="fw-semibold text-[#1a2b32]">Tus atuendos</span>
+                    </Accordion.Header>
+                    <Accordion.Body className="bg-[#5CA2AE]">
+                      <div className="d-flex flex-column gap-2">
+                        <Button 
+                          variant="outline-light" 
+                          className="d-flex align-items-center gap-2 py-2 px-3 text-[#1a2b32]"
+                          onClick={() => handleCategoryClick('atuendos', 'todos')}
+                        >
+                          <BsGrid3X3Gap size={20} className="text-[#1a2b32]" />
+                          <span>Todos</span>
+                        </Button>
+                        <Button 
+                          variant="outline-light" 
+                          className="d-flex align-items-center gap-2 py-2 px-3 text-[#1a2b32]"
+                          onClick={() => handleCategoryClick('atuendos', 'favoritos')}
+                        >
+                          <FaHeart size={20} className="text-[#1a2b32]" />
+                          <span>Favoritos</span>
+                        </Button>
+                      </div>
+                    </Accordion.Body>
+                  </Accordion.Item>
+                </Accordion>
 
-              {/* Action buttons */}
-              <div className="flex flex-col gap-4 mt-8 px-4">
-                <Button 
-                  variant="light" 
-                  className="flex items-center justify-center gap-2 py-2 px-4 w-full bg-white hover:bg-gray-100 transition-colors border-2 border-[#5CA2AE] rounded-lg text-[#1a2b32]"
-                >
-                  <IoMdAdd size={20} className="text-[#1a2b32]" />
-                  <span className="font-medium">Añade prendas</span>
-                </Button>
-                <Button 
-                  variant="light" 
-                  className="flex items-center justify-center gap-2 py-2 px-4 w-full bg-white hover:bg-gray-100 transition-colors border-2 border-[#5CA2AE] rounded-lg text-[#1a2b32]"
-                >
-                  <MdGeneratingTokens size={20} className="text-[#1a2b32]" />
-                  <span className="font-medium">¿Listo para generar?</span>
-                </Button>
-              </div>
-            </aside>
-          </Resizable>
+                {/* Action buttons */}
+                <div className="flex flex-col gap-4 mt-8 px-4">
+                  <Button 
+                    variant="light" 
+                    className="flex items-center justify-center gap-2 py-2 px-4 w-full bg-white hover:bg-gray-100 transition-colors border-2 border-[#5CA2AE] rounded-lg text-[#1a2b32]"
+                  >
+                    <IoMdAdd size={20} className="text-[#1a2b32]" />
+                    <span className="font-medium">Añade prendas</span>
+                  </Button>
+                  <Button 
+                    variant="light" 
+                    className="flex items-center justify-center gap-2 py-2 px-4 w-full bg-white hover:bg-gray-100 transition-colors border-2 border-[#5CA2AE] rounded-lg text-[#1a2b32]"
+                  >
+                    <MdGeneratingTokens size={20} className="text-[#1a2b32]" />
+                    <span className="font-medium">¿Listo para generar?</span>
+                  </Button>
+                </div>
+              </aside>
+            </Resizable>
+          </div>
+          {/* Main content area */}
+          <main className="flex-1 m-4 p-8">
+            {/* Breadcrumb */}
+            <Breadcrumb className="mb-6">
+              <Breadcrumb.Item 
+                className="text-[#1a2b32] text-2xl font-bold hover:text-[#1a2b32] no-underline"
+                href="#"
+                linkProps={{ className: "hover:no-underline" }}
+              >
+                {selectedCategory === 'prendas' ? 'Tus prendas' : 'Tus atuendos'}
+              </Breadcrumb.Item>
+              <Breadcrumb.Item 
+                active
+                className="text-[#1a2b32] text-2xl font-bold"
+              >
+                {selectedSection.charAt(0).toUpperCase() + selectedSection.slice(1)}
+              </Breadcrumb.Item>
+            </Breadcrumb>
+            {renderContent()}
+          </main>
         </div>
-        {/* Main content area */}
-        <main className="flex-1 m-4 p-8">
-          {/* Breadcrumb */}
-          <Breadcrumb className="mb-6">
-            <Breadcrumb.Item 
-              className="text-[#1a2b32] text-2xl font-bold hover:text-[#1a2b32] no-underline"
-              href="#"
-              linkProps={{ className: "hover:no-underline" }}
-            >
-              {selectedCategory === 'prendas' ? 'Tus prendas' : 'Tus atuendos'}
-            </Breadcrumb.Item>
-            <Breadcrumb.Item 
-              active
-              className="text-[#1a2b32] text-2xl font-bold"
-            >
-              {selectedSection.charAt(0).toUpperCase() + selectedSection.slice(1)}
-            </Breadcrumb.Item>
-          </Breadcrumb>
-          {renderContent()}
-        </main>
       </div>
-    </div>
+    </ProtectedRoute>
   )
 }
 
