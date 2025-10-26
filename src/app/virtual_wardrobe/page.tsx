@@ -10,6 +10,8 @@ import Card from 'react-bootstrap/Card';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import AppNavbar from "@/app/components/ui/Navbar";
+import Modal from "react-bootstrap/Modal";
+import ClothingForm from "@/app/components/ui/ClothingForm";
 
 import { SlOptionsVertical } from "react-icons/sl";
 import { BsGrid3X3Gap } from 'react-icons/bs';
@@ -34,6 +36,7 @@ const VirtualWardrobe = () => {
 
   const [sidebarWidth, setSidebarWidth] = useState(384);
   const [windowHeight, setWindowHeight] = useState(800);
+  const [showForm, setShowForm] = useState(false);
 
   useEffect(() => {
     setWindowHeight(window.innerHeight);
@@ -345,10 +348,11 @@ const VirtualWardrobe = () => {
 
                 {/* Action buttons */}
                 <div className="flex flex-col gap-4 mt-8 px-4">
-                  <Button 
-                    variant="light" 
-                    className="flex items-center justify-center gap-2 py-2 px-4 w-full bg-white hover:bg-gray-100 transition-colors border-2 border-[#5CA2AE] rounded-lg text-[#1a2b32]"
-                  >
+                  <Button
+                  variant="light"
+                  className="flex items-center justify-center gap-2 py-2 px-4 w-full bg-white hover:bg-gray-100 transition-colors border-2 border-[#5CA2AE] rounded-lg text-[#1a2b32]"
+                  onClick={() => setShowForm(true)}
+                >
                     <IoMdAdd size={20} className="text-[#1a2b32]" />
                     <span className="font-medium">Añade prendas</span>
                   </Button>
@@ -384,6 +388,14 @@ const VirtualWardrobe = () => {
             {renderContent()}
           </main>
         </div>
+        <Modal show={showForm} onHide={() => setShowForm(false)} centered size="lg">
+          <Modal.Header closeButton>
+            <Modal.Title>Añadir prenda</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <ClothingForm />
+          </Modal.Body>
+        </Modal>
       </div>
     </ProtectedRoute>
   )
