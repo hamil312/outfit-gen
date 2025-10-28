@@ -3,10 +3,8 @@ import { Clothing } from "@/app/models/Clothing";
 
 export const clothingController = {
   async addClothing(file: File, data: Omit<Clothing, "image">) {
-    // 1️⃣ Subir imagen al bucket de Appwrite
     const imageId = await clothingRepository.uploadImage(file);
 
-    // 2️⃣ Llamar a tu API Flask para analizar la imagen
     const formData = new FormData();
     formData.append("file", file);
 
@@ -32,7 +30,8 @@ export const clothingController = {
       occasion: analysis.occasion || data.occasion || "Desconocido",
     };
 
-    // 4️⃣ Crear documento en Appwrite Database
+    
+
     const created = await clothingRepository.createClothing(clothingData);
     return created;
   },

@@ -10,6 +10,7 @@ type Props = {
 
 export default function AuthForm({ mode }: Props) {
   const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
   const [password, setPassword] = useState("");
   const router = useRouter();
 
@@ -18,7 +19,8 @@ export default function AuthForm({ mode }: Props) {
 
     try {
       if (mode === "register") {
-        await account.create(ID.unique(), email, password);
+        // 👇 Orden correcto de parámetros
+        await account.create(ID.unique(), email, password, name);
         await account.createEmailPasswordSession(email, password);
       } else {
         await account.createEmailPasswordSession(email, password);
@@ -39,6 +41,18 @@ export default function AuthForm({ mode }: Props) {
         <h1 className="text-2xl font-semibold mb-4 text-center">
           {mode === "login" ? "Iniciar Sesión" : "Registrarse"}
         </h1>
+
+        {mode === "register" && (
+          <input
+            type="text"
+            placeholder="Nombre completo"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+            className="border p-2 mb-3 w-full rounded"
+          />
+        )}
+
         <input
           type="email"
           placeholder="Correo electrónico"
@@ -47,6 +61,7 @@ export default function AuthForm({ mode }: Props) {
           required
           className="border p-2 mb-3 w-full rounded"
         />
+
         <input
           type="password"
           placeholder="Contraseña"
@@ -55,6 +70,7 @@ export default function AuthForm({ mode }: Props) {
           required
           className="border p-2 mb-3 w-full rounded"
         />
+
         <button
           type="submit"
           className="bg-blue-500 text-white p-2 rounded w-full hover:bg-blue-600"
