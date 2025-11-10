@@ -12,6 +12,7 @@ export default {
       colors: {
         black: "var(--black)",
         white: "var(--white)",
+        blue: "var(--blue)",
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",

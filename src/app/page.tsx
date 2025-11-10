@@ -69,13 +69,11 @@ export default function Home() {
       <AppNavbar />
 
       <main>
-        {/* Hero Section */}
         <section className="pt-5 pb-5 px-4">
           <h1 className="text-center text-4xl md:text-5xl font-bold max-w-4xl mx-auto mb-8">
             Sube, personaliza y crea tu atuendo
           </h1>
 
-          {/* Category Tags */}
           <div className="flex flex-wrap gap-4 justify-center mb-8 max-w-4xl mx-auto">
             {categoryTags.map((tag, index) => (
               <Badge

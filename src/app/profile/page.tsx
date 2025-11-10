@@ -9,7 +9,7 @@ import FloatingLabel from 'react-bootstrap/FloatingLabel';
 import Alert from 'react-bootstrap/Alert';
 import { account } from '@/lib/appwrite';
 
-const MAX_FILE_SIZE = 200 * 1024; // 200 KB
+const MAX_FILE_SIZE = 200 * 1024;
 const ALLOWED_TYPES = ['image/png', 'image/jpeg'];
 
 export default function UserPage() {

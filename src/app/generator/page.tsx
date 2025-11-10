@@ -6,12 +6,16 @@ import { useState } from 'react';
 import Link from "next/link";
 import AppNavbar from "../components/ui/Navbar";
 import ProtectedRoute from "../components/ui/ProtectedRoute";
+import { clothingController } from "../controllers/ClothingController";
+import { account } from "@/lib/appwrite";
 
 export default function Generator() {
     const [selectedContext, setSelectedContext] = useState<string>("");
     const [selectedColor, setSelectedColor] = useState<string>("");
     const [showContextDropdown, setShowContextDropdown] = useState(false);
     const [showColorDropdown, setShowColorDropdown] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [outfits, setOutfits] = useState<any[]>([]);
     
     React.useEffect(() => {
         const handleClickOutside = (e: MouseEvent) => {
@@ -55,10 +59,20 @@ export default function Generator() {
                     <section className="w-full bg-[#FCC4C4] py-12 flex flex-col items-center gap-10">
                         {/* Botón Generate */}
                         <Button
-                        variant="outline-primary"
-                        className="bg-white rounded-lg border-2 border-solid border-[#FCC4C4] px-8 py-3 text-lg font-patrick-hand-body-lg text-black"
+                            variant="outline-primary"
+                            className="bg-white rounded-lg border-2 border-solid border-[#FCC4C4] px-8 py-3 text-lg font-patrick-hand-body-lg text-black"
+                            onClick={async () => {
+                                setLoading(true);
+                                const results = await clothingController.generateOutfits(
+                                    selectedColor.toLowerCase(),
+                                    selectedContext.toLowerCase()
+                                );
+                                console.log("🧥 Resultados generados:", results);
+                                setOutfits(results);
+                                setLoading(false);
+                            }}
                         >
-                        Generate
+                            {loading ? "Generando..." : "Generate"}
                         </Button>
                         
                         <div className="w-[90%] max-w-6xl flex flex-row md:flex-row justify-between gap-8">
@@ -146,9 +160,56 @@ export default function Generator() {
 
                             {/* Columna 2: Cards de atuendos */}
                             <div className="flex flex-col items-center justify-center bg-white p-6 rounded-lg border-2 border-solid border-[#FCC4C4] w-full md:w-2/4 min-h-[250px]">
+                            {loading ? (
+                                <p className="text-gray-700 text-center">Generando atuendos...</p>
+                            ) : outfits.length === 0 ? (
                                 <p className="text-gray-700 text-center">
                                 Aquí se mostrarán las prendas seleccionadas o generadas.
                                 </p>
+                            ) : (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
+                                {outfits.map((outfit, index) => (
+                                    <div key={index} className="p-4 border rounded-lg shadow-sm bg-gray-50">
+                                        {outfit.completo && outfit.calzado ? (
+                                        <>
+                                            <h4 className="font-semibold mb-2 text-center">Outfit completo</h4>
+                                            <img
+                                            src={`https://cloud.appwrite.io/v1/storage/buckets/${process.env.NEXT_PUBLIC_APPWRITE_BUCKET_ID}/files/${outfit.completo?.image}/view?project=${process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID}`}
+                                            alt={outfit.completo?.type || "Sin tipo"}
+                                            className="w-full h-48 object-cover rounded-md mb-2"
+                                            />
+                                            <img
+                                            src={`https://cloud.appwrite.io/v1/storage/buckets/${process.env.NEXT_PUBLIC_APPWRITE_BUCKET_ID}/files/${outfit.calzado?.image}/view?project=${process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID}`}
+                                            alt={outfit.calzado?.type || "Sin tipo"}
+                                            className="w-full h-48 object-cover rounded-md"
+                                            />
+                                        </>
+                                        ) : outfit.superior && outfit.inferior && outfit.calzado ? (
+                                        <>
+                                            <h4 className="font-semibold mb-2 text-center">Outfit sugerido</h4>
+                                            <img
+                                            src={`https://cloud.appwrite.io/v1/storage/buckets/${process.env.NEXT_PUBLIC_APPWRITE_BUCKET_ID}/files/${outfit.superior?.image}/view?project=${process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID}`}
+                                            alt={outfit.superior?.type || "Sin tipo"}
+                                            className="w-full h-48 object-cover rounded-md mb-2"
+                                            />
+                                            <img
+                                            src={`https://cloud.appwrite.io/v1/storage/buckets/${process.env.NEXT_PUBLIC_APPWRITE_BUCKET_ID}/files/${outfit.inferior?.image}/view?project=${process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID}`}
+                                            alt={outfit.inferior?.type || "Sin tipo"}
+                                            className="w-full h-48 object-cover rounded-md mb-2"
+                                            />
+                                            <img
+                                            src={`https://cloud.appwrite.io/v1/storage/buckets/${process.env.NEXT_PUBLIC_APPWRITE_BUCKET_ID}/files/${outfit.calzado?.image}/view?project=${process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID}`}
+                                            alt={outfit.calzado?.type || "Sin tipo"}
+                                            className="w-full h-48 object-cover rounded-md"
+                                            />
+                                        </>
+                                        ) : (
+                                        <p className="text-center text-gray-600">Outfit incompleto</p>
+                                        )}
+                                    </div>
+                                    ))}
+                                </div>
+                            )}
                             </div>
 
                             {/* Columna 3: Botones de acción */}
