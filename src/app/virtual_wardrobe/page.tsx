@@ -27,10 +27,9 @@ import { FaEdit, FaTrash } from 'react-icons/fa';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'react-resizable/css/styles.css';
 import ProtectedRoute from "../components/ui/ProtectedRoute";
-import { account } from "@/lib/appwrite";
-import { clothingRepository } from "@/app/repositories/ClothingRepository";
 import { Clothing } from "../models/Clothing";
 import { mapClothingTypeToSection } from "@/lib/ClothingCategoryMapper";
+import { clothingController } from "../controllers/ClothingController";
 
 const VirtualWardrobe = () => {
   const [selectedCategory, setSelectedCategory] = useState('prendas');
@@ -54,8 +53,7 @@ const VirtualWardrobe = () => {
     window.addEventListener('resize', handleResize);
     const fetchClothes = async () => {
       try {
-        const user = await account.get();
-        const items = await clothingRepository.getClothingsByUser(user.$id);
+        const items = await clothingController.getUserClothes();
         setClothes(items);
       } catch (error) {
         console.error("Error al cargar prendas:", error);
@@ -76,88 +74,152 @@ const VirtualWardrobe = () => {
     setSelectedSection(section);
   };
 
+  const handleDelete = async (item: Clothing) => {
+    if (!confirm(`¿Eliminar esta prenda (${item.name})?`)) return;
+
+    try {
+      await clothingController.deleteClothing(item);
+
+      // Remover del estado local
+      setClothes(prev => prev.filter(c => c.$id !== item.$id));
+    } catch (error) {
+      console.error("Error al eliminar prenda:", error);
+      alert("No se pudo eliminar la prenda.");
+    }
+  };
+
   // Función para renderizar el contenido según la selección
   const renderContent = () => {
-  if (selectedCategory === 'prendas') {
-    if (selectedSection === 'todas') {
-      return (
-        <div className="space-y-12">
-          {/* Sección Superiores */}
-          <section>
-            <h2 className="text-2xl font-bold text-[#1a2b32] mb-6">Superiores</h2>
-            <Row xs={1} md={3} className="g-4">
-              {upperClothes.length > 0 ? (
-                upperClothes.map(item => (
-                  <Col key={item.$id}>
-                    <Card className="border-2 border-[#5CA2AE]">
-                      <Card.Img
-                        variant="top"
-                        src={`https://cloud.appwrite.io/v1/storage/buckets/${process.env.NEXT_PUBLIC_APPWRITE_BUCKET_ID}/files/${item.image}/view?project=${process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID}`}
-                        className="h-64 object-cover"
-                      />
-                      <Card.Body className="p-4">
-                        <Card.Title className="text-[#1a2b32] text-lg font-semibold mb-4">
-                          {item.type} — {item.color}
-                        </Card.Title>
-                        <div className="flex justify-between gap-2">
-                          <Button variant="outline-danger" className="flex items-center gap-2 flex-1">
-                            <FaTrash /> Eliminar
-                          </Button>
-                          <Button variant="outline-primary" className="flex items-center gap-2 flex-1">
-                            <FaEdit /> Editar
-                          </Button>
-                        </div>
-                      </Card.Body>
-                    </Card>
-                  </Col>
-                ))
-              ) : (
-                <p className="text-gray-500">No hay prendas superiores registradas.</p>
-              )}
-            </Row>
-          </section>
+    if (selectedCategory === 'prendas') {
+      if (selectedSection === 'todas') {
+        return (
+          <div className="space-y-12">
+            {/* Sección Superiores */}
+            <section>
+              <h2 className="text-2xl font-bold text-[#1a2b32] mb-6">Superiores</h2>
+              <Row xs={1} md={3} className="g-4">
+                {upperClothes.length > 0 ? (
+                  upperClothes.map(item => (
+                    <Col key={item.$id}>
+                      <Card className="border-2 border-[#5CA2AE]">
+                        <Card.Img
+                          variant="top"
+                          src={`https://cloud.appwrite.io/v1/storage/buckets/${process.env.NEXT_PUBLIC_APPWRITE_BUCKET_ID}/files/${item.image}/view?project=${process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID}`}
+                          className="h-64 object-cover"
+                        />
+                        <Card.Body className="p-4">
+                          <Card.Title className="text-[#1a2b32] text-lg font-semibold mb-4">
+                            {item.type} — {item.color}
+                          </Card.Title>
+                          <div className="flex justify-between gap-2">
+                            <Button
+                              variant="outline-danger"
+                              className="flex items-center gap-2 flex-1"
+                              onClick={() => handleDelete(item)}
+                            >
+                              <FaTrash /> Eliminar
+                            </Button>
+                            <Button variant="outline-primary" className="flex items-center gap-2 flex-1">
+                              <FaEdit /> Editar
+                            </Button>
+                          </div>
+                        </Card.Body>
+                      </Card>
+                    </Col>
+                  ))
+                ) : (
+                  <p className="text-gray-500">No hay prendas superiores registradas.</p>
+                )}
+              </Row>
+            </section>
 
-          {/* Sección Inferiores */}
-          <section>
-            <h2 className="text-2xl font-bold text-[#1a2b32] mb-6">Inferiores</h2>
-            <Row xs={1} md={3} className="g-4">
-              {lowerClothes.length > 0 ? (
-                lowerClothes.map(item => (
-                  <Col key={item.$id}>
-                    <Card className="border-2 border-[#5CA2AE]">
-                      <Card.Img
-                        variant="top"
-                        src={`https://cloud.appwrite.io/v1/storage/buckets/${process.env.NEXT_PUBLIC_APPWRITE_BUCKET_ID}/files/${item.image}/view?project=${process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID}`}
-                        className="h-64 object-cover"
-                      />
-                      <Card.Body className="p-4">
-                        <Card.Title className="text-[#1a2b32] text-lg font-semibold mb-4">
-                          {item.type} — {item.color}
-                        </Card.Title>
-                        <div className="flex justify-between gap-2">
-                          <Button variant="outline-danger" className="flex items-center gap-2 flex-1">
-                            <FaTrash /> Eliminar
-                          </Button>
-                          <Button variant="outline-primary" className="flex items-center gap-2 flex-1">
-                            <FaEdit /> Editar
-                          </Button>
-                        </div>
-                      </Card.Body>
-                    </Card>
-                  </Col>
-                ))
-              ) : (
-                <p className="text-gray-500">No hay prendas inferiores registradas.</p>
-              )}
-            </Row>
-          </section>
+            {/* Sección Inferiores */}
+            <section>
+              <h2 className="text-2xl font-bold text-[#1a2b32] mb-6">Inferiores</h2>
+              <Row xs={1} md={3} className="g-4">
+                {lowerClothes.length > 0 ? (
+                  lowerClothes.map(item => (
+                    <Col key={item.$id}>
+                      <Card className="border-2 border-[#5CA2AE]">
+                        <Card.Img
+                          variant="top"
+                          src={`https://cloud.appwrite.io/v1/storage/buckets/${process.env.NEXT_PUBLIC_APPWRITE_BUCKET_ID}/files/${item.image}/view?project=${process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID}`}
+                          className="h-64 object-cover"
+                        />
+                        <Card.Body className="p-4">
+                          <Card.Title className="text-[#1a2b32] text-lg font-semibold mb-4">
+                            {item.type} — {item.color}
+                          </Card.Title>
+                          <div className="flex justify-between gap-2">
+                            <Button variant="outline-danger" className="flex items-center gap-2 flex-1">
+                              <FaTrash /> Eliminar
+                            </Button>
+                            <Button variant="outline-primary" className="flex items-center gap-2 flex-1">
+                              <FaEdit /> Editar
+                            </Button>
+                          </div>
+                        </Card.Body>
+                      </Card>
+                    </Col>
+                  ))
+                ) : (
+                  <p className="text-gray-500">No hay prendas inferiores registradas.</p>
+                )}
+              </Row>
+            </section>
 
-          {/* Sección Calzado */}
+            {/* Sección Calzado */}
+            <section>
+              <h2 className="text-2xl font-bold text-[#1a2b32] mb-6">Calzado</h2>
+              <Row xs={1} md={3} className="g-4">
+                {shoes.length > 0 ? (
+                  shoes.map(item => (
+                    <Col key={item.$id}>
+                      <Card className="border-2 border-[#5CA2AE]">
+                        <Card.Img
+                          variant="top"
+                          src={`https://cloud.appwrite.io/v1/storage/buckets/${process.env.NEXT_PUBLIC_APPWRITE_BUCKET_ID}/files/${item.image}/view?project=${process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID}`}
+                          className="h-64 object-cover"
+                        />
+                        <Card.Body className="p-4">
+                          <Card.Title className="text-[#1a2b32] text-lg font-semibold mb-4">
+                            {item.type} — {item.color}
+                          </Card.Title>
+                          <div className="flex justify-between gap-2">
+                            <Button variant="outline-danger" className="flex items-center gap-2 flex-1">
+                              <FaTrash /> Eliminar
+                            </Button>
+                            <Button variant="outline-primary" className="flex items-center gap-2 flex-1">
+                              <FaEdit /> Editar
+                            </Button>
+                          </div>
+                        </Card.Body>
+                      </Card>
+                    </Col>
+                  ))
+                ) : (
+                  <p className="text-gray-500">No hay prendas superiores registradas.</p>
+                )}
+              </Row>
+            </section>
+          </div>
+        );
+      } else {
+        // Filtrar prendas según la sección seleccionada
+        let filteredClothes: Clothing[] = [];
+
+        if (selectedSection === "superiores") filteredClothes = upperClothes;
+        if (selectedSection === "inferiores") filteredClothes = lowerClothes;
+        if (selectedSection === "calzado") filteredClothes = shoes;
+
+        return (
           <section>
-            <h2 className="text-2xl font-bold text-[#1a2b32] mb-6">Calzado</h2>
+            <h2 className="text-2xl font-bold text-[#1a2b32] mb-6">
+              {selectedSection.charAt(0).toUpperCase() + selectedSection.slice(1)}
+            </h2>
             <Row xs={1} md={3} className="g-4">
-              {shoes.length > 0 ? (
-                shoes.map(item => (
+              {filteredClothes.length > 0 ? (
+                filteredClothes.map((item) => (
                   <Col key={item.$id}>
                     <Card className="border-2 border-[#5CA2AE]">
                       <Card.Img
@@ -170,10 +232,16 @@ const VirtualWardrobe = () => {
                           {item.type} — {item.color}
                         </Card.Title>
                         <div className="flex justify-between gap-2">
-                          <Button variant="outline-danger" className="flex items-center gap-2 flex-1">
+                          <Button
+                            variant="outline-danger"
+                            className="flex items-center gap-2 flex-1"
+                          >
                             <FaTrash /> Eliminar
                           </Button>
-                          <Button variant="outline-primary" className="flex items-center gap-2 flex-1">
+                          <Button
+                            variant="outline-primary"
+                            className="flex items-center gap-2 flex-1"
+                          >
                             <FaEdit /> Editar
                           </Button>
                         </div>
@@ -182,80 +250,28 @@ const VirtualWardrobe = () => {
                   </Col>
                 ))
               ) : (
-                <p className="text-gray-500">No hay prendas superiores registradas.</p>
+                <p className="text-gray-500">
+                  No hay prendas {selectedSection} registradas.
+                </p>
               )}
             </Row>
           </section>
-        </div>
-      );
+        );
+      }
     } else {
-      // Filtrar prendas según la sección seleccionada
-      let filteredClothes: Clothing[] = [];
-
-      if (selectedSection === "superiores") filteredClothes = upperClothes;
-      if (selectedSection === "inferiores") filteredClothes = lowerClothes;
-      if (selectedSection === "calzado") filteredClothes = shoes;
-
+      // Para la sección de atuendos (todos y favoritos)
       return (
         <section>
           <h2 className="text-2xl font-bold text-[#1a2b32] mb-6">
-            {selectedSection.charAt(0).toUpperCase() + selectedSection.slice(1)}
+            {selectedSection === 'todos' ? 'Tus atuendos' : 'Atuendos favoritos'}
           </h2>
-          <Row xs={1} md={3} className="g-4">
-            {filteredClothes.length > 0 ? (
-              filteredClothes.map((item) => (
-                <Col key={item.$id}>
-                  <Card className="border-2 border-[#5CA2AE]">
-                    <Card.Img
-                      variant="top"
-                      src={`https://cloud.appwrite.io/v1/storage/buckets/${process.env.NEXT_PUBLIC_APPWRITE_BUCKET_ID}/files/${item.image}/view?project=${process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID}`}
-                      className="h-64 object-cover"
-                    />
-                    <Card.Body className="p-4">
-                      <Card.Title className="text-[#1a2b32] text-lg font-semibold mb-4">
-                        {item.type} — {item.color}
-                      </Card.Title>
-                      <div className="flex justify-between gap-2">
-                        <Button
-                          variant="outline-danger"
-                          className="flex items-center gap-2 flex-1"
-                        >
-                          <FaTrash /> Eliminar
-                        </Button>
-                        <Button
-                          variant="outline-primary"
-                          className="flex items-center gap-2 flex-1"
-                        >
-                          <FaEdit /> Editar
-                        </Button>
-                      </div>
-                    </Card.Body>
-                  </Card>
-                </Col>
-              ))
-            ) : (
-              <p className="text-gray-500">
-                No hay prendas {selectedSection} registradas.
-              </p>
-            )}
-          </Row>
+          <div className="text-center text-gray-500 py-8">
+            Contenido de atuendos en desarrollo...
+          </div>
         </section>
       );
     }
-  } else {
-    // Para la sección de atuendos (todos y favoritos)
-    return (
-      <section>
-        <h2 className="text-2xl font-bold text-[#1a2b32] mb-6">
-          {selectedSection === 'todos' ? 'Tus atuendos' : 'Atuendos favoritos'}
-        </h2>
-        <div className="text-center text-gray-500 py-8">
-          Contenido de atuendos en desarrollo...
-        </div>
-      </section>
-    );
-  }
-};
+  };
 
   return (
     <ProtectedRoute>

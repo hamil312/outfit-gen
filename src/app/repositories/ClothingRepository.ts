@@ -29,5 +29,24 @@ export const clothingRepository = {
       [Query.equal("userId", userId)]
     );
     return result.documents as unknown as Clothing[];
+  },
+
+  async deleteClothing(clothingId: string | undefined, imageId: string | undefined) {
+    if (!clothingId) throw new Error("Missing clothingId");
+    if (!imageId) {
+      console.warn("⚠ No imageId found, skipping image deletion");
+    }
+
+    await databases.deleteDocument(
+      DATABASE_ID,
+      CLOTHING_COLLECTION_ID,
+      clothingId
+    );
+
+    if (imageId) {
+      await storage.deleteFile(BUCKET_ID, imageId);
+    }
+
+    return true;
   }
 };

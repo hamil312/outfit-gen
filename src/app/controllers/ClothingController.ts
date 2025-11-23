@@ -37,6 +37,54 @@ export const clothingController = {
     const created = await clothingRepository.createClothing(clothingData);
     return created;
   },
+
+  async deleteClothing(clothing: Clothing) {
+    if (!clothing.$id) throw new Error("Missing document ID");
+
+    await clothingRepository.deleteClothing(clothing.$id, clothing.image); //Ahora me da el mismo error aquí
+    return true;
+  },
+
+  async getUserClothes() {
+    const user = await account.get();
+    return clothingRepository.getClothingsByUser(user.$id);
+  },
+
+  async generateOutfitWithBase(baseClothingId?: string) {
+    const user = await account.get();
+    const allClothes = await clothingRepository.getClothingsByUser(user.$id);
+
+    const baseItem = allClothes.find(c => c.$id === baseClothingId);
+    if (!baseItem) throw new Error("Prenda base no encontrada");
+
+    const normalize = (item: any) => {
+      let rgb = [0,0,0];
+      if (item.color?.startsWith("rgb")) {
+        rgb = item.color.replace(/[^\d,]/g, "").split(",").map((n: string) => parseInt(n.trim(), 10));
+      }
+
+      return {
+        id: item.$id,
+        image: item.image,
+        type: item.type,
+        color: rgb,
+        occasion: item.occasion?.toLowerCase() || "neutral"
+      };
+    };
+
+    const base = normalize(baseItem);
+    const all = allClothes.map(normalize);
+
+    const response = await fetch("http://localhost:5000/generate-outfit-with-base", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ base_item: base, all_items: all })
+    });
+
+    const data = await response.json();
+    return data.outfit;
+  },
+
   async generateOutfits(selectedColor?: string, selectedContext?: string) {
     try {
       // 🔹 Obtener usuario actual

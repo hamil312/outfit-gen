@@ -11,7 +11,15 @@ from rembg import remove
 import random
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={
+    r"/*": {
+        "origins": [
+            "http://localhost:3000"
+        ],
+        "methods": ["GET", "POST"],
+        "allow_headers": ["Content-Type"],
+    }
+})
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -241,6 +249,69 @@ def generate_outfits_endpoint():
 
     outfits = generate_outfits(prendas)
     return jsonify({"outfits": outfits})
+
+@app.route("/generate-outfit-with-base", methods=["POST"])
+def generate_outfit_with_base():
+    data = request.get_json()
+
+    base_item = data.get("base_item")
+    all_items = data.get("all_items")
+
+    if not base_item or not all_items:
+        return jsonify({"error": "base_item y all_items son obligatorios"}), 400
+
+    base_cat = CATEGORY_MAP.get(base_item["type"], None)
+    base_color = rgb_to_name(base_item["color"])
+    base_occasion = base_item["occasion"]
+
+    superiores, inferiores, calzados = [], [], []
+
+    for p in all_items:
+        cat = CATEGORY_MAP.get(p["type"], None)
+        color = rgb_to_name(p["color"])
+        item = { **p, "color_name": color }
+
+        if cat == "superior":
+            superiores.append(item)
+        elif cat == "inferior":
+            inferiores.append(item)
+        elif cat == "calzado":
+            calzados.append(item)
+
+    outfit = { base_cat: base_item }
+
+    # ---------------------------
+    # GENERAR LAS OTRAS 2 PRENDAS
+    # ---------------------------
+
+    def pick_compatible(candidates):
+        compatibles = [
+            x for x in candidates
+            if color_compatible(base_color, x["color_name"])
+            and compatible_ocasion(base_occasion, x["occasion"])
+        ]
+        if compatibles:
+            return random.choice(compatibles)
+        if candidates:
+            return random.choice(candidates)
+        return None
+
+    if base_cat == "superior":
+        outfit["inferior"] = pick_compatible(inferiores)
+        outfit["calzado"] = pick_compatible(calzados)
+
+    elif base_cat == "inferior":
+        outfit["superior"] = pick_compatible(superiores)
+        outfit["calzado"] = pick_compatible(calzados)
+
+    elif base_cat == "calzado":
+        outfit["superior"] = pick_compatible(superiores)
+        outfit["inferior"] = pick_compatible(inferiores)
+
+    else:
+        return jsonify({"error": "Tipo de prenda no soportado para base"}), 400
+
+    return jsonify({ "outfit": outfit })
 
 # ------------------ MAIN ------------------
 if __name__ == "__main__":

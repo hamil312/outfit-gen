@@ -6,6 +6,6 @@ export interface Clothing {
   material?: string;
   size?: string;
   occasion?: string;
-  image: string;
+  image?: string;
   userId: string;
 }

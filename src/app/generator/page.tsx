@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useEffect } from "react";
 import { JSX } from "react/jsx-runtime";
 import Button from 'react-bootstrap/Button';
 import { useState } from 'react';
@@ -8,6 +8,7 @@ import AppNavbar from "../components/ui/Navbar";
 import ProtectedRoute from "../components/ui/ProtectedRoute";
 import { clothingController } from "../controllers/ClothingController";
 import { account } from "@/lib/appwrite";
+import { Clothing } from "../models/Clothing";
 
 export default function Generator() {
     const [selectedContext, setSelectedContext] = useState<string>("");
@@ -16,6 +17,8 @@ export default function Generator() {
     const [showColorDropdown, setShowColorDropdown] = useState(false);
     const [loading, setLoading] = useState(false);
     const [outfits, setOutfits] = useState<any[]>([]);
+    const [showModal, setShowModal] = useState(false);
+    const [userClothes, setUserClothes] = useState<Clothing[]>([]);
     
     React.useEffect(() => {
         const handleClickOutside = (e: MouseEvent) => {
@@ -27,6 +30,13 @@ export default function Generator() {
         };
         document.addEventListener("click", handleClickOutside);
         return () => document.removeEventListener("click", handleClickOutside);
+    }, []);
+
+    useEffect(() => {
+        account.get().then(async (user) => {
+            const clothes = await clothingController.getUserClothes();
+            setUserClothes(clothes);
+        });
     }, []);
 
     const contactInfo = [
@@ -47,6 +57,39 @@ export default function Generator() {
 
     return (
         <ProtectedRoute>
+            {showModal && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-50">
+                    <div className="bg-white p-6 rounded-2xl w-[90%] max-w-md shadow-2xl animate-fadeIn scale-95">
+                        <h2 className="text-xl font-semibold mb-4 text-center">Selecciona una prenda</h2>
+
+                        <div className="grid grid-cols-3 gap-4 max-h-[300px] overflow-y-auto pr-2">
+                            {userClothes.map((cloth) => (
+                                <div
+                                    key={cloth.$id}
+                                    className="cursor-pointer border rounded-lg hover:shadow-lg transition shadow-sm overflow-hidden"
+                                    onClick={async () => {
+                                        const result = await clothingController.generateOutfitWithBase(cloth.$id!);
+                                        setOutfits([result]);
+                                        setShowModal(false);
+                                    }}
+                                >
+                                    <img
+                                        src={`https://cloud.appwrite.io/v1/storage/buckets/${process.env.NEXT_PUBLIC_APPWRITE_BUCKET_ID}/files/${cloth.image}/view?project=${process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID}`}
+                                        className="w-full h-24 object-cover"
+                                    />
+                                </div>
+                            ))}
+                        </div>
+
+                        <button
+                            onClick={() => setShowModal(false)}
+                            className="mt-6 w-full py-2 bg-pink-300 hover:bg-pink-400 text-white rounded-lg transition font-semibold"
+                        >
+                            Cerrar
+                        </button>
+                    </div>
+                </div>
+            )}
             <div className="flex flex-col min-h-screen bg-[#ffffff] w-full">
                 <AppNavbar />
 
@@ -223,12 +266,12 @@ export default function Generator() {
                                     </Button>
                                 </Link>
 
-                                <Button
-                                    variant="outline-primary"
-                                    className="bg-white rounded-lg border-2 border-solid border-[#FCC4C4] px-6 py-2"
-                                    >
-                                    Seleccionar ropa
-                                </Button>
+                                <button
+                                    className="bg-white border px-6 py-3 rounded-lg"
+                                    onClick={() => setShowModal(true)}
+                                >
+                                    Seleccionar prenda
+                                </button>
                             </div>
                         </div>
                     </section>
