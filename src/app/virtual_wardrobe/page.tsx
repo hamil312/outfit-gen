@@ -23,6 +23,7 @@ import { FaTshirt, FaHeart } from 'react-icons/fa';
 import { IoMdAdd } from 'react-icons/io';
 import { MdGeneratingTokens } from 'react-icons/md';
 import { FaEdit, FaTrash } from 'react-icons/fa';
+import { BsStars } from "react-icons/bs";
 
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'react-resizable/css/styles.css';
@@ -101,7 +102,7 @@ const VirtualWardrobe = () => {
                 {upperClothes.length > 0 ? (
                   upperClothes.map(item => (
                     <Col key={item.$id}>
-                      <Card className="border-2 border-[#5CA2AE]">
+                      <Card className="border-2 border-white">
                         <Card.Img
                           variant="top"
                           src={`https://cloud.appwrite.io/v1/storage/buckets/${process.env.NEXT_PUBLIC_APPWRITE_BUCKET_ID}/files/${item.image}/view?project=${process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID}`}
@@ -140,7 +141,7 @@ const VirtualWardrobe = () => {
                 {lowerClothes.length > 0 ? (
                   lowerClothes.map(item => (
                     <Col key={item.$id}>
-                      <Card className="border-2 border-[#5CA2AE]">
+                      <Card className="border-2 border-white">
                         <Card.Img
                           variant="top"
                           src={`https://cloud.appwrite.io/v1/storage/buckets/${process.env.NEXT_PUBLIC_APPWRITE_BUCKET_ID}/files/${item.image}/view?project=${process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID}`}
@@ -175,7 +176,7 @@ const VirtualWardrobe = () => {
                 {shoes.length > 0 ? (
                   shoes.map(item => (
                     <Col key={item.$id}>
-                      <Card className="border-2 border-[#5CA2AE]">
+                      <Card className="border-2 border-white">
                         <Card.Img
                           variant="top"
                           src={`https://cloud.appwrite.io/v1/storage/buckets/${process.env.NEXT_PUBLIC_APPWRITE_BUCKET_ID}/files/${item.image}/view?project=${process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID}`}
@@ -221,7 +222,7 @@ const VirtualWardrobe = () => {
               {filteredClothes.length > 0 ? (
                 filteredClothes.map((item) => (
                   <Col key={item.$id}>
-                    <Card className="border-2 border-[#5CA2AE]">
+                    <Card className="border-2 border-white">
                       <Card.Img
                         variant="top"
                         src={`https://cloud.appwrite.io/v1/storage/buckets/${process.env.NEXT_PUBLIC_APPWRITE_BUCKET_ID}/files/${item.image}/view?project=${process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID}`}
@@ -296,7 +297,7 @@ const VirtualWardrobe = () => {
               resizeHandles={['e']}
               axis="x"
               handle={(
-                <div className="react-resizable-handle react-resizable-handle-e flex items-center justify-center h-full absolute right-0 w-4 cursor-ew-resize hover:bg-[#5CA2AE]/10 transition-colors">
+                <div className="react-resizable-handle react-resizable-handle-e flex items-center justify-center h-full absolute right-0 w-4 cursor-ew-resize hover:bg-[#e2e8f0]/10 transition-colors">
                   <div className="h-16 w-6 rounded flex items-center justify-center">
                     <SlOptionsVertical size={28} className="text-[#1a2b32] rotate-45" />
                   </div>
@@ -304,7 +305,7 @@ const VirtualWardrobe = () => {
               )}
             >
               <aside 
-                className="min-h-screen bg-[#5CA2AE] p-6" 
+                className="min-h-screen bg-[#e2e8f0] p-6" 
                 style={{ 
                   width: `${sidebarWidth}px`,
                   fontSize: '1.1rem'
@@ -317,7 +318,7 @@ const VirtualWardrobe = () => {
                       <BiCloset className="me-2 text-[#1a2b32]" size={24} />
                       <span className="fw-semibold text-[#1a2b32]">Tus prendas</span>
                     </Accordion.Header>
-                    <Accordion.Body className="bg-[#5CA2AE]">
+                    <Accordion.Body className="bg-[#e2e8f0]">
                       <div className="d-flex flex-column gap-2">
                         <Button 
                           variant="outline-light" 
@@ -361,7 +362,7 @@ const VirtualWardrobe = () => {
                       <BiSolidTShirt className="me-2 text-[#1a2b32]" size={24} />
                       <span className="fw-semibold text-[#1a2b32]">Tus atuendos</span>
                     </Accordion.Header>
-                    <Accordion.Body className="bg-[#5CA2AE]">
+                    <Accordion.Body className="bg-[#e2e8f0]">
                       <div className="d-flex flex-column gap-2">
                         <Button 
                           variant="outline-light" 
@@ -388,7 +389,7 @@ const VirtualWardrobe = () => {
                 <div className="flex flex-col gap-4 mt-8 px-4">
                   <Button
                   variant="light"
-                  className="flex items-center justify-center gap-2 py-2 px-4 w-full bg-white hover:bg-gray-100 transition-colors border-2 border-[#5CA2AE] rounded-lg text-[#1a2b32]"
+                  className="flex items-center justify-center gap-2 py-2 px-4 w-full bg-white hover:bg-gray-100 transition-colors border-2 border-[#e2e8f0] rounded-lg text-[#1a2b32]"
                   onClick={() => setShowForm(true)}
                 >
                     <IoMdAdd size={20} className="text-[#1a2b32]" />
@@ -396,9 +397,9 @@ const VirtualWardrobe = () => {
                   </Button>
                   <Button 
                     variant="light" 
-                    className="flex items-center justify-center gap-2 py-2 px-4 w-full bg-white hover:bg-gray-100 transition-colors border-2 border-[#5CA2AE] rounded-lg text-[#1a2b32]"
+                    className="flex items-center justify-center gap-2 py-2 px-4 w-full bg-white hover:bg-gray-100 transition-colors border-2 border-[#e2e8f0] rounded-lg text-[#1a2b32]"
                   >
-                    <MdGeneratingTokens size={20} className="text-[#1a2b32]" />
+                    <BsStars size={20} className="text-[#1a2b32]" />
                     <span className="font-medium">¿Listo para generar?</span>
                   </Button>
                 </div>

@@ -5,11 +5,16 @@ import Button from 'react-bootstrap/Button';
 import Card from 'react-bootstrap/Card';
 import Link from "next/link";
 import AppNavbar from "@/app/components/ui/Navbar";
+import Footer from "@/app/components/ui/Footer";
 import { BsClockHistory } from "react-icons/bs";
 import { GiClothes } from "react-icons/gi";
-import router from "next/router";
+import { GiCoffeeMug } from "react-icons/gi";
+import { FaGlasses } from "react-icons/fa";
+import { BsStars } from "react-icons/bs";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
+  const router = useRouter();
   const categoryTags = [
     "Atuendo deportivo",
     "Ocasion elegante",
@@ -48,22 +53,6 @@ export default function Home() {
     }
   ];
 
-  const contactInfo = [
-    {
-      icon: "/figmaAssets/image-11.png",
-      text: "3148328356",
-    },
-    {
-      icon: "/figmaAssets/image-12.png",
-      text: "github",
-    },
-    {
-      icon: "/figmaAssets/image-13.png",
-      text: "outfitgen@gmail.com",
-      isLink: true,
-    },
-  ];
-
   return (
     <div className="bg-[#ffffff] w-full">
       <AppNavbar />
@@ -90,21 +79,23 @@ export default function Home() {
         </section>
 
         {/* Main Content Section with Background */}
-        <div className="bg-[#d9d9d9] shadow-m3-elevation-light-2 py-16 pt-5">
+        <div className="bg-[#e2e8f0] shadow-m3-elevation-light-2 pt-5 pb-40">
           {/* Description Section */}
           <div className="max-w-4xl mx-auto px-4 mb-12">
-            <p className="text-center text-2xl md:text-3xl mb-8">
-              ¿Necesitas ayuda para crear un atuendo? Aquí podras generar un atuendo
-              de forma rapida para cada ocasión.
+            <p className="text-center text-3xl mb-8">
+              ¿Necesitas ayuda para crear un atuendo? Aquí podrás generar un atuendo
+              de forma rápida para cada ocasión.
             </p>
             
             <div className="flex justify-center">
-              <Link href="/generator">
+              <Link href="/generator" className="no-underline">
                 <Button
-                  variant="outline-dark"
-                  className="border-2 hover:bg-[#FCC4C4] hover:border-[#FCC4C4] hover:text-white transition-colors"
-                  onClick={() => router.push("/generator")}
+                  variant="dark"
+                  className="border-2 hover:bg-[#5CA2AE] hover:border-[#5CA2AE] hover:text-white 
+                            transition-colors flex items-center gap-2 
+                            focus:outline-none focus:ring-0"
                 >
+                  <BsStars size={18} className="text-white" />
                   Empieza a generar
                 </Button>
               </Link>
@@ -126,13 +117,13 @@ export default function Home() {
                     alt={section.title}
                     src={section.image}
                   />
-                  <p className="text-xl md:text-2xl text-center mb-4 w-[350px] pt-4">
+                  <p className="text-2xl md:text-3xl text-center mb-4 w-[350px] pt-4">
                     {section.description}
                   </p>
                   <h3 className="text-xl md:text-2xl font-bold text-center mb-4 pt-5">
                     {section.title}
                   </h3>
-                  <p className="text-xl md:text-2xl text-center mb-4 w-[350px]">
+                  <p className="text-2xl md:text-3xl text-center mb-4 w-[350px]">
                     {section.stats}
                   </p>
                   {index === 0 ? (
@@ -146,18 +137,19 @@ export default function Home() {
           </div>
 
           {/* About Us Section */}
-          <section className="max-w-6xl mx-auto px-4 py-16 pt-5">
+          <section id="about us" className="max-w-6xl mx-auto px-4 py-16 pt-5 mb-32">
             <h2 className="text-center text-4xl md:text-5xl font-bold mb-16">
               Acerca de nosotros
             </h2>
 
             {/* Team Members - Two Columns */}
-            <div className="grid grid-cols-2 gap-8 pt-5">
+            <div className="grid grid-cols-2 gap-x-8 gap-y-20 pt-5">
               {teamMembers.map((member, index) => (
-                <div key={index}>
-                  <Card style={{ width: '100%', maxWidth: '22rem', borderColor: '#5CA2AE', borderWidth: '3px', margin: '0 auto' }}>
+                <div key={index} className="my-24 px-4">
+                  <Card style={{ width: '100%', maxWidth: '25rem', borderColor: 'white', borderWidth: '2px', margin: '2rem auto' }}>
                     <div className="text-center pt-4">
                       <img
+                        src={index === 0 ? "/team/profile_image_mario.jpg" : "/team/profile_image_hamilton.jpg"}
                         className="w-[146px] h-[146px] rounded-full object-cover mx-auto"
                         alt={member.name}
                       />
@@ -166,20 +158,27 @@ export default function Home() {
                       <Card.Title className="text-center text-xl">
                         {member.name}
                       </Card.Title>
-                      <Card.Text className="text-center text-lg mb-3">
+                      <Card.Text className="text-center text-2xl md:text-3xl mb-3">
                         {member.role}
                       </Card.Text>
                       <div className="flex flex-col items-center gap-2">
-                        <div className="flex items-center justify-center bg-white rounded-full w-[52px] h-[52px] border-2 border-solid border-[#1a1a1a]">
-                          <img
-                            className="w-[48.72px] h-[39px]"
-                            alt="LinkedIn"
-                            src={member.profileIcon}
-                          />
+                        <div className="flex items-center justify-center bg-white rounded-full w-[52px] h-[52px]">
+                          {index === 0 ? (
+                            <GiCoffeeMug size={32} className="text-[#1a2b32]" />
+                          ) : (
+                            <FaGlasses size={32} className="text-[#1a2b32]" />
+                          )}
                         </div>
-                        <p className="text-center text-lg">
+                        <a
+                          href={index === 0
+                            ? "https://www.linkedin.com/in/mario-santa"
+                            : "https://www.linkedin.com/in/hamilton-insandar%C3%A1-b08047325"}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-center text-lg underline text-[#5CA2AE] hover:text-[#5CA2AE] transition-colors"
+                        >
                           {member.linkedin}
-                        </p>
+                        </a>
                       </div>
                     </Card.Body>
                   </Card>
@@ -191,39 +190,7 @@ export default function Home() {
       </main>
 
       {/* Footer */}
-      <footer className="bg-[#000000] py-16 pt-3">
-        <div className="max-w-4xl mx-auto px-4">
-          <h2 className="text-center text-4xl md:text-5xl font-bold text-neutral-50 mb-12">
-            Contactanos
-          </h2>
-
-          <div className="flex flex-col items-center gap-8">
-            {contactInfo.map((contact, index) => (
-              <div key={index} className="flex items-center gap-4">
-                <img
-                  className="w-[41px] h-[41px] object-cover"
-                  alt="Contact icon"
-                  src={contact.icon}
-                />
-                {contact.isLink ? (
-                  <a
-                    className="text-[#ffffff] text-2xl md:text-3xl underline hover:text-gray-300 transition-colors"
-                    href={`mailto:${contact.text}`}
-                    rel="noopener noreferrer"
-                    target="_blank"
-                  >
-                    {contact.text}
-                  </a>
-                ) : (
-                  <div className="text-[#ffffff] text-2xl md:text-3xl">
-                    {contact.text}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

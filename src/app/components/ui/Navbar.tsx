@@ -42,7 +42,7 @@ export default function AppNavbar() {
       <Container fluid className="px-8">
         <Navbar.Brand
           href="/"
-          className="font-bold text-xl hover:text-[#FCC4C4] transition-colors"
+          className="font-bold text-xl hover:text-[#5CA2AE] transition-colors"
         >
           PickurFit
         </Navbar.Brand>
@@ -50,22 +50,21 @@ export default function AppNavbar() {
         <Nav className="me-auto gap-4 align-items-center">
           <Button
             variant="outline-dark"
-            className="border-2 hover:bg-[#FCC4C4] hover:border-[#FCC4C4] hover:text-white transition-colors"
+            className="border-2 hover:bg-[#5CA2AE] hover:border-[#5CA2AE] hover:text-white transition-colors"
             onClick={() => router.push("/generator")}
           >
             Empieza a generar
           </Button>
 
           <Nav.Link
-            href="/about"
-            className="text-dark hover:text-[#FCC4C4] transition-colors"
+            href="/#about-us"
+            className="text-dark hover:text-[#5CA2AE] transition-colors"
           >
             Acerca de
           </Nav.Link>
-
           <Nav.Link
-            href="/contact"
-            className="text-dark hover:text-[#FCC4C4] transition-colors"
+            href="/#footer"
+            className="text-dark hover:text-[#5CA2AE] transition-colors"
           >
             Contáctanos
           </Nav.Link>
@@ -91,7 +90,7 @@ export default function AppNavbar() {
               <Button
                 variant="outline-dark"
                 onClick={handleLogout}
-                className="border-2 hover:bg-[#FCC4C4] hover:border-[#FCC4C4] hover:text-white transition-colors"
+                className="border-2 hover:bg-[#5CA2AE] hover:border-[#5CA2AE] hover:text-white transition-colors"
               >
                 Cerrar sesión
               </Button>
@@ -101,7 +100,7 @@ export default function AppNavbar() {
               <Button
                 variant="outline-dark"
                 onClick={() => router.push("/auth/login")}
-                className="border-2 hover:bg-[#FCC4C4] hover:border-[#FCC4C4] hover:text-white transition-colors"
+                className="border-2 hover:bg-[#5CA2AE] hover:border-[#5CA2AE] hover:text-white transition-colors"
               >
                 Iniciar sesión
               </Button>
@@ -109,7 +108,7 @@ export default function AppNavbar() {
               <Button
                 variant="outline-dark"
                 onClick={() => router.push("/auth/register")}
-                className="border-2 hover:bg-[#FCC4C4] hover:border-[#FCC4C4] hover:text-white transition-colors"
+                className="border-2 hover:bg-[#5CA2AE] hover:border-[#5CA2AE] hover:text-white transition-colors"
               >
                 Registrarse
               </Button>

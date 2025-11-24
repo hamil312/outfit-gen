@@ -5,7 +5,9 @@ import Button from 'react-bootstrap/Button';
 import { useState } from 'react';
 import Link from "next/link";
 import AppNavbar from "../components/ui/Navbar";
+import Footer from "@/app/components/ui/Footer";
 import ProtectedRoute from "../components/ui/ProtectedRoute";
+import { BsStars } from "react-icons/bs";
 import { clothingController } from "../controllers/ClothingController";
 import { account } from "@/lib/appwrite";
 import { Clothing } from "../models/Clothing";
@@ -39,34 +41,22 @@ export default function Generator() {
         });
     }, []);
 
-    const contactInfo = [
-        {
-            icon: "/figmaAssets/image-11.png",
-            text: "3148328356",
-        },
-        {
-            icon: "/figmaAssets/image-12.png",
-            text: "github",
-        },
-        {
-            icon: "/figmaAssets/image-13.png",
-            text: "outfitgen@gmail.com",
-            isLink: true,
-        },
-    ];
-
     return (
         <ProtectedRoute>
             {showModal && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-50">
-                    <div className="bg-white p-6 rounded-2xl w-[90%] max-w-md shadow-2xl animate-fadeIn scale-95">
-                        <h2 className="text-xl font-semibold mb-4 text-center">Selecciona una prenda</h2>
+                <div className="fixed inset-0 min-h-screen flex items-center justify-center bg-black/50 backdrop-blur-sm z-50 animate-fadeIn">
+                    {/* Contenedor centrado del modal */}
+                    <div className="bg-white p-6 rounded-2xl w-[90%] max-w-sm shadow-2xl border border-gray-200 animate-scaleIn flex flex-col items-center"
+                        style={{ marginLeft: '8vw' }}>
+                    <h2 className="text-2xl font-bold mb-5 text-center text-gray-800">
+                        Selecciona una prenda
+                    </h2>
 
-                        <div className="grid grid-cols-3 gap-4 max-h-[300px] overflow-y-auto pr-2">
+                        <div className="grid grid-cols-3 gap-4 max-h-[280px] overflow-y-auto pr-1">
                             {userClothes.map((cloth) => (
                                 <div
                                     key={cloth.$id}
-                                    className="cursor-pointer border rounded-lg hover:shadow-lg transition shadow-sm overflow-hidden"
+                                    className="cursor-pointer rounded-xl shadow-sm border border-gray-200 hover:shadow-md hover:-translate-y-1 transition-all overflow-hidden bg-gray-50"
                                     onClick={async () => {
                                         const result = await clothingController.generateOutfitWithBase(cloth.$id!);
                                         setOutfits([result]);
@@ -81,13 +71,16 @@ export default function Generator() {
                             ))}
                         </div>
 
-                        <button
+                        <Button
+                            variant="secondary"
                             onClick={() => setShowModal(false)}
-                            className="mt-6 w-full py-2 bg-pink-300 hover:bg-pink-400 text-white rounded-lg transition font-semibold"
+                            className="mt-6 w-full py-2 bg-pink-300 hover:bg-pink-400 text-white rounded-lg transition font-semibold hover:bg-[#991b1b] focus:ring-0"
                         >
                             Cerrar
-                        </button>
+                        </Button>
+
                     </div>
+
                 </div>
             )}
             <div className="flex flex-col min-h-screen bg-[#ffffff] w-full">
@@ -99,11 +92,12 @@ export default function Generator() {
                     </h2>
 
                     {/* Sección gris principal */}
-                    <section className="w-full bg-[#FCC4C4] py-12 flex flex-col items-center gap-10">
+                    <section className="w-full bg-[#e2e8f0] py-12 flex flex-col items-center gap-10">
                         {/* Botón Generate */}
                         <Button
-                            variant="outline-primary"
-                            className="bg-white rounded-lg border-2 border-solid border-[#FCC4C4] px-8 py-3 text-lg font-patrick-hand-body-lg text-black"
+                            variant="dark"
+                            size="lg"
+                            className="mb-6 border-2 hover:bg-[#5CA2AE] hover:border-[#5CA2AE] hover:text-white transition-colors flex items-center gap-2 mt-5"
                             onClick={async () => {
                                 setLoading(true);
                                 const results = await clothingController.generateOutfits(
@@ -115,41 +109,37 @@ export default function Generator() {
                                 setLoading(false);
                             }}
                         >
-                            {loading ? "Generando..." : "Generate"}
+                            {loading ? (
+                                "Generando..."
+                            ) : (
+                                <>
+                                    <BsStars size={18} className="text-white" />
+                                    Generar
+                                </>
+                            )}
                         </Button>
-                        
                         <div className="w-[90%] max-w-6xl flex flex-row md:flex-row justify-between gap-8">
-                            <div className="flex flex-col items-center justify-start p-8 rounded-lg border-2 border-solid border-[#FCC4C4] w-full md:w-1/4 gap-4">
+                            <div className="flex flex-col items-center justify-start p-8 rounded-lg w-full md:w-1/4 gap-4">
 
                                 <div className="relative dropdown-container">
-                                    <button
+                                    <Button
+                                        variant="outline-dark"
                                         onClick={() => setShowContextDropdown(!showContextDropdown)}
-                                        className="w-[100%] bg-white border border-gray-400 rounded-md p-2 flex justify-between items-center"
+                                        className="min-w-[200px] w-full border-2 rounded-md hover:bg-[#5CA2AE] hover:border-[#5CA2AE] hover:text-white 
+                                        transition-colors flex justify-center items-center text-center"
                                     >
-                                        <span>{selectedContext ? selectedContext : "Contexto"}</span>
-                                        <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        className={`h-5 w-5 transition-transform ${
-                                            showContextDropdown ? "rotate-180" : "rotate-0"
-                                        }`}
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        stroke="currentColor"
-                                        >
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                        </svg>
-                                    </button>
-
+                                        <span>{selectedContext ? selectedContext : "Seleccionar contexto"}</span>
+                                    </Button>
                                     {showContextDropdown && (
                                         <div className="absolute mt-2 w-[100%] bg-white border border-gray-300 rounded-md shadow-lg z-10">
                                         {["Formal", "Informal"].map((option) => (
                                             <div
                                             key={option}
                                             className={`p-2 cursor-pointer hover:bg-gray-100 ${
-                                                selectedContext === option.toLowerCase() ? "bg-gray-200" : ""
+                                                selectedContext === option ? "bg-gray-200" : ""
                                             }`}
                                             onClick={() => {
-                                                setSelectedContext(option.toLowerCase());
+                                                setSelectedContext(option);
                                                 setShowContextDropdown(false); // cerrar después de elegir
                                             }}
                                             >
@@ -162,34 +152,24 @@ export default function Generator() {
 
                                     {/* COLOR */}
                                     <div className="relative dropdown-container">
-                                    <button
+                                    <Button
+                                        variant="outline-dark"
                                         onClick={() => setShowColorDropdown(!showColorDropdown)}
-                                        className="w-[100%] bg-white border border-gray-400 rounded-md p-2 flex justify-between items-center"
+                                        className="min-w-[200px] w-full border-2 rounded-md hover:bg-[#5CA2AE] hover:border-[#5CA2AE] hover:text-white 
+                                        transition-colors flex justify-center items-center text-center"
                                     >
                                         <span>{selectedColor ? selectedColor : "Seleccionar color"}</span>
-                                        <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        className={`h-5 w-5 transition-transform ${
-                                            showColorDropdown ? "rotate-180" : "rotate-0"
-                                        }`}
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        stroke="currentColor"
-                                        >
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                        </svg>
-                                    </button>
-
+                                    </Button>
                                     {showColorDropdown && (
                                         <div className="absolute mt-2 w-[100%] bg-white border border-gray-300 rounded-md shadow-lg z-10 max-h-[200px] overflow-auto">
                                         {["Rojo", "Azul", "Amarillo", "Verde", "Negro", "Blanco"].map((option) => (
                                             <div
                                             key={option}
                                             className={`p-2 cursor-pointer hover:bg-gray-100 ${
-                                                selectedColor === option.toLowerCase() ? "bg-gray-200" : ""
+                                                selectedColor === option ? "bg-gray-200" : ""
                                             }`}
                                             onClick={() => {
-                                                setSelectedColor(option.toLowerCase());
+                                                setSelectedColor(option);
                                                 setShowColorDropdown(false); // cerrar después de elegir
                                             }}
                                             >
@@ -202,7 +182,7 @@ export default function Generator() {
                             </div>
 
                             {/* Columna 2: Cards de atuendos */}
-                            <div className="flex flex-col items-center justify-center bg-white p-6 rounded-lg border-2 border-solid border-[#FCC4C4] w-full md:w-2/4 min-h-[250px]">
+                            <div className="flex flex-col items-center justify-center bg-white p-6 rounded-lg w-full md:w-2/4 min-h-[250px] my-5">
                             {loading ? (
                                 <p className="text-gray-700 text-center">Generando atuendos...</p>
                             ) : outfits.length === 0 ? (
@@ -256,56 +236,28 @@ export default function Generator() {
                             </div>
 
                             {/* Columna 3: Botones de acción */}
-                            <div className="flex flex-col items-center justify-start p-6 rounded-lg border-2 border-solid border-[#FCC4C4] w-full md:w-1/4 gap-4">
+                            <div className="flex flex-col items-center justify-start p-6 rounded-lg w-full md:w-1/4 gap-4">
                                 <Link href="/virtual_wardrobe">
                                     <Button
-                                        variant="outline-primary"
-                                        className="bg-white rounded-lg border-2 border-solid border-[#FCC4C4] px-6 py-2"
+                                        variant="outline-dark"
+                                        className="border-2 hover:bg-[#5CA2AE] hover:border-[#5CA2AE] hover:text-white transition-colors"
                                         >
                                         Guardarropa
                                     </Button>
                                 </Link>
 
-                                <button
-                                    className="bg-white border px-6 py-3 rounded-lg"
+                                <Button
+                                    variant="outline-dark"
+                                    className="border-2 hover:bg-[#5CA2AE] hover:border-[#5CA2AE] hover:text-white transition-colors"
                                     onClick={() => setShowModal(true)}
                                 >
                                     Seleccionar prenda
-                                </button>
+                                </Button>
                             </div>
                         </div>
                     </section>
                 </main>
-
-                <footer className="w-full bg-black text-white py-10 flex flex-col items-center justify-center mt-auto">
-                    <h3 className="text-2xl font-semibold mb-6">Contáctanos</h3>
-
-                    <div className="flex flex-col items-center justify-center space-y-4">
-                        {contactInfo.map((contact, index) => (
-                            <div key={index} className="flex items-center gap-4">
-                                <img
-                                    className="w-[41px] h-[41px] object-cover"
-                                    alt="Contact icon"
-                                    src={contact.icon}
-                                />
-                                {contact.isLink ? (
-                                    <a
-                                        className="font-patrick-hand-body-lg text-white text-xl underline hover:text-gray-300 transition-colors"
-                                        href={`mailto:${contact.text}`}
-                                        rel="noopener noreferrer"
-                                        target="_blank"
-                                    >
-                                        {contact.text}
-                                    </a>
-                                ) : (
-                                    <div className="font-patrick-hand-body-lg text-white text-xl">
-                                        {contact.text}
-                                    </div>
-                                )}
-                            </div>
-                        ))}
-                    </div>
-                </footer>
+                <Footer />
             </div>
         </ProtectedRoute>
     );

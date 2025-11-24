@@ -85,7 +85,7 @@ export default function UserPage() {
   return (
     <ProtectedRoute>
       <div className="min-h-screen flex items-center justify-center py-6">
-        <Card style={{ maxWidth: 900, width: '100%' }} className="p-4 shadow-md">
+        <Card style={{ maxWidth: 900, width: '100%' }} className="bg-[#e2e8f0] p-4 shadow-md border">
           <Card.Body className="flex flex-col md:flex-row gap-6 items-start">
             <div className="flex-1">
               <h2 className="text-2xl font-bold text-[#1a2b32] mb-2">
@@ -152,7 +152,7 @@ export default function UserPage() {
                       setMessage(null);
                       window.location.href = '/';
                     }}
-                    className="hover:bg-[#f3f4f6] focus:ring-0"
+                    className="hover:bg-[#991b1b] focus:ring-0"
                   >
                     Cancelar
                   </Button>
