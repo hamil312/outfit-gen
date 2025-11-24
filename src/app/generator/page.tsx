@@ -163,7 +163,7 @@ export default function Generator() {
                                     </Button>
                                     {showColorDropdown && (
                                         <div className="absolute mt-2 w-[100%] bg-white border border-gray-300 rounded-md shadow-lg z-10 max-h-[200px] overflow-auto">
-                                        {["any","Rojo", "Azul", "Amarillo", "Verde", "Negro", "Blanco"].map((option) => (
+                                        {["any","Red", "Blue", "Yellow", "Green", "Black", "White"].map((option) => (
                                             <div
                                             key={option}
                                             className={`p-2 cursor-pointer hover:bg-gray-100 ${

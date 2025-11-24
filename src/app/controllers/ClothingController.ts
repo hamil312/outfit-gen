@@ -88,41 +88,117 @@ export const clothingController = {
 
   async generateOutfits(selectedColor?: string, selectedContext?: string) {
     try {
-      // 🔹 Obtener usuario actual
       const user = await account.get();
-
-      // 🔹 Obtener prendas del usuario
       const userClothes = await clothingRepository.getClothingsByUser(user.$id);
 
-      // 🔹 Convertir color RGB string a array numérico para Flask
-      const normalizedClothes = userClothes.map((item) => {
+      // -----------------------
+      // Normalización (igual que antes)
+      // -----------------------
+      const normalize = (item: any) => {
         let rgb = [0, 0, 0];
-        if (item.color && item.color.startsWith("rgb")) {
+        if (item.color?.startsWith("rgb")) {
           rgb = item.color
             .replace(/[^\d,]/g, "")
             .split(",")
-            .map((n) => parseInt(n.trim(), 10));
+            .map((n: string) => parseInt(n.trim(), 10));
         }
 
         return {
-          $id: item.$id,      // ← NECESARIO
-          id: item.$id,       // ← opcional
+          $id: item.$id,
+          id: item.$id,
           image: item.image,
-          type: item.type || "unknown",
+          type: item.type,
           color: rgb,
           occasion: item.occasion?.toLowerCase() || "neutral",
         };
-      });
+      };
 
-      // 🔹 Si el usuario seleccionó un contexto o color, los aplicamos
-      let filtered = normalizedClothes;
-      if (selectedContext) {
-        filtered = filtered.filter(
-          (c) => c.occasion === selectedContext.toLowerCase()
-        );
+      const all = userClothes.map(normalize);
+
+      function getColorName(rgb: number[]) {
+        const [r, g, b] = rgb;
+
+        if (r < 40 && g < 40 && b < 40) return "black";
+        if (r > 220 && g > 220 && b > 220) return "white";
+        if (Math.abs(r - g) < 20 && Math.abs(g - b) < 20) return "gray";
+        if (r > 150 && g < 100 && b < 100) return "red";
+        if (r > 150 && g > 150 && b < 80) return "yellow";
+        if (g > 120 && r < 120 && b < 120) return "green";
+        if (b > 140 && r < 120 && g < 120) return "blue";
+        if (r > 120 && g > 100 && b < 80) return "beige";
+
+        return "neutral";
       }
 
-      // 🔹 Enviar al backend Flask
+      // -----------------------------------
+      // 1) SOLO COLOR → buscar prenda base
+      // -----------------------------------
+      const hasColor = selectedColor && selectedColor.toLowerCase() !== "any";
+      const hasContext = selectedContext && selectedContext.toLowerCase() !== "any";
+
+      if (hasColor && !hasContext) {
+        const targetColor = selectedColor!.toLowerCase();
+
+        const baseItem = all.find((c) => getColorName(c.color) === targetColor);
+
+        if (baseItem) {
+          // usar generación con base
+          const response = await fetch("http://localhost:5000/generate-outfit-with-base", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ base_item: baseItem, all_items: all }),
+          });
+
+          const data = await response.json();
+          return [data.outfit];
+        }
+      }
+
+      // ---------------------------------------------------------
+      // 2) COLOR + CONTEXTO → buscar prenda que cumpla ambos
+      // ---------------------------------------------------------
+      if (hasColor && hasContext) {
+        const targetColor = selectedColor!.toLowerCase();
+        const targetContext = selectedContext!.toLowerCase();
+
+        const baseItem = all.find(
+          (c) =>
+            getColorName(c.color) === targetColor &&
+            c.occasion === targetContext
+        );
+
+        if (baseItem) {
+          const response = await fetch("http://localhost:5000/generate-outfit-with-base", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ base_item: baseItem, all_items: all }),
+          });
+
+          const data = await response.json();
+          return [data.outfit];
+        }
+      }
+
+      // ---------------------------------------------------------
+      // 3) SOLO CONTEXTO → usar lógica previa de filtrado
+      // ---------------------------------------------------------
+      let filtered = all;
+
+      if (hasContext) {
+        filtered = filtered.filter((c) => c.occasion === selectedContext!.toLowerCase());
+      }
+
+      if (hasColor) {
+        const targetColor = selectedColor!.toLowerCase();
+        filtered = filtered.filter((c) => getColorName(c.color) === targetColor);
+      }
+
+      // Si no hay prendas filtradas → usar todas
+      if (filtered.length === 0) filtered = all;
+
+      // -----------------------------------
+      // Generación normal con el endpoint
+      // -----------------------------------
       const response = await fetch("http://localhost:5000/generate-outfits", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -130,13 +206,6 @@ export const clothingController = {
       });
 
       const data = await response.json();
-      if (!data.outfits || data.outfits.length === 0) {
-        console.warn("⚠️ No se recibieron outfits, generando aleatorio...");
-        if (userClothes.length > 0) {
-          const randomOutfit = userClothes.slice(0, 3);
-          return [{ superior: randomOutfit[0], inferior: randomOutfit[1], calzado: randomOutfit[2] }];
-        }
-      }
       return data.outfits || [];
     } catch (error) {
       console.error("Error generando outfits:", error);

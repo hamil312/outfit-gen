@@ -67,11 +67,11 @@ def get_dominant_color(image, k=3):
 
 COLOR_RULES = {
     "neutral": ["black", "white", "gray", "beige", "denim"],
-    "black": ["white", "gray", "red", "beige", "blue"],
+    "black": ["white", "gray", "red", "beige", "blue", "black"],
     "white": ["black", "blue", "red", "green", "gray"],
     "blue": ["white", "beige", "gray"],
     "red": ["black", "white", "gray"],
-    "green": ["white", "black", "brown"],
+    "green": ["white", "black", "brown", "blue"],
     "gray": ["white", "black", "blue"],
     "beige": ["white", "brown", "blue"],
 }
@@ -89,20 +89,24 @@ CATEGORY_MAP = {
 
 def rgb_to_name(rgb):
     r, g, b = rgb
-    if r > 200 and g > 200 and b > 200:
-        return "white"
-    if r < 50 and g < 50 and b < 50:
+
+    if r < 40 and g < 40 and b < 40:
         return "black"
-    if r > g and r > b:
-        return "red"
-    if g > r and g > b:
-        return "green"
-    if b > r and b > g:
-        return "blue"
+    if r > 220 and g > 220 and b > 220:
+        return "white"
     if abs(r - g) < 20 and abs(g - b) < 20:
         return "gray"
-    if r > 180 and g > 160 and b < 100:
+    if r > 150 and g < 100 and b < 100:
+        return "red"
+    if r > 150 and g > 150 and b < 80:
+        return "yellow"
+    if g > 120 and r < 120 and b < 120:
+        return "green"
+    if b > 140 and r < 120 and g < 120:
+        return "blue"
+    if r > 120 and g > 100 and b < 80:
         return "beige"
+
     return "neutral"
 
 def color_compatible(c1, c2):

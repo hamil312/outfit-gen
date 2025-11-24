@@ -159,7 +159,7 @@ const VirtualWardrobe = () => {
                         />
                         <Card.Body className="p-4">
                           <Card.Title className="text-[#1a2b32] text-lg font-semibold mb-4">
-                            {item.type} — {item.color}
+                            {item.name} — {item.color}
                           </Card.Title>
                           <div className="flex justify-between gap-2">
                             <Button
@@ -202,7 +202,7 @@ const VirtualWardrobe = () => {
                         />
                         <Card.Body className="p-4">
                           <Card.Title className="text-[#1a2b32] text-lg font-semibold mb-4">
-                            {item.type} — {item.color}
+                            {item.name} — {item.color}
                           </Card.Title>
                           <div className="flex justify-between gap-2">
                             <Button
@@ -245,7 +245,7 @@ const VirtualWardrobe = () => {
                         />
                         <Card.Body className="p-4">
                           <Card.Title className="text-[#1a2b32] text-lg font-semibold mb-4">
-                            {item.type} — {item.color}
+                            {item.name} — {item.color}
                           </Card.Title>
                           <div className="flex justify-between gap-2">
                             <Button
@@ -299,7 +299,7 @@ const VirtualWardrobe = () => {
                       />
                       <Card.Body className="p-4">
                         <Card.Title className="text-[#1a2b32] text-lg font-semibold mb-4">
-                          {item.type} — {item.color}
+                          {item.name} — {item.color}
                         </Card.Title>
                         <div className="flex justify-between gap-2">
                           <Button
