@@ -127,6 +127,7 @@ def generate_outfits(prendas):
             continue
         color_name = rgb_to_name(p["color"])
         item = {
+            "$id": p.get("$id"),
             **p,
             "color_name": color_name,
             "categoria": cat,
