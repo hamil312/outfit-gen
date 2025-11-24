@@ -1,6 +1,6 @@
 import { clothingRepository } from "@/app/repositories/ClothingRepository";
 import { Clothing } from "@/app/models/Clothing";
-import { account } from "@/lib/appwrite";
+import { account, databases } from "@/lib/appwrite";
 
 export const clothingController = {
   async addClothing(file: File, data: Omit<Clothing, "image">) {
@@ -41,7 +41,7 @@ export const clothingController = {
   async deleteClothing(clothing: Clothing) {
     if (!clothing.$id) throw new Error("Missing document ID");
 
-    await clothingRepository.deleteClothing(clothing.$id, clothing.image); //Ahora me da el mismo error aquí
+    await clothingRepository.deleteClothing(clothing.$id, clothing.image);
     return true;
   },
 
@@ -64,7 +64,8 @@ export const clothingController = {
       }
 
       return {
-        id: item.$id,
+        $id: item.$id,     // ← NECESARIO
+        id: item.$id,      // ← si quieres mantener ambos
         image: item.image,
         type: item.type,
         color: rgb,
@@ -104,7 +105,8 @@ export const clothingController = {
         }
 
         return {
-          id: item.$id,
+          $id: item.$id,      // ← NECESARIO
+          id: item.$id,       // ← opcional
           image: item.image,
           type: item.type || "unknown",
           color: rgb,
@@ -141,4 +143,13 @@ export const clothingController = {
       return [];
     }
   },
+
+  async updateClothing(id: string, data: any) {
+    return await databases.updateDocument(
+      process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID!,
+      process.env.NEXT_PUBLIC_APPWRITE_CLOTHING_COLLECTION_ID!,
+      id,
+      data
+    );
+  }
 };

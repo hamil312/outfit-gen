@@ -11,6 +11,7 @@ import { BsStars } from "react-icons/bs";
 import { clothingController } from "../controllers/ClothingController";
 import { account } from "@/lib/appwrite";
 import { Clothing } from "../models/Clothing";
+import { outfitController } from "../controllers/OutfitController";
 
 export default function Generator() {
     const [selectedContext, setSelectedContext] = useState<string>("");
@@ -225,6 +226,22 @@ export default function Generator() {
                                             alt={outfit.calzado?.type || "Sin tipo"}
                                             className="w-full h-48 object-cover rounded-md"
                                             />
+                                            <Button
+                                                variant="dark"
+                                                className="mt-3 w-full hover:bg-[#5CA2AE] hover:border-[#5CA2AE]"
+                                                onClick={async () => {
+                                                    try {
+                                                        await outfitController.saveOutfit(outfit, `Outfit ${index + 1}`);
+                                                        console.log("Outfit a guardar:", outfit);
+                                                        alert("Outfit guardado correctamente");
+                                                    } catch (err) {
+                                                        console.error(err);
+                                                        alert("Error al guardar el outfit");
+                                                    }
+                                                }}
+                                            >
+                                                Guardar outfit
+                                            </Button>
                                         </>
                                         ) : (
                                         <p className="text-center text-gray-600">Outfit incompleto</p>

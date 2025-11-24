@@ -1,49 +1,64 @@
 "use client";
 
 import React, { useState } from "react";
-import { clothingController } from "@/app/controllers/ClothingController";
-import { account } from "@/lib/appwrite";
+import { Clothing } from "@/app/models/Clothing";
 
-export default function ClothingForm() {
+interface ClothingFormProps {
+  initialValues?: Partial<Clothing>;
+  mode?: "create" | "edit";
+  onSubmit: (values: any, file?: File | null) => Promise<any>;
+}
+
+export default function ClothingForm({
+  initialValues = {},
+  mode = "create",
+  onSubmit,
+}: ClothingFormProps) {
   const [file, setFile] = useState<File | null>(null);
+
   const [form, setForm] = useState({
-    name: "",
-    color: "",
-    type: "Top",
-    material: "",
-    size: "",
-    occasion: "",
+    name: initialValues.name || "",
+    color: initialValues.color || "",
+    type: initialValues.type || "Top",
+    material: initialValues.material || "",
+    size: initialValues.size || "",
+    occasion: initialValues.occasion || "",
   });
+
   const [loading, setLoading] = useState(false);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!file) return alert("Por favor selecciona una imagen");
+
+    if (mode === "create" && !file) {
+      return alert("Por favor selecciona una imagen");
+    }
 
     setLoading(true);
+
     try {
-      const user = await account.get();
-      await clothingController.addClothing(file, {
-        ...form,
-        userId: user.$id,
-      });
-      alert("Prenda registrada correctamente 🎉");
-      setForm({
-        name: "",
-        color: "",
-        type: "Top",
-        material: "",
-        size: "",
-        occasion: "",
-      });
-      setFile(null);
-    } catch (err: any) {
+      await onSubmit(form, file);
+
+      if (mode === "create") {
+        setForm({
+          name: "",
+          color: "",
+          type: "Top",
+          material: "",
+          size: "",
+          occasion: "",
+        });
+        setFile(null);
+      }
+    } catch (err) {
       console.error(err);
-      alert("Error al registrar la prenda");
+      alert("Ocurrió un error al guardar la prenda");
     } finally {
       setLoading(false);
     }
@@ -52,9 +67,11 @@ export default function ClothingForm() {
   return (
     <form
       onSubmit={handleSubmit}
-      className="bg-white shadow-md p-6 rounded-2xl max-w-md mx-auto mt-8"
+      className="bg-white shadow-md p-6 rounded-2xl max-w-md mx-auto"
     >
-      <h2 className="text-2xl font-semibold mb-4">Añade una prenda</h2>
+      <h2 className="text-2xl font-semibold mb-4">
+        {mode === "create" ? "Añade una prenda" : "Editar prenda"}
+      </h2>
 
       <input
         type="text"
@@ -113,19 +130,26 @@ export default function ClothingForm() {
         className="border p-2 mb-3 w-full rounded"
       />
 
-      <input
-        type="file"
-        accept="image/*"
-        onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-        className="border p-2 mb-3 w-full rounded"
-      />
+      {/* El input de imagen solo se muestra en creación */}
+      {mode === "create" && (
+        <input
+          type="file"
+          accept="image/*"
+          onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+          className="border p-2 mb-3 w-full rounded"
+        />
+      )}
 
       <button
         type="submit"
         disabled={loading}
         className="bg-[#5CA2AE] text-white py-2 px-4 rounded w-full transition-colors"
       >
-        {loading ? "Guardando..." : "Añadir prenda"}
+        {loading
+          ? "Guardando..."
+          : mode === "create"
+          ? "Añadir prenda"
+          : "Guardar cambios"}
       </button>
     </form>
   );

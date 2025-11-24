@@ -31,11 +31,22 @@ import ProtectedRoute from "../components/ui/ProtectedRoute";
 import { Clothing } from "../models/Clothing";
 import { mapClothingTypeToSection } from "@/lib/ClothingCategoryMapper";
 import { clothingController } from "../controllers/ClothingController";
+import { outfitController } from "../controllers/OutfitController";
+import { account } from "@/lib/appwrite";
 
 const VirtualWardrobe = () => {
   const [selectedCategory, setSelectedCategory] = useState('prendas');
   const [selectedSection, setSelectedSection] = useState('todas');
   const [clothes, setClothes] = useState<Clothing[]>([]);
+  const [outfits, setOutfits] = useState<any[]>([]);
+  const [editingItem, setEditingItem] = useState<Clothing | null>(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+
+  const [userId, setUserId] = useState<string>("");
+
+  useEffect(() => {
+    account.get().then(u => setUserId(u.$id));
+  }, []);
 
   const [sidebarWidth, setSidebarWidth] = useState(384);
   const [windowHeight, setWindowHeight] = useState(800);
@@ -65,9 +76,47 @@ const VirtualWardrobe = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const items = await clothingController.getUserClothes();
+        setClothes(items);
+
+        if (selectedCategory === "atuendos") {
+          const userOutfits = await outfitController.getUserOutfits();
+          setOutfits(userOutfits);
+        }
+
+      } catch (error) {
+        console.error("Error al cargar datos:", error);
+      }
+    };
+
+    fetchData();
+  }, [selectedCategory]);
+
   const handleResize = (event: any, { size }: { size: { width: number } }) => {
     const newWidth = Math.max(384, Math.min(600, size.width));
     setSidebarWidth(newWidth);
+  };
+
+  const handleDeleteOutfit = async (outfitId: string) => {
+    if (!confirm("¿Deseas eliminar este atuendo?")) return;
+
+    try {
+      await outfitController.deleteOutfit(outfitId);
+
+      // Remover del estado local
+      setOutfits(prev => prev.filter(o => o.$id !== outfitId));
+    } catch (error) {
+      console.error("Error al eliminar atuendo:", error);
+      alert("No se pudo eliminar el atuendo.");
+    }
+  };
+
+  const handleEdit = (item: Clothing) => {
+    setEditingItem(item);
+    setShowEditModal(true);
   };
 
   const handleCategoryClick = (category: string, section: string) => {
@@ -120,7 +169,11 @@ const VirtualWardrobe = () => {
                             >
                               <FaTrash /> Eliminar
                             </Button>
-                            <Button variant="outline-primary" className="flex items-center gap-2 flex-1">
+                            <Button
+                              variant="outline-primary"
+                              className="flex items-center gap-2 flex-1"
+                              onClick={() => handleEdit(item)}
+                            >
                               <FaEdit /> Editar
                             </Button>
                           </div>
@@ -152,10 +205,18 @@ const VirtualWardrobe = () => {
                             {item.type} — {item.color}
                           </Card.Title>
                           <div className="flex justify-between gap-2">
-                            <Button variant="outline-danger" className="flex items-center gap-2 flex-1">
+                            <Button
+                              variant="outline-danger"
+                              className="flex items-center gap-2 flex-1"
+                              onClick={() => handleDelete(item)}
+                            >
                               <FaTrash /> Eliminar
                             </Button>
-                            <Button variant="outline-primary" className="flex items-center gap-2 flex-1">
+                            <Button
+                              variant="outline-primary"
+                              className="flex items-center gap-2 flex-1"
+                              onClick={() => handleEdit(item)}
+                            >
                               <FaEdit /> Editar
                             </Button>
                           </div>
@@ -187,10 +248,18 @@ const VirtualWardrobe = () => {
                             {item.type} — {item.color}
                           </Card.Title>
                           <div className="flex justify-between gap-2">
-                            <Button variant="outline-danger" className="flex items-center gap-2 flex-1">
+                            <Button
+                              variant="outline-danger"
+                              className="flex items-center gap-2 flex-1"
+                              onClick={() => handleDelete(item)}
+                            >
                               <FaTrash /> Eliminar
                             </Button>
-                            <Button variant="outline-primary" className="flex items-center gap-2 flex-1">
+                            <Button
+                              variant="outline-primary"
+                              className="flex items-center gap-2 flex-1"
+                              onClick={() => handleEdit(item)}
+                            >
                               <FaEdit /> Editar
                             </Button>
                           </div>
@@ -234,14 +303,16 @@ const VirtualWardrobe = () => {
                         </Card.Title>
                         <div className="flex justify-between gap-2">
                           <Button
-                            variant="outline-danger"
-                            className="flex items-center gap-2 flex-1"
-                          >
-                            <FaTrash /> Eliminar
-                          </Button>
+                              variant="outline-danger"
+                              className="flex items-center gap-2 flex-1"
+                              onClick={() => handleDelete(item)}
+                            >
+                              <FaTrash /> Eliminar
+                            </Button>
                           <Button
                             variant="outline-primary"
                             className="flex items-center gap-2 flex-1"
+                            onClick={() => handleEdit(item)}
                           >
                             <FaEdit /> Editar
                           </Button>
@@ -262,13 +333,59 @@ const VirtualWardrobe = () => {
     } else {
       // Para la sección de atuendos (todos y favoritos)
       return (
-        <section>
-          <h2 className="text-2xl font-bold text-[#1a2b32] mb-6">
-            {selectedSection === 'todos' ? 'Tus atuendos' : 'Atuendos favoritos'}
-          </h2>
-          <div className="text-center text-gray-500 py-8">
-            Contenido de atuendos en desarrollo...
-          </div>
+        <section className="space-y-12">
+          {outfits.map(outfit => {
+
+              // Crear array dinámico con IDs válidas
+              const outfitItems = [
+                outfit.superior,
+                outfit.inferior,
+                outfit.shoes
+              ].filter(Boolean);
+
+              return (
+                <div key={outfit.$id} className="space-y-4">
+
+                  <div className="flex justify-between items-center">
+                    <h3 className="text-xl font-bold text-[#1a2b32]">
+                      {outfit.name || "Outfit sin nombre"}
+                    </h3>
+
+                    <Button
+                      variant="outline-danger"
+                      className="flex items-center gap-2"
+                      onClick={() => handleDeleteOutfit(outfit.$id)}
+                    >
+                      <FaTrash /> Eliminar
+                    </Button>
+                  </div>
+
+                  <div className="flex gap-4 overflow-x-auto pb-2">
+                    {outfitItems.map((id: string) => {
+                      const item = clothes.find(c => c.$id === id);
+                      if (!item) return null;
+
+                      return (
+                        <div
+                          key={id}
+                          className="min-w-[160px] bg-white shadow rounded-lg border border-gray-200"
+                        >
+                          <img
+                            src={`https://cloud.appwrite.io/v1/storage/buckets/${process.env.NEXT_PUBLIC_APPWRITE_BUCKET_ID}/files/${item.image}/view?project=${process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID}`}
+                            className="h-40 w-full object-cover object-top rounded-t-lg"
+                          />
+                          <div className="p-2 text-center">
+                            <p className="font-semibold">{item.type}</p>
+                            <p className="text-sm text-gray-600">{item.color}</p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                </div>
+              );
+            })}
         </section>
       );
     }
@@ -305,7 +422,7 @@ const VirtualWardrobe = () => {
               )}
             >
               <aside 
-                className="min-h-screen bg-[#e2e8f0] p-6" 
+                className="min-h-screen sticky top-0 bg-[#e2e8f0] p-6 overflow-y-auto" 
                 style={{ 
                   width: `${sidebarWidth}px`,
                   fontSize: '1.1rem'
@@ -432,7 +549,57 @@ const VirtualWardrobe = () => {
             <Modal.Title>Añadir prenda</Modal.Title>
           </Modal.Header>
           <Modal.Body>
-            <ClothingForm />
+            <ClothingForm
+              mode="create"
+              onSubmit={(values, file) => clothingController.addClothing(file!, {...values, userId})}
+            />
+          </Modal.Body>
+        </Modal>
+        <Modal show={showEditModal} onHide={() => setShowEditModal(false)} centered>
+          <Modal.Header closeButton>
+            <Modal.Title>Editar prenda</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            {editingItem && (
+              <ClothingForm
+                initialValues={editingItem}
+                mode="edit"
+                onSubmit={async (updatedValues) => {
+                  try {
+                    if (!editingItem?.$id) {
+                        alert("Error: prenda sin ID");
+                        return;
+                    }
+
+                    function normalizeDoc(doc: any): Clothing {
+                      return {
+                        $id: doc.$id,
+                        name: doc.name,
+                        color: doc.color,
+                        type: doc.type,
+                        material: doc.material,
+                        size: doc.size,
+                        occasion: doc.occasion,
+                        image: doc.image,
+                        userId: doc.userId,
+                      };
+                    }
+
+                    const updatedDoc = await clothingController.updateClothing(editingItem.$id, updatedValues);
+                    const updated = normalizeDoc(updatedDoc);
+
+                    setClothes(prev =>
+                      prev.map(c => c.$id === updated.$id ? updated : c)
+                    );
+
+                    setShowEditModal(false);
+                  } catch (error) {
+                    console.error("Error al actualizar prenda:", error);
+                    alert("No se pudo actualizar la prenda.");
+                  }
+                }}
+              />
+            )}
           </Modal.Body>
         </Modal>
       </div>
