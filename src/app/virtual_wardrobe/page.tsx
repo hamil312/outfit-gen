@@ -368,7 +368,7 @@ const VirtualWardrobe = () => {
                       return (
                         <div
                           key={id}
-                          className="min-w-[160px] bg-white shadow rounded-lg border border-gray-200"
+                          className="size-[30%] bg-white shadow rounded-lg border border-gray-200"
                         >
                           <img
                             src={`https://cloud.appwrite.io/v1/storage/buckets/${process.env.NEXT_PUBLIC_APPWRITE_BUCKET_ID}/files/${item.image}/view?project=${process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID}`}
@@ -422,7 +422,7 @@ const VirtualWardrobe = () => {
               )}
             >
               <aside 
-                className="min-h-screen sticky top-0 bg-[#e2e8f0] p-6 overflow-y-auto" 
+                className="h-full sticky top-0 bg-[#e2e8f0] p-6 overflow-y-auto" 
                 style={{ 
                   width: `${sidebarWidth}px`,
                   fontSize: '1.1rem'
