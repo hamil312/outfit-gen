@@ -64,8 +64,8 @@ export const clothingController = {
       }
 
       return {
-        $id: item.$id,     // ← NECESARIO
-        id: item.$id,      // ← si quieres mantener ambos
+        $id: item.$id, 
+        id: item.$id,
         image: item.image,
         type: item.type,
         color: rgb,
@@ -92,7 +92,7 @@ export const clothingController = {
       const userClothes = await clothingRepository.getClothingsByUser(user.$id);
 
       // -----------------------
-      // Normalización (igual que antes)
+      // Normalización
       // -----------------------
       const normalize = (item: any) => {
         let rgb = [0, 0, 0];

@@ -30,7 +30,6 @@ processor = CLIPProcessor.from_pretrained(model_id)
 CLOTHING_TYPES = ["shirt", "t-shirt", "pants", "shorts", "dress", "shoes", "jacket", "skirt"]
 OCCASIONS = ["formal", "informal", "sport", "casual"]
 
-# ------------------ UTILIDADES ------------------
 
 def remove_background(image):
     """Elimina el fondo manteniendo transparencia."""
@@ -61,9 +60,7 @@ def get_dominant_color(image, k=3):
     colors = kmeans.cluster_centers_
     counts = np.bincount(kmeans.labels_)
     dominant_color = colors[np.argmax(counts)]
-    return dominant_color.astype(int).tolist()
 
-# ------------------ GENERADOR DE OUTFITS ------------------
 
 COLOR_RULES = {
     "neutral": ["black", "white", "gray", "beige", "denim"],
@@ -148,7 +145,6 @@ def generate_outfits(prendas):
 
     outfits = []
 
-    # ---- Generar combinaciones normales ----
     for comp in completos:
         for c in calzados:
             if color_compatible(comp["color_name"], c["color_name"]) and compatible_ocasion(comp["occasion"], c["occasion"]):
@@ -171,7 +167,6 @@ def generate_outfits(prendas):
                     "calzado": c
                 })
 
-    # ---- Si no se generó nada, elegir aleatoriamente ----
     if not outfits:
         print("⚠️ No se encontraron combinaciones compatibles. Generando aleatorias.")
         if completos and calzados:
@@ -191,15 +186,13 @@ def generate_outfits(prendas):
             if inferiores: partial["inferior"] = random.choice(inferiores)
             if calzados: partial["calzado"] = random.choice(calzados)
             if completos: partial["completo"] = random.choice(completos)
-            if partial:  # solo agregar si contiene algo
+            if partial: 
                 outfits.append(partial)
 
-    # 🔹 Filtrar cualquier outfit vacío antes de retornar
     outfits = [o for o in outfits if any(o.values())]
 
     return outfits
 
-# ------------------ ENDPOINTS ------------------
 
 @app.route("/analyze", methods=["POST"])
 def analyze():
@@ -285,9 +278,6 @@ def generate_outfit_with_base():
 
     outfit = { base_cat: base_item }
 
-    # ---------------------------
-    # GENERAR LAS OTRAS 2 PRENDAS
-    # ---------------------------
 
     def pick_compatible(candidates):
         compatibles = [
@@ -318,6 +308,5 @@ def generate_outfit_with_base():
 
     return jsonify({ "outfit": outfit })
 
-# ------------------ MAIN ------------------
 if __name__ == "__main__":
     app.run(port=5000)
