@@ -56,6 +56,14 @@ export default function AppNavbar() {
             Empieza a generar
           </Button>
 
+          <Button
+            variant="outline-dark"
+            className="border-2 hover:bg-[#5CA2AE] hover:border-[#5CA2AE] hover:text-white transition-colors"
+            onClick={() => router.push("/feed")}
+          >
+            Feed
+          </Button>
+
           <Nav.Link
             href="/#about-us"
             className="text-dark hover:text-[#5CA2AE] transition-colors"

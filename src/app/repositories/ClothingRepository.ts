@@ -48,5 +48,11 @@ export const clothingRepository = {
     }
 
     return true;
+  },
+
+  async getClothingById(clothingId: string) {
+    if (!clothingId) throw new Error("Missing clothingId");
+    const doc = await databases.getDocument(DATABASE_ID, CLOTHING_COLLECTION_ID, clothingId);
+    return doc as unknown as Clothing;
   }
 };

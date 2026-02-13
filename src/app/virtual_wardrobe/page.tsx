@@ -22,7 +22,7 @@ import { BiCloset } from 'react-icons/bi';
 import { FaTshirt, FaHeart } from 'react-icons/fa';
 import { IoMdAdd } from 'react-icons/io';
 import { MdGeneratingTokens } from 'react-icons/md';
-import { FaEdit, FaTrash } from 'react-icons/fa';
+import { FaEdit, FaTrash, FaEye, FaEyeSlash } from 'react-icons/fa';
 import { BsStars } from "react-icons/bs";
 
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -32,6 +32,7 @@ import { Clothing } from "../models/Clothing";
 import { mapClothingTypeToSection } from "@/lib/ClothingCategoryMapper";
 import { clothingController } from "../controllers/ClothingController";
 import { outfitController } from "../controllers/OutfitController";
+import { favouriteController } from "../controllers/FavouriteController";
 import { account } from "@/lib/appwrite";
 
 const VirtualWardrobe = () => {
@@ -83,8 +84,13 @@ const VirtualWardrobe = () => {
         setClothes(items);
 
         if (selectedCategory === "atuendos") {
-          const userOutfits = await outfitController.getUserOutfits();
-          setOutfits(userOutfits);
+          if (selectedSection === 'favoritos') {
+            const favOutfits = await outfitController.getFavouriteOutfits();
+            setOutfits(favOutfits || []);
+          } else {
+            const userOutfits = await outfitController.getUserOutfits();
+            setOutfits(userOutfits || []);
+          }
         }
 
       } catch (error) {
@@ -93,7 +99,7 @@ const VirtualWardrobe = () => {
     };
 
     fetchData();
-  }, [selectedCategory]);
+  }, [selectedCategory, selectedSection]);
 
   const handleResize = (event: any, { size }: { size: { width: number } }) => {
     const newWidth = Math.max(384, Math.min(600, size.width));
@@ -108,9 +114,76 @@ const VirtualWardrobe = () => {
 
       // Remover del estado local
       setOutfits(prev => prev.filter(o => o.$id !== outfitId));
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error al eliminar atuendo:", error);
+
+      if (error && error.message && error.message.includes('No autorizado')) {
+        alert('No tienes permiso para eliminar este atuendo.');
+        return;
+      }
+
+      if (error && error.message && error.message.includes('Usuario no autenticado')) {
+        alert('Necesitas iniciar sesión para realizar esta acción');
+        window.location.href = '/auth/login';
+        return;
+      }
+
       alert("No se pudo eliminar el atuendo.");
+    }
+  };
+
+  const handleTogglePublish = async (outfitId: string, currentPublic?: boolean) => {
+    const confirmMsg = currentPublic ? "¿Deseas despublicar este atuendo?" : "¿Deseas publicar este atuendo?";
+    if (!confirm(confirmMsg)) return;
+
+    try {
+      const updated = await outfitController.publishOutfit(outfitId, !currentPublic);
+      // Actualizar estado local
+      setOutfits(prev => prev.map(o => (o.$id === outfitId ? { ...o, public: !!(updated as any)?.public || !currentPublic } : o)));
+    } catch (error: any) {
+      console.error("Error al actualizar estado público:", error);
+
+      if (error && error.message && error.message.includes('No autorizado')) {
+        alert('No tienes permiso para cambiar el estado de este atuendo.');
+        return;
+      }
+
+      if (error && error.message && error.message.includes('Usuario no autenticado')) {
+        alert('Necesitas iniciar sesión para realizar esta acción');
+        window.location.href = '/auth/login';
+        return;
+      }
+
+      alert("No se pudo actualizar el estado de publicación.");
+    }
+  };
+
+  const handleRemoveFavourite = async (outfitId: string) => {
+    // Actualización optimista: remover de la lista si estamos en favoritos
+    setOutfits(prev => prev.filter(o => o.$id !== outfitId));
+
+    try {
+      await favouriteController.toggleFavourite(outfitId);
+      // ya se removió en el backend; nada más que hacer
+    } catch (err: any) {
+      console.error('Error al quitar favorito:', err);
+
+      if (err && err.message && err.message.includes('Usuario no autenticado')) {
+        alert('Necesitas iniciar sesión para realizar esta acción');
+        window.location.href = '/auth/login';
+        return;
+      }
+
+      alert('No se pudo quitar de favoritos');
+      // Re-fetch para restaurar estado consistente
+      if (selectedSection === 'favoritos') {
+        try {
+          const favOutfits = await outfitController.getFavouriteOutfits();
+          setOutfits(favOutfits || []);
+        } catch (e) {
+          console.error('Error re-cargando favoritos:', e);
+        }
+      }
     }
   };
 
@@ -336,12 +409,16 @@ const VirtualWardrobe = () => {
         <section className="space-y-12">
           {outfits.map(outfit => {
 
-              // Crear array dinámico con IDs válidas
+              // Crear array dinámico con objetos de prenda: preferir `outfit.clothes` (si el outfit está enriquecido) y hacer fallback a las prendas del usuario
               const outfitItems = [
                 outfit.superior,
                 outfit.inferior,
                 outfit.shoes
-              ].filter(Boolean);
+              ].filter(Boolean).map((id: string) => {
+                const fromOutfit = (outfit.clothes || []).find((c: any) => c.$id === id);
+                const fromUser = clothes.find(c => c.$id === id);
+                return fromOutfit || fromUser;
+              }).filter(Boolean);
 
               return (
                 <div key={outfit.$id} className="space-y-4">
@@ -351,19 +428,45 @@ const VirtualWardrobe = () => {
                       {outfit.name || "Outfit sin nombre"}
                     </h3>
 
-                    <Button
-                      variant="outline-danger"
-                      className="flex items-center gap-2"
-                      onClick={() => handleDeleteOutfit(outfit.$id)}
-                    >
-                      <FaTrash /> Eliminar
-                    </Button>
+                    <div className="flex items-center gap-2">
+                      {selectedSection === 'favoritos' && (
+                        <Button
+                          variant="outline-danger"
+                          className="flex items-center gap-2"
+                          onClick={() => handleRemoveFavourite(outfit.$id)}
+                        >
+                          <FaHeart /> Quitar favorito
+                        </Button>
+                      )}
+
+                      {outfit.userId === userId ? (
+                        <>
+                          <Button
+                            variant={outfit.public ? "outline-secondary" : "outline-primary"}
+                            className="flex items-center gap-2"
+                            onClick={() => handleTogglePublish(outfit.$id, outfit.public)}
+                          >
+                            {outfit.public ? <FaEyeSlash /> : <FaEye />} {outfit.public ? "Despublicar" : "Publicar"}
+                          </Button>
+
+                          <Button
+                            variant="outline-danger"
+                            className="flex items-center gap-2"
+                            onClick={() => handleDeleteOutfit(outfit.$id)}
+                          >
+                            <FaTrash /> Eliminar
+                          </Button>
+                        </>
+                      ) : (
+                        <span className="text-sm text-gray-500">Autor: {outfit.userName || outfit.userId}</span>
+                      )}
+                    </div>
                   </div>
 
                   <div className="flex gap-4 overflow-x-auto pb-2">
-                    {outfitItems.map((id: string) => {
-                      const item = clothes.find(c => c.$id === id);
+                    {outfitItems.map((item: any) => {
                       if (!item) return null;
+                      const id = item.$id;
 
                       return (
                         <div
