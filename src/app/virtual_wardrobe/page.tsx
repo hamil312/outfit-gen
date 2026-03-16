@@ -1,33 +1,25 @@
-'use client';  
+'use client';
 import React, { useState, useEffect } from "react";
-import Link from "next/link";
 import { Resizable } from 'react-resizable';
-
 import Accordion from 'react-bootstrap/Accordion';
-import Button from 'react-bootstrap/Button';
-import Breadcrumb from 'react-bootstrap/Breadcrumb';
-import Card from 'react-bootstrap/Card';
-import Row from 'react-bootstrap/Row';
-import Col from 'react-bootstrap/Col';
-import AppNavbar from "@/app/components/ui/Navbar";
 import Modal from "react-bootstrap/Modal";
+import AppNavbar from "@/app/components/ui/Navbar";
 import ClothingForm from "@/app/components/ui/ClothingForm";
+import ProtectedRoute from "../components/ui/ProtectedRoute";
 
 import { SlOptionsVertical } from "react-icons/sl";
 import { BsGrid3X3Gap } from 'react-icons/bs';
 import { BiSolidTShirt } from "react-icons/bi";
-import { PiPantsFill } from "react-icons/pi";
-import { PiSneakerFill } from "react-icons/pi";
+import { PiPantsFill, PiSneakerFill } from "react-icons/pi";
 import { BiCloset } from 'react-icons/bi';
-import { FaTshirt, FaHeart } from 'react-icons/fa';
+import { FaTshirt, FaHeart, FaEdit, FaTrash, FaEye, FaEyeSlash } from 'react-icons/fa';
 import { IoMdAdd } from 'react-icons/io';
-import { MdGeneratingTokens } from 'react-icons/md';
-import { FaEdit, FaTrash, FaEye, FaEyeSlash } from 'react-icons/fa';
 import { BsStars } from "react-icons/bs";
+import { IoShirtOutline } from "react-icons/io5";
 
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'react-resizable/css/styles.css';
-import ProtectedRoute from "../components/ui/ProtectedRoute";
+
 import { Clothing } from "../models/Clothing";
 import { mapClothingTypeToSection } from "@/lib/ClothingCategoryMapper";
 import { clothingController } from "../controllers/ClothingController";
@@ -35,46 +27,92 @@ import { outfitController } from "../controllers/OutfitController";
 import { favouriteController } from "../controllers/FavouriteController";
 import { account } from "@/lib/appwrite";
 
+// ─── Image URL helper ─────────────────────────────────────────────────────────
+const imgUrl = (fileId: string) =>
+  `https://cloud.appwrite.io/v1/storage/buckets/${process.env.NEXT_PUBLIC_APPWRITE_BUCKET_ID}/files/${fileId}/view?project=${process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID}`;
+
+// ─── Clothing card ────────────────────────────────────────────────────────────
+const ClothingCard = ({
+  item,
+  onDelete,
+  onEdit,
+}: {
+  item: Clothing;
+  onDelete: (item: Clothing) => void;
+  onEdit: (item: Clothing) => void;
+}) => (
+  <div className="vw-clothing-card">
+    <div className="vw-clothing-img-wrap">
+      <img src={imgUrl(item.image ?? '')} alt={item.name} className="vw-clothing-img" />
+    </div>
+    <div className="vw-clothing-body">
+      <p className="vw-clothing-name">{item.name}</p>
+      <p className="vw-clothing-color">{item.color}</p>
+      <div className="vw-clothing-actions">
+        <button className="vw-btn vw-btn--danger" onClick={() => onDelete(item)}>
+          <FaTrash size={13} /> Eliminar
+        </button>
+        <button className="vw-btn vw-btn--primary" onClick={() => onEdit(item)}>
+          <FaEdit size={13} /> Editar
+        </button>
+      </div>
+    </div>
+  </div>
+);
+
+// ─── Clothes section ──────────────────────────────────────────────────────────
+const ClothesSection = ({
+  title,
+  items,
+  onDelete,
+  onEdit,
+}: {
+  title: string;
+  items: Clothing[];
+  onDelete: (item: Clothing) => void;
+  onEdit: (item: Clothing) => void;
+}) => (
+  <section className="vw-section">
+    <h2 className="vw-section-title">{title}</h2>
+    {items.length > 0 ? (
+      <div className="vw-clothes-grid">
+        {items.map(item => (
+          <ClothingCard key={item.$id} item={item} onDelete={onDelete} onEdit={onEdit} />
+        ))}
+      </div>
+    ) : (
+      <p className="vw-empty-msg">No hay prendas {title.toLowerCase()} registradas.</p>
+    )}
+  </section>
+);
+
+// ─── Main component ───────────────────────────────────────────────────────────
 const VirtualWardrobe = () => {
   const [selectedCategory, setSelectedCategory] = useState('prendas');
-  const [selectedSection, setSelectedSection] = useState('todas');
-  const [clothes, setClothes] = useState<Clothing[]>([]);
-  const [outfits, setOutfits] = useState<any[]>([]);
+  const [selectedSection, setSelectedSection]   = useState('todas');
+  const [clothes, setClothes]     = useState<Clothing[]>([]);
+  const [outfits, setOutfits]     = useState<any[]>([]);
   const [editingItem, setEditingItem] = useState<Clothing | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showForm, setShowForm]   = useState(false);
+  const [userId, setUserId]       = useState<string>("");
+  const [sidebarWidth, setSidebarWidth]   = useState(300);
+  const [windowHeight, setWindowHeight]   = useState(800);
 
-  const [userId, setUserId] = useState<string>("");
+  const upperClothes = clothes.filter(c => typeof c.type === 'string' && mapClothingTypeToSection(c.type) === "superior");
+  const lowerClothes = clothes.filter(c => typeof c.type === 'string' && mapClothingTypeToSection(c.type) === "inferior");
+  const shoes        = clothes.filter(c => typeof c.type === 'string' && mapClothingTypeToSection(c.type) === "calzado");
 
   useEffect(() => {
     account.get().then(u => setUserId(u.$id));
   }, []);
 
-  const [sidebarWidth, setSidebarWidth] = useState(384);
-  const [windowHeight, setWindowHeight] = useState(800);
-  const [showForm, setShowForm] = useState(false);
-
-  const upperClothes = clothes.filter(c => typeof c.type === 'string' && mapClothingTypeToSection(c.type) === "superior");
-  const lowerClothes = clothes.filter(c => typeof c.type === 'string' && mapClothingTypeToSection(c.type) === "inferior");
-  const shoes = clothes.filter(c => typeof c.type === 'string' && mapClothingTypeToSection(c.type) === "calzado");
-
   useEffect(() => {
     setWindowHeight(window.innerHeight);
-    const handleResize = () => {
-      setWindowHeight(window.innerHeight);
-    };
-
-    window.addEventListener('resize', handleResize);
-    const fetchClothes = async () => {
-      try {
-        const items = await clothingController.getUserClothes();
-        setClothes(items);
-      } catch (error) {
-        console.error("Error al cargar prendas:", error);
-      }
-    };
-
-    fetchClothes();
-    return () => window.removeEventListener('resize', handleResize);
+    const onResize = () => setWindowHeight(window.innerHeight);
+    window.addEventListener('resize', onResize);
+    clothingController.getUserClothes().then(setClothes).catch(console.error);
+    return () => window.removeEventListener('resize', onResize);
   }, []);
 
   useEffect(() => {
@@ -82,114 +120,65 @@ const VirtualWardrobe = () => {
       try {
         const items = await clothingController.getUserClothes();
         setClothes(items);
-
         if (selectedCategory === "atuendos") {
-          if (selectedSection === 'favoritos') {
-            const favOutfits = await outfitController.getFavouriteOutfits();
-            setOutfits(favOutfits || []);
-          } else {
-            const userOutfits = await outfitController.getUserOutfits();
-            setOutfits(userOutfits || []);
-          }
+          const fn = selectedSection === 'favoritos'
+            ? outfitController.getFavouriteOutfits
+            : outfitController.getUserOutfits;
+          setOutfits((await fn()) || []);
         }
-
-      } catch (error) {
-        console.error("Error al cargar datos:", error);
-      }
+      } catch (e) { console.error(e); }
     };
-
     fetchData();
   }, [selectedCategory, selectedSection]);
 
-  const handleResize = (event: any, { size }: { size: { width: number } }) => {
-    const newWidth = Math.max(384, Math.min(600, size.width));
-    setSidebarWidth(newWidth);
+  const handleResize = (_: any, { size }: { size: { width: number } }) => {
+    setSidebarWidth(Math.max(260, Math.min(500, size.width)));
   };
+
+  const handleDelete = async (item: Clothing) => {
+    if (!confirm(`¿Eliminar esta prenda (${item.name})?`)) return;
+    try {
+      await clothingController.deleteClothing(item);
+      setClothes(prev => prev.filter(c => c.$id !== item.$id));
+    } catch { alert("No se pudo eliminar la prenda."); }
+  };
+
+  const handleEdit = (item: Clothing) => { setEditingItem(item); setShowEditModal(true); };
 
   const handleDeleteOutfit = async (outfitId: string) => {
     if (!confirm("¿Deseas eliminar este atuendo?")) return;
-
     try {
       await outfitController.deleteOutfit(outfitId);
-
-      // Remover del estado local
       setOutfits(prev => prev.filter(o => o.$id !== outfitId));
     } catch (error: any) {
-      console.error("Error al eliminar atuendo:", error);
-
-      if (error && error.message && error.message.includes('No autorizado')) {
-        alert('No tienes permiso para eliminar este atuendo.');
-        return;
-      }
-
-      if (error && error.message && error.message.includes('Usuario no autenticado')) {
-        alert('Necesitas iniciar sesión para realizar esta acción');
-        window.location.href = '/auth/login';
-        return;
-      }
-
+      if (error?.message?.includes('No autorizado')) { alert('No tienes permiso.'); return; }
+      if (error?.message?.includes('Usuario no autenticado')) { window.location.href = '/auth/login'; return; }
       alert("No se pudo eliminar el atuendo.");
     }
   };
 
   const handleTogglePublish = async (outfitId: string, currentPublic?: boolean) => {
-    const confirmMsg = currentPublic ? "¿Deseas despublicar este atuendo?" : "¿Deseas publicar este atuendo?";
-    if (!confirm(confirmMsg)) return;
-
+    if (!confirm(currentPublic ? "¿Despublicar?" : "¿Publicar?")) return;
     try {
       const updated = await outfitController.publishOutfit(outfitId, !currentPublic);
-      // Actualizar estado local
-      setOutfits(prev => prev.map(o => (o.$id === outfitId ? { ...o, public: !!(updated as any)?.public || !currentPublic } : o)));
+      setOutfits(prev => prev.map(o => o.$id === outfitId ? { ...o, public: !!(updated as any)?.public || !currentPublic } : o));
     } catch (error: any) {
-      console.error("Error al actualizar estado público:", error);
-
-      if (error && error.message && error.message.includes('No autorizado')) {
-        alert('No tienes permiso para cambiar el estado de este atuendo.');
-        return;
-      }
-
-      if (error && error.message && error.message.includes('Usuario no autenticado')) {
-        alert('Necesitas iniciar sesión para realizar esta acción');
-        window.location.href = '/auth/login';
-        return;
-      }
-
-      alert("No se pudo actualizar el estado de publicación.");
+      if (error?.message?.includes('No autorizado')) { alert('Sin permiso.'); return; }
+      if (error?.message?.includes('Usuario no autenticado')) { window.location.href = '/auth/login'; return; }
+      alert("No se pudo actualizar.");
     }
   };
 
   const handleRemoveFavourite = async (outfitId: string) => {
-    // Actualización optimista: remover de la lista si estamos en favoritos
     setOutfits(prev => prev.filter(o => o.$id !== outfitId));
-
     try {
       await favouriteController.toggleFavourite(outfitId);
-      // ya se removió en el backend; nada más que hacer
     } catch (err: any) {
-      console.error('Error al quitar favorito:', err);
-
-      if (err && err.message && err.message.includes('Usuario no autenticado')) {
-        alert('Necesitas iniciar sesión para realizar esta acción');
-        window.location.href = '/auth/login';
-        return;
-      }
-
+      if (err?.message?.includes('Usuario no autenticado')) { window.location.href = '/auth/login'; return; }
       alert('No se pudo quitar de favoritos');
-      // Re-fetch para restaurar estado consistente
-      if (selectedSection === 'favoritos') {
-        try {
-          const favOutfits = await outfitController.getFavouriteOutfits();
-          setOutfits(favOutfits || []);
-        } catch (e) {
-          console.error('Error re-cargando favoritos:', e);
-        }
-      }
+      const favOutfits = await outfitController.getFavouriteOutfits();
+      setOutfits(favOutfits || []);
     }
-  };
-
-  const handleEdit = (item: Clothing) => {
-    setEditingItem(item);
-    setShowEditModal(true);
   };
 
   const handleCategoryClick = (category: string, section: string) => {
@@ -197,456 +186,225 @@ const VirtualWardrobe = () => {
     setSelectedSection(section);
   };
 
-  const handleDelete = async (item: Clothing) => {
-    if (!confirm(`¿Eliminar esta prenda (${item.name})?`)) return;
+  // ─── Sidebar nav items ──────────────────────────────────────────────────────
+  const navClothes = [
+    { label: 'Todas',      section: 'todas',      icon: <BsGrid3X3Gap size={18} /> },
+    { label: 'Superiores', section: 'superiores', icon: <FaTshirt size={18} /> },
+    { label: 'Inferiores', section: 'inferiores', icon: <PiPantsFill size={18} /> },
+    { label: 'Calzado',    section: 'calzado',    icon: <PiSneakerFill size={18} /> },
+  ];
+  const navOutfits = [
+    { label: 'Todos',      section: 'todos',      icon: <BsGrid3X3Gap size={18} /> },
+    { label: 'Favoritos',  section: 'favoritos',  icon: <FaHeart size={18} /> },
+  ];
 
-    try {
-      await clothingController.deleteClothing(item);
-
-      // Remover del estado local
-      setClothes(prev => prev.filter(c => c.$id !== item.$id));
-    } catch (error) {
-      console.error("Error al eliminar prenda:", error);
-      alert("No se pudo eliminar la prenda.");
-    }
-  };
-
-  // Función para renderizar el contenido según la selección
+  // ─── Render content ─────────────────────────────────────────────────────────
   const renderContent = () => {
     if (selectedCategory === 'prendas') {
       if (selectedSection === 'todas') {
         return (
-          <div className="space-y-12">
-            {/* Sección Superiores */}
-            <section>
-              <h2 className="text-2xl font-bold text-[#1a2b32] mb-6">Superiores</h2>
-              <Row xs={1} md={3} className="g-4">
-                {upperClothes.length > 0 ? (
-                  upperClothes.map(item => (
-                    <Col key={item.$id}>
-                      <Card className="border-2 border-white">
-                        <Card.Img
-                          variant="top"
-                          src={`https://cloud.appwrite.io/v1/storage/buckets/${process.env.NEXT_PUBLIC_APPWRITE_BUCKET_ID}/files/${item.image}/view?project=${process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID}`}
-                          className="h-64 object-cover"
-                        />
-                        <Card.Body className="p-4">
-                          <Card.Title className="text-[#1a2b32] text-lg font-semibold mb-4">
-                            {item.name} — {item.color}
-                          </Card.Title>
-                          <div className="flex justify-between gap-2">
-                            <Button
-                              variant="outline-danger"
-                              className="flex items-center gap-2 flex-1"
-                              onClick={() => handleDelete(item)}
-                            >
-                              <FaTrash /> Eliminar
-                            </Button>
-                            <Button
-                              variant="outline-primary"
-                              className="flex items-center gap-2 flex-1"
-                              onClick={() => handleEdit(item)}
-                            >
-                              <FaEdit /> Editar
-                            </Button>
-                          </div>
-                        </Card.Body>
-                      </Card>
-                    </Col>
-                  ))
-                ) : (
-                  <p className="text-gray-500">No hay prendas superiores registradas.</p>
-                )}
-              </Row>
-            </section>
-
-            {/* Sección Inferiores */}
-            <section>
-              <h2 className="text-2xl font-bold text-[#1a2b32] mb-6">Inferiores</h2>
-              <Row xs={1} md={3} className="g-4">
-                {lowerClothes.length > 0 ? (
-                  lowerClothes.map(item => (
-                    <Col key={item.$id}>
-                      <Card className="border-2 border-white">
-                        <Card.Img
-                          variant="top"
-                          src={`https://cloud.appwrite.io/v1/storage/buckets/${process.env.NEXT_PUBLIC_APPWRITE_BUCKET_ID}/files/${item.image}/view?project=${process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID}`}
-                          className="h-64 object-cover"
-                        />
-                        <Card.Body className="p-4">
-                          <Card.Title className="text-[#1a2b32] text-lg font-semibold mb-4">
-                            {item.name} — {item.color}
-                          </Card.Title>
-                          <div className="flex justify-between gap-2">
-                            <Button
-                              variant="outline-danger"
-                              className="flex items-center gap-2 flex-1"
-                              onClick={() => handleDelete(item)}
-                            >
-                              <FaTrash /> Eliminar
-                            </Button>
-                            <Button
-                              variant="outline-primary"
-                              className="flex items-center gap-2 flex-1"
-                              onClick={() => handleEdit(item)}
-                            >
-                              <FaEdit /> Editar
-                            </Button>
-                          </div>
-                        </Card.Body>
-                      </Card>
-                    </Col>
-                  ))
-                ) : (
-                  <p className="text-gray-500">No hay prendas inferiores registradas.</p>
-                )}
-              </Row>
-            </section>
-
-            {/* Sección Calzado */}
-            <section>
-              <h2 className="text-2xl font-bold text-[#1a2b32] mb-6">Calzado</h2>
-              <Row xs={1} md={3} className="g-4">
-                {shoes.length > 0 ? (
-                  shoes.map(item => (
-                    <Col key={item.$id}>
-                      <Card className="border-2 border-white">
-                        <Card.Img
-                          variant="top"
-                          src={`https://cloud.appwrite.io/v1/storage/buckets/${process.env.NEXT_PUBLIC_APPWRITE_BUCKET_ID}/files/${item.image}/view?project=${process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID}`}
-                          className="h-64 object-cover"
-                        />
-                        <Card.Body className="p-4">
-                          <Card.Title className="text-[#1a2b32] text-lg font-semibold mb-4">
-                            {item.name} — {item.color}
-                          </Card.Title>
-                          <div className="flex justify-between gap-2">
-                            <Button
-                              variant="outline-danger"
-                              className="flex items-center gap-2 flex-1"
-                              onClick={() => handleDelete(item)}
-                            >
-                              <FaTrash /> Eliminar
-                            </Button>
-                            <Button
-                              variant="outline-primary"
-                              className="flex items-center gap-2 flex-1"
-                              onClick={() => handleEdit(item)}
-                            >
-                              <FaEdit /> Editar
-                            </Button>
-                          </div>
-                        </Card.Body>
-                      </Card>
-                    </Col>
-                  ))
-                ) : (
-                  <p className="text-gray-500">No hay prendas superiores registradas.</p>
-                )}
-              </Row>
-            </section>
+          <div className="vw-content-sections">
+            <ClothesSection title="Superiores" items={upperClothes} onDelete={handleDelete} onEdit={handleEdit} />
+            <ClothesSection title="Inferiores" items={lowerClothes} onDelete={handleDelete} onEdit={handleEdit} />
+            <ClothesSection title="Calzado"    items={shoes}        onDelete={handleDelete} onEdit={handleEdit} />
           </div>
         );
-      } else {
-        // Filtrar prendas según la sección seleccionada
-        let filteredClothes: Clothing[] = [];
-
-        if (selectedSection === "superiores") filteredClothes = upperClothes;
-        if (selectedSection === "inferiores") filteredClothes = lowerClothes;
-        if (selectedSection === "calzado") filteredClothes = shoes;
-
-        return (
-          <section>
-            <h2 className="text-2xl font-bold text-[#1a2b32] mb-6">
-              {selectedSection.charAt(0).toUpperCase() + selectedSection.slice(1)}
-            </h2>
-            <Row xs={1} md={3} className="g-4">
-              {filteredClothes.length > 0 ? (
-                filteredClothes.map((item) => (
-                  <Col key={item.$id}>
-                    <Card className="border-2 border-white">
-                      <Card.Img
-                        variant="top"
-                        src={`https://cloud.appwrite.io/v1/storage/buckets/${process.env.NEXT_PUBLIC_APPWRITE_BUCKET_ID}/files/${item.image}/view?project=${process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID}`}
-                        className="h-64 object-cover"
-                      />
-                      <Card.Body className="p-4">
-                        <Card.Title className="text-[#1a2b32] text-lg font-semibold mb-4">
-                          {item.name} — {item.color}
-                        </Card.Title>
-                        <div className="flex justify-between gap-2">
-                          <Button
-                              variant="outline-danger"
-                              className="flex items-center gap-2 flex-1"
-                              onClick={() => handleDelete(item)}
-                            >
-                              <FaTrash /> Eliminar
-                            </Button>
-                          <Button
-                            variant="outline-primary"
-                            className="flex items-center gap-2 flex-1"
-                            onClick={() => handleEdit(item)}
-                          >
-                            <FaEdit /> Editar
-                          </Button>
-                        </div>
-                      </Card.Body>
-                    </Card>
-                  </Col>
-                ))
-              ) : (
-                <p className="text-gray-500">
-                  No hay prendas {selectedSection} registradas.
-                </p>
-              )}
-            </Row>
-          </section>
-        );
       }
-    } else {
-      // Para la sección de atuendos (todos y favoritos)
+      const filtered =
+        selectedSection === 'superiores' ? upperClothes :
+        selectedSection === 'inferiores' ? lowerClothes : shoes;
+
       return (
-        <section className="space-y-12">
-          {outfits.map(outfit => {
-
-              // Crear array dinámico con objetos de prenda: preferir `outfit.clothes` (si el outfit está enriquecido) y hacer fallback a las prendas del usuario
-              const outfitItems = [
-                outfit.superior,
-                outfit.inferior,
-                outfit.shoes
-              ].filter(Boolean).map((id: string) => {
-                const fromOutfit = (outfit.clothes || []).find((c: any) => c.$id === id);
-                const fromUser = clothes.find(c => c.$id === id);
-                return fromOutfit || fromUser;
-              }).filter(Boolean);
-
-              return (
-                <div key={outfit.$id} className="space-y-4">
-
-                  <div className="flex justify-between items-center">
-                    <h3 className="text-xl font-bold text-[#1a2b32]">
-                      {outfit.name || "Outfit sin nombre"}
-                    </h3>
-
-                    <div className="flex items-center gap-2">
-                      {selectedSection === 'favoritos' && (
-                        <Button
-                          variant="outline-danger"
-                          className="flex items-center gap-2"
-                          onClick={() => handleRemoveFavourite(outfit.$id)}
-                        >
-                          <FaHeart /> Quitar favorito
-                        </Button>
-                      )}
-
-                      {outfit.userId === userId ? (
-                        <>
-                          <Button
-                            variant={outfit.public ? "outline-secondary" : "outline-primary"}
-                            className="flex items-center gap-2"
-                            onClick={() => handleTogglePublish(outfit.$id, outfit.public)}
-                          >
-                            {outfit.public ? <FaEyeSlash /> : <FaEye />} {outfit.public ? "Despublicar" : "Publicar"}
-                          </Button>
-
-                          <Button
-                            variant="outline-danger"
-                            className="flex items-center gap-2"
-                            onClick={() => handleDeleteOutfit(outfit.$id)}
-                          >
-                            <FaTrash /> Eliminar
-                          </Button>
-                        </>
-                      ) : (
-                        <span className="text-sm text-gray-500">Autor: {outfit.userName || outfit.userId}</span>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="flex gap-4 overflow-x-auto pb-2">
-                    {outfitItems.map((item: any) => {
-                      if (!item) return null;
-                      const id = item.$id;
-
-                      return (
-                        <div
-                          key={id}
-                          className="size-[30%] bg-white shadow rounded-lg border border-gray-200"
-                        >
-                          <img
-                            src={`https://cloud.appwrite.io/v1/storage/buckets/${process.env.NEXT_PUBLIC_APPWRITE_BUCKET_ID}/files/${item.image}/view?project=${process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID}`}
-                            className="h-40 w-full object-cover object-top rounded-t-lg"
-                          />
-                          <div className="p-2 text-center">
-                            <p className="font-semibold">{item.type}</p>
-                            <p className="text-sm text-gray-600">{item.color}</p>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                </div>
-              );
-            })}
-        </section>
+        <ClothesSection
+          title={selectedSection.charAt(0).toUpperCase() + selectedSection.slice(1)}
+          items={filtered}
+          onDelete={handleDelete}
+          onEdit={handleEdit}
+        />
       );
     }
+
+    // Outfits view
+    if (outfits.length === 0) {
+      return (
+        <div className="vw-empty-state">
+          <IoShirtOutline className="vw-empty-icon" />
+          <p className="vw-empty-text">No hay atuendos aquí todavía.</p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="vw-content-sections">
+        {outfits.map(outfit => {
+          const outfitItems = [outfit.superior, outfit.inferior, outfit.shoes]
+            .filter(Boolean)
+            .map((id: string) => {
+              const fromOutfit = (outfit.clothes || []).find((c: any) => c.$id === id);
+              const fromUser   = clothes.find(c => c.$id === id);
+              return fromOutfit || fromUser;
+            })
+            .filter(Boolean);
+
+          return (
+            <div key={outfit.$id} className="vw-outfit-block">
+              <div className="vw-outfit-header">
+                <h3 className="vw-outfit-name">{outfit.name || "Outfit sin nombre"}</h3>
+                <div className="vw-outfit-actions">
+                  {selectedSection === 'favoritos' && (
+                    <button className="vw-btn vw-btn--danger" onClick={() => handleRemoveFavourite(outfit.$id)}>
+                      <FaHeart size={13} /> Quitar favorito
+                    </button>
+                  )}
+                  {outfit.userId === userId ? (
+                    <>
+                      <button
+                        className={`vw-btn ${outfit.public ? 'vw-btn--secondary' : 'vw-btn--primary'}`}
+                        onClick={() => handleTogglePublish(outfit.$id, outfit.public)}
+                      >
+                        {outfit.public ? <><FaEyeSlash size={13} /> Despublicar</> : <><FaEye size={13} /> Publicar</>}
+                      </button>
+                      <button className="vw-btn vw-btn--danger" onClick={() => handleDeleteOutfit(outfit.$id)}>
+                        <FaTrash size={13} /> Eliminar
+                      </button>
+                    </>
+                  ) : (
+                    <span className="vw-outfit-author">Autor: {outfit.userName || outfit.userId}</span>
+                  )}
+                </div>
+              </div>
+
+              <div className="vw-outfit-items">
+                {outfitItems.map((item: any) => !item ? null : (
+                  <div key={item.$id} className="vw-outfit-item">
+                    <img
+                      src={imgUrl(item.image)}
+                      alt={item.type}
+                      className="vw-outfit-item-img"
+                    />
+                    <div className="vw-outfit-item-label">
+                      <p className="vw-outfit-item-type">{item.type}</p>
+                      <p className="vw-outfit-item-color">{item.color}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
   };
 
+  // ─── JSX ─────────────────────────────────────────────────────────────────────
   return (
     <ProtectedRoute>
-      <div className="min-h-screen">
-        <AppNavbar /> 
-        <header className="py-2 border-b border-gray-200">
-          <h1 className="text-3xl font-semibold text-center">
-            Tu guardarropa virtual
-          </h1>
+      <div className="vw-root">
+        <AppNavbar />
+
+        <header className="vw-page-header">
+          <h1 className="vw-page-title">Tu guardarropa virtual</h1>
         </header>
-        {/* Wardrobe section */}
-        <div className="flex">
-          {/* Side bar */}
-          <div className="relative"> 
-            {/* Contenedor para el sidebar y el botón de arrastre */}
+
+        <div className="vw-layout">
+
+          {/* ── Sidebar ── */}
+          <div className="vw-sidebar-wrap">
             <Resizable
               width={sidebarWidth}
               height={windowHeight}
               onResize={handleResize}
-              minConstraints={[384, windowHeight]}
-              maxConstraints={[600, windowHeight]}
+              minConstraints={[260, windowHeight]}
+              maxConstraints={[500, windowHeight]}
               resizeHandles={['e']}
               axis="x"
               handle={(
-                <div className="react-resizable-handle react-resizable-handle-e flex items-center justify-center h-full absolute right-0 w-4 cursor-ew-resize hover:bg-[#e2e8f0]/10 transition-colors">
-                  <div className="h-16 w-6 rounded flex items-center justify-center">
-                    <SlOptionsVertical size={28} className="text-[#1a2b32] rotate-45" />
+                <div className="vw-resize-handle react-resizable-handle react-resizable-handle-e">
+                  <div className="vw-resize-grip">
+                    <SlOptionsVertical size={20} className="vw-resize-icon" />
                   </div>
                 </div>
               )}
             >
-              <aside 
-                className="h-full sticky top-0 bg-[#e2e8f0] p-6 overflow-y-auto" 
-                style={{ 
-                  width: `${sidebarWidth}px`,
-                  fontSize: '1.1rem'
-                }}
-              >
-                <Accordion defaultActiveKey={['0']} alwaysOpen className="mb-4 mx-2">
-                  {/* Tus prendas section */}
-                  <Accordion.Item eventKey="0" className="border-0 bg-transparent">
-                    <Accordion.Header className="py-2">
-                      <BiCloset className="me-2 text-[#1a2b32]" size={24} />
-                      <span className="fw-semibold text-[#1a2b32]">Tus prendas</span>
+              <aside className="vw-sidebar" style={{ width: `${sidebarWidth}px` }}>
+
+                <Accordion defaultActiveKey={['0']} alwaysOpen className="vw-accordion">
+
+                  {/* Prendas */}
+                  <Accordion.Item eventKey="0" className="vw-accordion-item">
+                    <Accordion.Header>
+                      <BiCloset size={20} className="vw-accordion-icon" />
+                      <span className="vw-accordion-label">Tus prendas</span>
                     </Accordion.Header>
-                    <Accordion.Body className="bg-[#e2e8f0]">
-                      <div className="d-flex flex-column gap-2">
-                        <Button 
-                          variant="outline-light" 
-                          className="d-flex align-items-center gap-2 py-2 px-3 text-[#1a2b32]"
-                          onClick={() => handleCategoryClick('prendas', 'todas')}
+                    <Accordion.Body className="vw-accordion-body">
+                      {navClothes.map(({ label, section, icon }) => (
+                        <button
+                          key={section}
+                          className={`vw-nav-btn ${selectedCategory === 'prendas' && selectedSection === section ? 'vw-nav-btn--active' : ''}`}
+                          onClick={() => handleCategoryClick('prendas', section)}
                         >
-                          <BsGrid3X3Gap size={20} className="text-[#1a2b32]" />
-                          <span>Todas</span>
-                        </Button>
-                        <Button 
-                          variant="outline-light" 
-                          className="d-flex align-items-center gap-2 py-2 px-3 text-[#1a2b32]"
-                          onClick={() => handleCategoryClick('prendas', 'superiores')}
-                        >
-                          <FaTshirt size={20} className="text-[#1a2b32]" />
-                          <span>Superiores</span>
-                        </Button>
-                        <Button 
-                          variant="outline-light" 
-                          className="d-flex align-items-center gap-2 py-2 px-3 text-[#1a2b32]"
-                          onClick={() => handleCategoryClick('prendas', 'inferiores')}
-                        >
-                          <PiPantsFill size={20} className="text-[#1a2b32]" />
-                          <span>Inferiores</span>
-                        </Button>
-                        <Button 
-                          variant="outline-light" 
-                          className="d-flex align-items-center gap-2 py-2 px-3 text-[#1a2b32]"
-                          onClick={() => handleCategoryClick('prendas', 'calzado')}
-                        >
-                          <PiSneakerFill size={20} className="text-[#1a2b32]" />
-                          <span>Calzado</span>
-                        </Button>
-                      </div>
+                          {icon}
+                          <span>{label}</span>
+                        </button>
+                      ))}
                     </Accordion.Body>
                   </Accordion.Item>
 
-                  {/* Tus atuendos section */}
-                  <Accordion.Item eventKey="1" className="border-0 bg-transparent">
-                    <Accordion.Header className="py-2">
-                      <BiSolidTShirt className="me-2 text-[#1a2b32]" size={24} />
-                      <span className="fw-semibold text-[#1a2b32]">Tus atuendos</span>
+                  {/* Atuendos */}
+                  <Accordion.Item eventKey="1" className="vw-accordion-item">
+                    <Accordion.Header>
+                      <BiSolidTShirt size={20} className="vw-accordion-icon" />
+                      <span className="vw-accordion-label">Tus atuendos</span>
                     </Accordion.Header>
-                    <Accordion.Body className="bg-[#e2e8f0]">
-                      <div className="d-flex flex-column gap-2">
-                        <Button 
-                          variant="outline-light" 
-                          className="d-flex align-items-center gap-2 py-2 px-3 text-[#1a2b32]"
-                          onClick={() => handleCategoryClick('atuendos', 'todos')}
+                    <Accordion.Body className="vw-accordion-body">
+                      {navOutfits.map(({ label, section, icon }) => (
+                        <button
+                          key={section}
+                          className={`vw-nav-btn ${selectedCategory === 'atuendos' && selectedSection === section ? 'vw-nav-btn--active' : ''}`}
+                          onClick={() => handleCategoryClick('atuendos', section)}
                         >
-                          <BsGrid3X3Gap size={20} className="text-[#1a2b32]" />
-                          <span>Todos</span>
-                        </Button>
-                        <Button 
-                          variant="outline-light" 
-                          className="d-flex align-items-center gap-2 py-2 px-3 text-[#1a2b32]"
-                          onClick={() => handleCategoryClick('atuendos', 'favoritos')}
-                        >
-                          <FaHeart size={20} className="text-[#1a2b32]" />
-                          <span>Favoritos</span>
-                        </Button>
-                      </div>
+                          {icon}
+                          <span>{label}</span>
+                        </button>
+                      ))}
                     </Accordion.Body>
                   </Accordion.Item>
+
                 </Accordion>
 
                 {/* Action buttons */}
-                <div className="flex flex-col gap-4 mt-8 px-4">
-                  <Button
-                  variant="light"
-                  className="flex items-center justify-center gap-2 py-2 px-4 w-full bg-white hover:bg-gray-100 transition-colors border-2 border-[#e2e8f0] rounded-lg text-[#1a2b32]"
-                  onClick={() => setShowForm(true)}
-                >
-                    <IoMdAdd size={20} className="text-[#1a2b32]" />
-                    <span className="font-medium">Añade prendas</span>
-                  </Button>
-                  <Button 
-                    variant="light" 
-                    className="flex items-center justify-center gap-2 py-2 px-4 w-full bg-white hover:bg-gray-100 transition-colors border-2 border-[#e2e8f0] rounded-lg text-[#1a2b32]"
-                  >
-                    <BsStars size={20} className="text-[#1a2b32]" />
-                    <span className="font-medium">¿Listo para generar?</span>
-                  </Button>
+                <div className="vw-sidebar-actions">
+                  <button className="vw-sidebar-action-btn" onClick={() => setShowForm(true)}>
+                    <IoMdAdd size={18} />
+                    <span>Añadir prenda</span>
+                  </button>
+                  <button className="vw-sidebar-action-btn vw-sidebar-action-btn--accent">
+                    <BsStars size={18} />
+                    <span>¿Listo para generar?</span>
+                  </button>
                 </div>
+
               </aside>
             </Resizable>
           </div>
-          {/* Main content area */}
-          <main className="flex-1 m-4 p-8">
-            {/* Breadcrumb */}
-            <Breadcrumb className="mb-6">
-              <Breadcrumb.Item 
-                className="text-[#1a2b32] text-2xl font-bold hover:text-[#1a2b32] no-underline"
-                href="#"
-                linkProps={{ className: "hover:no-underline" }}
-              >
+
+          {/* ── Main content ── */}
+          <main className="vw-main">
+            <nav className="vw-breadcrumb">
+              <span className="vw-breadcrumb-root">
                 {selectedCategory === 'prendas' ? 'Tus prendas' : 'Tus atuendos'}
-              </Breadcrumb.Item>
-              <Breadcrumb.Item 
-                active
-                className="text-[#1a2b32] text-2xl font-bold"
-              >
+              </span>
+              <span className="vw-breadcrumb-sep">/</span>
+              <span className="vw-breadcrumb-active">
                 {selectedSection.charAt(0).toUpperCase() + selectedSection.slice(1)}
-              </Breadcrumb.Item>
-            </Breadcrumb>
+              </span>
+            </nav>
             {renderContent()}
           </main>
+
         </div>
+
+        {/* ── Add clothing modal ── */}
         <Modal show={showForm} onHide={() => setShowForm(false)} centered size="lg">
           <Modal.Header closeButton>
             <Modal.Title>Añadir prenda</Modal.Title>
@@ -654,10 +412,12 @@ const VirtualWardrobe = () => {
           <Modal.Body>
             <ClothingForm
               mode="create"
-              onSubmit={(values, file) => clothingController.addClothing(file!, {...values, userId})}
+              onSubmit={(values, file) => clothingController.addClothing(file!, { ...values, userId })}
             />
           </Modal.Body>
         </Modal>
+
+        {/* ── Edit clothing modal ── */}
         <Modal show={showEditModal} onHide={() => setShowEditModal(false)} centered>
           <Modal.Header closeButton>
             <Modal.Title>Editar prenda</Modal.Title>
@@ -669,35 +429,17 @@ const VirtualWardrobe = () => {
                 mode="edit"
                 onSubmit={async (updatedValues) => {
                   try {
-                    if (!editingItem?.$id) {
-                        alert("Error: prenda sin ID");
-                        return;
-                    }
-
-                    function normalizeDoc(doc: any): Clothing {
-                      return {
-                        $id: doc.$id,
-                        name: doc.name,
-                        color: doc.color,
-                        type: doc.type,
-                        material: doc.material,
-                        size: doc.size,
-                        occasion: doc.occasion,
-                        image: doc.image,
-                        userId: doc.userId,
-                      };
-                    }
-
+                    if (!editingItem?.$id) { alert("Error: prenda sin ID"); return; }
+                    const normalizeDoc = (doc: any): Clothing => ({
+                      $id: doc.$id, name: doc.name, color: doc.color, type: doc.type,
+                      material: doc.material, size: doc.size, occasion: doc.occasion,
+                      image: doc.image, userId: doc.userId,
+                    });
                     const updatedDoc = await clothingController.updateClothing(editingItem.$id, updatedValues);
                     const updated = normalizeDoc(updatedDoc);
-
-                    setClothes(prev =>
-                      prev.map(c => c.$id === updated.$id ? updated : c)
-                    );
-
+                    setClothes(prev => prev.map(c => c.$id === updated.$id ? updated : c));
                     setShowEditModal(false);
-                  } catch (error) {
-                    console.error("Error al actualizar prenda:", error);
+                  } catch {
                     alert("No se pudo actualizar la prenda.");
                   }
                 }}
@@ -705,9 +447,10 @@ const VirtualWardrobe = () => {
             )}
           </Modal.Body>
         </Modal>
+
       </div>
     </ProtectedRoute>
-  )
-}
+  );
+};
 
-export default VirtualWardrobe
+export default VirtualWardrobe;

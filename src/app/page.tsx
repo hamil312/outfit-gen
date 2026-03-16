@@ -1,8 +1,5 @@
 "use client";
 import React from "react";
-import { Badge } from "./components/ui/badge";
-import Button from 'react-bootstrap/Button';
-import Card from 'react-bootstrap/Card';
 import Link from "next/link";
 import AppNavbar from "@/app/components/ui/Navbar";
 import Footer from "@/app/components/ui/Footer";
@@ -11,13 +8,11 @@ import { GiClothes } from "react-icons/gi";
 import { GiCoffeeMug } from "react-icons/gi";
 import { FaGlasses } from "react-icons/fa";
 import { BsStars } from "react-icons/bs";
-import { useRouter } from "next/navigation";
 
 export default function Home() {
-  const router = useRouter();
   const categoryTags = [
     "Atuendo deportivo",
-    "Ocasion elegante",
+    "Ocasión elegante",
     "Outfit casual",
     "Noche de fiesta",
     "Salida a la playa",
@@ -26,171 +21,151 @@ export default function Home() {
   const teamMembers = [
     {
       name: "Mario Fernando Santacruz Pantoja",
-      role: "Estudiante de Ingenieria de Software",
+      role: "Estudiante de Ingeniería de Software",
       linkedin: "Linkedin personal",
-      profileIcon: "/figmaAssets/intersect.svg",
+      linkedinUrl: "https://www.linkedin.com/in/mario-santa",
+      icon: <GiCoffeeMug size={28} className="text-[#1a2b32]" />,
+      photo: "/team/profile_image_mario.jpg",
     },
     {
       name: "Hamilton Santiago Insandara Alvarez",
       role: "Estudiante de Ingeniería de Software",
       linkedin: "Linkedin personal",
-      profileIcon: "/figmaAssets/intersect.svg",
+      linkedinUrl: "https://www.linkedin.com/in/hamilton-insandar%C3%A1-b08047325",
+      icon: <FaGlasses size={28} className="text-[#1a2b32]" />,
+      photo: "/team/profile_image_hamilton.jpg",
     },
   ];
 
   const featureSections = [
     {
       image: "/figmaAssets/image-4.png",
-      description: "Explora nuestras opciones, muestranos tus ideas y prendas para crear un atuendo ideal para tu ocasión",
-      title: "¡Dale provecho a tu guarda ropa!",
-      stats: "El guardarropa promedio cuenta con 152 artículos de los cuales se usan con regularidad tan solo el 44%"
+      imgWide: true,
+      description:
+        "Explora nuestras opciones, muestranos tus ideas y prendas para crear un atuendo ideal para tu ocasión. Si necesitas inspiracion mira tu feed buscando atuendos creados por la comunidad.",
+      title: "¡Dale provecho a tu guardarropa!",
+      stats:
+        "El guardarropa promedio cuenta con 152 artículos de los cuales se usan con regularidad tan solo el 44%",
+      icon: <GiClothes className="home-stat-icon" />,
     },
     {
       image: "/figmaAssets/image-8.png",
-      description: "¿No te parece aduecuado el atuendo generado? No pasa nada! vuelve a intentarlo las veces que quieras hasta que creas que es el indicado",
-      title: "¡No pierdas mas tu Tiempo!",
-      stats: "En promedio las mujeres tardan 17 minutos en elegir un atuendo y los hombres tardan 13, esto se traduce en 4 y 3 días cada año"
-    }
+      imgWide: false,
+      description:
+        "¿No te parece adecuado el atuendo generado? ¡No pasa nada! Vuelve a intentarlo las veces que quieras hasta que creas que es el indicado",
+      title: "¡No pierdas más tu tiempo!",
+      stats:
+        "En promedio las mujeres tardan 17 minutos en elegir un atuendo y los hombres tardan 13, esto se traduce en 4 y 3 días cada año",
+      icon: <BsClockHistory className="home-stat-icon" />,
+    },
   ];
 
   return (
-    <div className="bg-[#ffffff] w-full">
+    <div className="home-root">
       <AppNavbar />
 
       <main>
-        <section className="pt-5 pb-5 px-4">
-          <h1 className="text-center text-4xl md:text-5xl font-bold max-w-4xl mx-auto mb-8">
-            Sube, personaliza y crea tu atuendo
-          </h1>
 
-          <div className="flex flex-wrap gap-4 justify-center mb-8 max-w-4xl mx-auto">
-            {categoryTags.map((tag, index) => (
-              <Badge
-                key={index}
-                variant="outline"
-                className="flex items-center justify-center px-4 py-2 rounded-[30px] border border-solid border-[#000000]"
-              >
-                <span className="font-normal text-[#000000] text-xs">
-                  {tag}
-                </span>
-              </Badge>
-            ))}
-          </div>
-        </section>
-
-        {/* Main Content Section with Background */}
-        <div className="bg-[#e2e8f0] shadow-m3-elevation-light-2 pt-5 pb-40">
-          {/* Description Section */}
-          <div className="max-w-4xl mx-auto px-4 mb-12">
-            <p className="text-center text-3xl mb-8">
-              ¿Necesitas ayuda para crear un atuendo? Aquí podrás generar un atuendo
-              de forma rápida para cada ocasión.
-            </p>
-            
-            <div className="flex justify-center">
-              <Link href="/generator" className="no-underline">
-                <Button
-                  variant="dark"
-                  className="border-2 hover:bg-[#5CA2AE] hover:border-[#5CA2AE] hover:text-white 
-                            transition-colors flex items-center gap-2 
-                            focus:outline-none focus:ring-0"
-                >
-                  <BsStars size={18} className="text-white" />
-                  Empieza a generar
-                </Button>
-              </Link>
-            </div>
-          </div>
-
-          {/* Feature Description */}
-          <div className="max-w-6xl mx-auto px-4 mb-16 pt-5">
-            <h2 className="text-center text-2xl md:text-3xl font-bold mb-12">
-              Dinos tu ocasión, proporciona tus prendas y dejanos el resto...
-            </h2>
-
-            {/* Feature Cards Row - Two Columns */}
-            <div className="grid grid-cols-2 gap-8 pt-4">
-              {featureSections.map((section, index) => (
-                <div key={index} className="flex flex-col items-center">
-                  <img
-                    className={`${index === 0 ? 'w-[292px]' : 'w-[213px]'} h-[329px] mb-6 ${index === 1 ? 'rounded-[11px]' : ''} object-cover`}
-                    alt={section.title}
-                    src={section.image}
-                  />
-                  <p className="text-2xl md:text-3xl text-center mb-4 w-[350px] pt-4">
-                    {section.description}
-                  </p>
-                  <h3 className="text-xl md:text-2xl font-bold text-center mb-4 pt-5">
-                    {section.title}
-                  </h3>
-                  <p className="text-2xl md:text-3xl text-center mb-4 w-[350px]">
-                    {section.stats}
-                  </p>
-                  {index === 0 ? (
-                    <GiClothes className="text-[145px] mt-3" />
-                  ) : (
-                    <BsClockHistory className="text-[120px] mt-4" />
-                  )}
-                </div>
+        {/* ── Hero ── */}
+        <section className="home-hero">
+          <div className="home-hero-inner">
+            <p className="home-eyebrow">Generador de outfits inteligente</p>
+            <h1 className="home-title">
+              Sube, personaliza y crea<br />tu atuendo
+            </h1>
+            <div className="home-tags-row">
+              {categoryTags.map((tag, i) => (
+                <span key={i} className="home-tag">{tag}</span>
               ))}
             </div>
           </div>
+        </section>
 
-          {/* About Us Section */}
-          <section id="about us" className="max-w-6xl mx-auto px-4 py-16 pt-5 mb-32">
-            <h2 className="text-center text-4xl md:text-5xl font-bold mb-16">
-              Acerca de nosotros
-            </h2>
+        {/* ── Blue band ── */}
+        <div className="home-blue-band">
 
-            {/* Team Members - Two Columns */}
-            <div className="grid grid-cols-2 gap-x-8 gap-y-20 pt-5">
-              {teamMembers.map((member, index) => (
-                <div key={index} className="my-24 px-4">
-                  <Card style={{ width: '100%', maxWidth: '25rem', borderColor: 'white', borderWidth: '2px', margin: '2rem auto' }}>
-                    <div className="text-center pt-4">
-                      <img
-                        src={index === 0 ? "/team/profile_image_mario.jpg" : "/team/profile_image_hamilton.jpg"}
-                        className="w-[146px] h-[146px] rounded-full object-cover mx-auto"
-                        alt={member.name}
-                      />
-                    </div>
-                    <Card.Body>
-                      <Card.Title className="text-center text-xl">
-                        {member.name}
-                      </Card.Title>
-                      <Card.Text className="text-center text-2xl md:text-3xl mb-3">
-                        {member.role}
-                      </Card.Text>
-                      <div className="flex flex-col items-center gap-2">
-                        <div className="flex items-center justify-center bg-white rounded-full w-[52px] h-[52px]">
-                          {index === 0 ? (
-                            <GiCoffeeMug size={32} className="text-[#1a2b32]" />
-                          ) : (
-                            <FaGlasses size={32} className="text-[#1a2b32]" />
-                          )}
-                        </div>
-                        <a
-                          href={index === 0
-                            ? "https://www.linkedin.com/in/mario-santa"
-                            : "https://www.linkedin.com/in/hamilton-insandar%C3%A1-b08047325"}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-center text-lg underline text-[#5CA2AE] hover:text-[#5CA2AE] transition-colors"
-                        >
-                          {member.linkedin}
-                        </a>
+          {/* Intro + CTA */}
+          <div className="home-intro-block">
+            <p className="home-intro-text">
+              ¿Necesitas ayuda para crear un atuendo? Aquí podrás generar un
+              atuendo de forma rápida para cada ocasión.
+            </p>
+            <Link href="/generator" className="no-underline">
+              <button className="home-cta-btn">
+                <BsStars size={17} className="mr-2 inline-block align-middle" />
+                Empieza a generar
+              </button>
+            </Link>
+          </div>
+
+          <div className="home-divider" />
+
+          <h2 className="home-section-title">
+            Dinos tu ocasión, proporciona tus prendas y déjanos el resto&hellip;
+          </h2>
+
+          {/* Feature cards */}
+          <div className="home-features-grid">
+            {featureSections.map((sec, i) => (
+              <div key={i} className="home-feature-card">
+                <div className="home-feature-img-wrap">
+                  <img
+                    src={sec.image}
+                    alt={sec.title}
+                    className={`home-feature-img ${sec.imgWide ? "home-feature-img--wide" : "home-feature-img--narrow"}`}
+                  />
+                </div>
+                <div className="home-feature-body">
+                  <p className="home-feature-desc">{sec.description}</p>
+                  <h3 className="home-feature-title">{sec.title}</h3>
+                  <div className="home-stat-box">
+                    <div className="home-stat-icon-wrap">{sec.icon}</div>
+                    <p className="home-stat-text">{sec.stats}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* ── About us ── */}
+          <section id="about-us" className="home-about-section">
+            <div className="home-divider" />
+            <h2 className="home-section-title">Acerca de nosotros</h2>
+            <div className="home-team-grid">
+              {teamMembers.map((member, i) => (
+                <div key={i} className="home-member-card">
+                  <img
+                    src={member.photo}
+                    alt={member.name}
+                    className="home-member-photo"
+                  />
+                  <div className="home-member-info">
+                    <p className="home-member-name">{member.name}</p>
+                    <p className="home-member-role">{member.role}</p>
+                    <div className="home-member-footer">
+                      <div className="home-member-icon-wrap">
+                        {member.icon}
                       </div>
-                    </Card.Body>
-                  </Card>
+                      <a
+                        href={member.linkedinUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="home-member-link"
+                      >
+                        {member.linkedin}
+                      </a>
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
           </section>
+
         </div>
       </main>
-
-      {/* Footer */}
-      <Footer />
+      <div id="footer">
+        <Footer />
+      </div>
     </div>
   );
 }
