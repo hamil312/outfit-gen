@@ -121,7 +121,7 @@ export const outfitController = {
         return enriched;
     },
 
-    async publishOutfit(id: string, publish: boolean) {
+    async publishOutfit(id: string, publish: boolean, description?: string, name?: string) {
         if (!id) throw new Error("Missing document ID");
 
         const user = await account.get();
@@ -132,8 +132,14 @@ export const outfitController = {
         if (outfit.userId !== user.$id) throw new Error("No autorizado");
 
         const data: any = { public: !!publish };
-        if (publish) data.publishedAt = new Date().toISOString();
-        else data.publishedAt = null;
+        if (publish) {
+            data.publishedAt = new Date().toISOString();
+            if (typeof description === 'string') data.description = description;
+            const nameValue = typeof name === 'string' ? name.trim() : '';
+            if (nameValue) data.name = nameValue;
+        } else {
+            data.publishedAt = null;
+        }
 
         const updated = await outfitRepository.updateOutfit(id, data);
         return updated;

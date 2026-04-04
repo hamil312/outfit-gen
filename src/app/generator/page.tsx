@@ -30,6 +30,11 @@ export default function Generator() {
   const [loading, setLoading]       = useState(false);
   const [outfits, setOutfits]       = useState<any[]>([]);
   const [showModal, setShowModal]   = useState(false);
+  const [showSaveModal, setShowSaveModal] = useState(false);
+  const [savingOutfit, setSavingOutfit] = useState(false);
+  const [saveOutfitName, setSaveOutfitName] = useState<string>("");
+  const [selectedOutfitToSave, setSelectedOutfitToSave] = useState<any>(null);
+  const [selectedOutfitIndex, setSelectedOutfitIndex] = useState<number | null>(null);
   const [userClothes, setUserClothes] = useState<Clothing[]>([]);
 
   // Close dropdowns on outside click
@@ -62,13 +67,28 @@ export default function Generator() {
     setLoading(false);
   };
 
-  const handleSave = async (outfit: any, index: number) => {
+  const openSaveModal = (outfit: any, index: number) => {
+    setSelectedOutfitToSave(outfit);
+    setSelectedOutfitIndex(index);
+    setSaveOutfitName(outfit?.name || `Outfit ${index + 1}`);
+    setShowSaveModal(true);
+  };
+
+  const handleConfirmSave = async () => {
+    if (!selectedOutfitToSave || selectedOutfitIndex === null) return;
+    setSavingOutfit(true);
     try {
-      await outfitController.saveOutfit(outfit, `Outfit ${index + 1}`);
+      await outfitController.saveOutfit(selectedOutfitToSave, saveOutfitName.trim() || `Outfit ${selectedOutfitIndex + 1}`);
+      setShowSaveModal(false);
+      setSelectedOutfitToSave(null);
+      setSelectedOutfitIndex(null);
+      setSaveOutfitName("");
       alert("Outfit guardado correctamente");
     } catch (err) {
       console.error(err);
       alert("Error al guardar el outfit");
+    } finally {
+      setSavingOutfit(false);
     }
   };
 
@@ -105,6 +125,35 @@ export default function Generator() {
             <button className="gen-modal-close" onClick={() => setShowModal(false)}>
               Cerrar
             </button>
+          </div>
+        </div>
+      )}
+
+      {showSaveModal && (
+        <div className="gen-modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) setShowSaveModal(false); }}>
+          <div className="gen-modal">
+            <h2 className="gen-modal-title">Guardar outfit</h2>
+            <p className="gen-modal-sub">Elige un nombre antes de guardar tu atuendo.</p>
+
+            <div className="mb-3">
+              <label className="form-label">Nombre del outfit</label>
+              <input
+                type="text"
+                className="form-control"
+                value={saveOutfitName}
+                onChange={(e) => setSaveOutfitName(e.target.value)}
+                placeholder="Nombre del outfit"
+              />
+            </div>
+
+            <div className="gen-modal-actions">
+              <button className="gen-modal-close" onClick={() => setShowSaveModal(false)} disabled={savingOutfit}>
+                Cancelar
+              </button>
+              <button className="gen-modal-save" onClick={handleConfirmSave} disabled={savingOutfit || !saveOutfitName.trim()}>
+                {savingOutfit ? 'Guardando...' : 'Guardar'}
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -211,7 +260,7 @@ export default function Generator() {
                             <OutfitImage fileId={outfit.calzado?.image}  alt={outfit.calzado?.type} />
                             <button
                               className="gen-save-btn"
-                              onClick={() => handleSave(outfit, index)}
+                              onClick={() => openSaveModal(outfit, index)}
                             >
                               Guardar outfit
                             </button>

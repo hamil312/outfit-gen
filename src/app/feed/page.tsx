@@ -20,6 +20,7 @@ interface ClothingItem {
 interface Outfit {
   $id: string;
   name?: string;
+  description?: string;
   userId?: string;
   userName?: string;
   liked?: boolean;
@@ -165,6 +166,9 @@ const OutfitCard = ({
 
       {/* Outfit name */}
       <h3 className="feed-outfit-title">{outfit.name || 'Outfit sin nombre'}</h3>
+      {outfit.description && (
+        <p className="feed-outfit-description">{outfit.description}</p>
+      )}
 
       {/* Hero image */}
       {heroItem && (

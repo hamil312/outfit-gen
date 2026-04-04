@@ -743,6 +743,36 @@
   background: #e5e7eb;
 }
 
+.gen-modal-actions {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+  margin-top: 16px;
+}
+
+.gen-modal-save {
+  flex: 1;
+  padding: 10px;
+  background: #1d4ed8;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: "PT Sans", sans-serif;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.gen-modal-save:hover {
+  background: #2563eb;
+}
+
+.gen-modal-save:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .gen-band-inner {

@@ -95,6 +95,11 @@ const VirtualWardrobe = () => {
   const [editingItem, setEditingItem] = useState<Clothing | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showForm, setShowForm]   = useState(false);
+  const [publishModalOpen, setPublishModalOpen] = useState(false);
+  const [publishOutfitId, setPublishOutfitId] = useState<string | null>(null);
+  const [publishName, setPublishName] = useState("");
+  const [publishDescription, setPublishDescription] = useState("");
+  const [publishLoading, setPublishLoading] = useState(false);
   const [userId, setUserId]       = useState<string>("");
   const [sidebarWidth, setSidebarWidth]   = useState(300);
   const [windowHeight, setWindowHeight]   = useState(800);
@@ -157,15 +162,48 @@ const VirtualWardrobe = () => {
     }
   };
 
+  const handlePublishClick = (outfitId: string) => {
+    const outfit = outfits.find(o => o.$id === outfitId);
+    setPublishOutfitId(outfitId);
+    setPublishName(outfit?.name || "");
+    setPublishDescription(outfit?.description || "");
+    setPublishModalOpen(true);
+  };
+
   const handleTogglePublish = async (outfitId: string, currentPublic?: boolean) => {
-    if (!confirm(currentPublic ? "¿Despublicar?" : "¿Publicar?")) return;
+    if (!currentPublic) {
+      handlePublishClick(outfitId);
+      return;
+    }
+
+    if (!confirm("¿Despublicar?")) return;
     try {
-      const updated = await outfitController.publishOutfit(outfitId, !currentPublic);
-      setOutfits(prev => prev.map(o => o.$id === outfitId ? { ...o, public: !!(updated as any)?.public || !currentPublic } : o));
+      const updated = await outfitController.publishOutfit(outfitId, false);
+      setOutfits(prev => prev.map(o => o.$id === outfitId ? { ...o, ...(updated as any) } : o));
     } catch (error: any) {
       if (error?.message?.includes('No autorizado')) { alert('Sin permiso.'); return; }
       if (error?.message?.includes('Usuario no autenticado')) { window.location.href = '/auth/login'; return; }
       alert("No se pudo actualizar.");
+    }
+  };
+
+  const handleConfirmPublish = async () => {
+    if (!publishOutfitId) return;
+    setPublishLoading(true);
+
+    try {
+      const updated = await outfitController.publishOutfit(publishOutfitId, true, publishDescription, publishName);
+      setOutfits(prev => prev.map(o => o.$id === publishOutfitId ? { ...o, ...(updated as any), public: true, description: publishDescription, name: publishName } : o));
+      setPublishModalOpen(false);
+      setPublishOutfitId(null);
+      setPublishName("");
+      setPublishDescription("");
+    } catch (error: any) {
+      if (error?.message?.includes('No autorizado')) { alert('Sin permiso.'); return; }
+      if (error?.message?.includes('Usuario no autenticado')) { window.location.href = '/auth/login'; return; }
+      alert("No se pudo publicar el atuendo.");
+    } finally {
+      setPublishLoading(false);
     }
   };
 
@@ -415,6 +453,43 @@ const VirtualWardrobe = () => {
               onSubmit={(values, file) => clothingController.addClothing(file!, { ...values, userId })}
             />
           </Modal.Body>
+        </Modal>
+
+        {/* ── Publish outfit modal ── */}
+        <Modal show={publishModalOpen} onHide={() => setPublishModalOpen(false)} centered>
+          <Modal.Header closeButton>
+            <Modal.Title>Publicar atuendo</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <div className="mb-3">
+              <label className="form-label">Nombre del atuendo</label>
+              <input
+                type="text"
+                value={publishName}
+                onChange={(e) => setPublishName(e.target.value)}
+                placeholder="Nombre del atuendo"
+                className="form-control"
+              />
+            </div>
+            <div className="mb-3">
+              <label className="form-label">Descripción</label>
+              <textarea
+                value={publishDescription}
+                onChange={(e) => setPublishDescription(e.target.value)}
+                placeholder="Descripción del outfit (opcional)"
+                className="form-control"
+                rows={4}
+              />
+            </div>
+          </Modal.Body>
+          <Modal.Footer>
+            <button className="vw-btn vw-btn--secondary" onClick={() => setPublishModalOpen(false)} disabled={publishLoading}>
+              Cancelar
+            </button>
+            <button className="vw-btn vw-btn--primary" onClick={handleConfirmPublish} disabled={publishLoading}>
+              {publishLoading ? "Publicando..." : "Publicar"}
+            </button>
+          </Modal.Footer>
         </Modal>
 
         {/* ── Edit clothing modal ── */}
