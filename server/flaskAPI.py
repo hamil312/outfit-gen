@@ -43,23 +43,29 @@ def remove_background(image):
 
 def get_dominant_color(image, k=3):
     """Detecta el color dominante ignorando fondos transparentes."""
-    img = np.array(image)
-    if img.shape[-1] == 4:
-        mask = img[:, :, 3] > 0
-        img = img[mask]
-        img = img[:, :3]
-    if len(img) == 0:
+    try:
+        img = np.array(image)
+        if img.shape[-1] == 4:
+            mask = img[:, :, 3] > 0
+            img = img[mask]
+            img = img[:, :3]
+        if len(img) == 0:
+            return [0, 0, 0]
+
+        img = cv2.resize(img.reshape(-1, 1, 3), (1, 150)).reshape(-1, 3)
+        img = np.float32(img)
+
+        kmeans = KMeans(n_clusters=k, n_init=10)
+        kmeans.fit(img)
+
+        colors = kmeans.cluster_centers_
+        counts = np.bincount(kmeans.labels_)
+        dominant_color = colors[np.argmax(counts)]
+
+        return dominant_color.tolist()
+    except Exception as e:
+        print(f"Error in get_dominant_color: {e}")
         return [0, 0, 0]
-
-    img = cv2.resize(img.reshape(-1, 1, 3), (1, 150)).reshape(-1, 3)
-    img = np.float32(img)
-
-    kmeans = KMeans(n_clusters=k, n_init=10)
-    kmeans.fit(img)
-
-    colors = kmeans.cluster_centers_
-    counts = np.bincount(kmeans.labels_)
-    dominant_color = colors[np.argmax(counts)]
 
 
 COLOR_RULES = {
@@ -85,6 +91,9 @@ CATEGORY_MAP = {
 }
 
 def rgb_to_name(rgb):
+    if isinstance(rgb, str):
+        return rgb
+
     r, g, b = rgb
 
     if r < 40 and g < 40 and b < 40:
@@ -236,7 +245,8 @@ def analyze():
         "type_confidence": confidence,
         "occasion": occasion,
         "occasion_confidence": occ_conf,
-        "color": avg_color
+        "color": avg_color,
+        "color_name": rgb_to_name(avg_color)
     })
 
 @app.route("/generate-outfits", methods=["POST"])

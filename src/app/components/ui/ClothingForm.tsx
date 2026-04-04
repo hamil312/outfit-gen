@@ -15,6 +15,7 @@ export default function ClothingForm({
   onSubmit,
 }: ClothingFormProps) {
   const [file, setFile] = useState<File | null>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   const [form, setForm] = useState({
     name: initialValues.name || "",
@@ -31,6 +32,44 @@ export default function ClothingForm({
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const analyzeImage = async (file: File) => {
+    setIsAnalyzing(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const response = await fetch("http://localhost:5000/analyze", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error("Error al analizar la imagen");
+      }
+
+      const analysis = await response.json();
+      const analyzedColor = analysis.color_name || form.color;
+
+      setForm((current) => ({
+        ...current,
+        type: analysis.type || current.type,
+        color: analyzedColor,  // Siempre mostrar el color detectado por el sistema
+        occasion: analysis.occasion || current.occasion,
+      }));
+    } catch (error) {
+      console.error("Error al analizar la imagen:", error);
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
+  const handleFileChange = async (selectedFile: File | null) => {
+    setFile(selectedFile);
+    if (selectedFile) {
+      await analyzeImage(selectedFile);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -132,21 +171,33 @@ export default function ClothingForm({
 
       {/* El input de imagen solo se muestra en creación */}
       {mode === "create" && (
-        <input
-          type="file"
-          accept="image/*"
-          onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-          className="border p-2 mb-3 w-full rounded"
-        />
+        <>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(e) => handleFileChange(e.target.files?.[0] ?? null)}
+            className="border p-2 mb-3 w-full rounded"
+          />
+          {isAnalyzing && (
+            <p className="text-sm text-slate-500 mb-3">Analizando imagen...</p>
+          )}
+          {!isAnalyzing && file && (
+            <p className="text-sm text-slate-500 mb-3">
+              Los valores se han completado automáticamente; puedes modificarlos antes de guardar.
+            </p>
+          )}
+        </>
       )}
 
       <button
         type="submit"
-        disabled={loading}
+        disabled={loading || isAnalyzing}
         className="bg-[#5CA2AE] text-white py-2 px-4 rounded w-full transition-colors"
       >
         {loading
           ? "Guardando..."
+          : isAnalyzing
+          ? "Analizando..."
           : mode === "create"
           ? "Añadir prenda"
           : "Guardar cambios"}

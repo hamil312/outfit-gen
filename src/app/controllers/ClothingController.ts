@@ -23,12 +23,10 @@ export const clothingController = {
     const clothingData: Clothing = {
       ...data,
       image: imageId,
-      type: analysis.type || data.type || "Desconocido",
-      color: Array.isArray(analysis.color)
-        ? `rgb(${analysis.color.join(", ")})`
-        : data.color || "Desconocido",
-      material: data.material || "Desconocido",
-      occasion: analysis.occasion || data.occasion || "Desconocido",
+      type: data.type?.trim() || analysis.type || "Desconocido",
+      color: data.color?.trim() || analysis.color_name || "Desconocido",
+      material: data.material?.trim() || "Desconocido",
+      occasion: data.occasion?.trim() || analysis.occasion || "Desconocido",
     };
     
 
@@ -58,17 +56,12 @@ export const clothingController = {
     if (!baseItem) throw new Error("Prenda base no encontrada");
 
     const normalize = (item: any) => {
-      let rgb = [0,0,0];
-      if (item.color?.startsWith("rgb")) {
-        rgb = item.color.replace(/[^\d,]/g, "").split(",").map((n: string) => parseInt(n.trim(), 10));
-      }
-
       return {
         $id: item.$id, 
         id: item.$id,
         image: item.image,
         type: item.type,
-        color: rgb,
+        color: item.color,
         occasion: item.occasion?.toLowerCase() || "neutral"
       };
     };
@@ -95,28 +88,22 @@ export const clothingController = {
       // Normalización
       // -----------------------
       const normalize = (item: any) => {
-        let rgb = [0, 0, 0];
-        if (item.color?.startsWith("rgb")) {
-          rgb = item.color
-            .replace(/[^\d,]/g, "")
-            .split(",")
-            .map((n: string) => parseInt(n.trim(), 10));
-        }
-
         return {
           $id: item.$id,
           id: item.$id,
           image: item.image,
           type: item.type,
-          color: rgb,
+          color: item.color,
           occasion: item.occasion?.toLowerCase() || "neutral",
         };
       };
 
       const all = userClothes.map(normalize);
 
-      function getColorName(rgb: number[]) {
-        const [r, g, b] = rgb;
+      function getColorName(color: string | number[]) {
+        if (typeof color === 'string') return color.toLowerCase();
+
+        const [r, g, b] = color;
 
         if (r < 40 && g < 40 && b < 40) return "black";
         if (r > 220 && g > 220 && b > 220) return "white";
