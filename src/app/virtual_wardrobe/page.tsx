@@ -450,7 +450,21 @@ const VirtualWardrobe = () => {
           <Modal.Body>
             <ClothingForm
               mode="create"
-              onSubmit={(values, file) => clothingController.addClothing(file!, { ...values, userId })}
+              onSubmit={async (values, file) => {
+                try {
+                  const newClothing = await clothingController.addClothing(file!, { ...values, userId });
+                  const normalizeDoc = (doc: any): Clothing => ({
+                    $id: doc.$id, name: doc.name, color: doc.color, type: doc.type,
+                    material: doc.material, size: doc.size, occasion: doc.occasion,
+                    image: doc.image, userId: doc.userId,
+                  });
+                  setClothes(prev => [...prev, normalizeDoc(newClothing)]);
+                  setShowForm(false);
+                } catch (error) {
+                  console.error(error);
+                  alert("No se pudo añadir la prenda.");
+                }
+              }}
             />
           </Modal.Body>
         </Modal>

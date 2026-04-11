@@ -192,7 +192,7 @@ export default function ClothingForm({
       <button
         type="submit"
         disabled={loading || isAnalyzing}
-        className="bg-[#5CA2AE] text-white py-2 px-4 rounded w-full transition-colors"
+        className="bg-[#365f66] text-white py-2 px-4 rounded w-full transition-colors"
       >
         {loading
           ? "Guardando..."
