@@ -2,6 +2,8 @@
 
 import React, { useState } from "react";
 import { Clothing } from "@/app/models/Clothing";
+import { IoShirtOutline } from "react-icons/io5";
+import { BsStars } from "react-icons/bs";
 
 interface ClothingFormProps {
   initialValues?: Partial<Clothing>;
@@ -16,6 +18,7 @@ export default function ClothingForm({
 }: ClothingFormProps) {
   const [file, setFile] = useState<File | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [preview, setPreview] = useState<string | null>(null);
 
   const [form, setForm] = useState({
     name: initialValues.name || "",
@@ -45,17 +48,14 @@ export default function ClothingForm({
         body: formData,
       });
 
-      if (!response.ok) {
-        throw new Error("Error al analizar la imagen");
-      }
+      if (!response.ok) throw new Error("Error al analizar la imagen");
 
       const analysis = await response.json();
-      const analyzedColor = analysis.color_name || form.color;
 
       setForm((current) => ({
         ...current,
         type: analysis.type || current.type,
-        color: analyzedColor,  // Siempre mostrar el color detectado por el sistema
+        color: analysis.color_name || current.color,
         occasion: analysis.occasion || current.occasion,
       }));
     } catch (error) {
@@ -67,8 +67,12 @@ export default function ClothingForm({
 
   const handleFileChange = async (selectedFile: File | null) => {
     setFile(selectedFile);
+
     if (selectedFile) {
+      setPreview(URL.createObjectURL(selectedFile));
       await analyzeImage(selectedFile);
+    } else {
+      setPreview(null);
     }
   };
 
@@ -94,6 +98,7 @@ export default function ClothingForm({
           occasion: "",
         });
         setFile(null);
+        setPreview(null);
       }
     } catch (err) {
       console.error(err);
@@ -104,131 +109,126 @@ export default function ClothingForm({
   };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="bg-white shadow-md p-6 rounded-2xl max-w-md mx-auto"
-    >
-      <h2 className="text-2xl font-semibold mb-4">
-        {mode === "create" ? "Añade una prenda" : "Editar prenda"}
+    <form onSubmit={handleSubmit} className="cf-form">
+      <h2 className="cf-title">
+        {mode === "create" ? "Añadir prenda" : "Editar prenda"}
       </h2>
 
-      <label htmlFor="clothing-name" className="block text-sm font-medium mb-1">
-        Nombre
-      </label>
-      <input
-        id="clothing-name"
-        type="text"
-        name="name"
-        placeholder="Nombre"
-        value={form.name}
-        onChange={handleChange}
-        required
-        className="border p-2 mb-3 w-full rounded"
-      />
-
-      <label htmlFor="clothing-type" className="block text-sm font-medium mb-1">
-        Tipo de prenda
-      </label>
-      <select
-        id="clothing-type"
-        name="type"
-        value={form.type}
-        onChange={handleChange}
-        className="border p-2 mb-3 w-full rounded"
-      >
-        <option value="Top">Top</option>
-        <option value="Pants">Pantalón</option>
-        <option value="Shoes">Zapatos</option>
-      </select>
-
-      <label htmlFor="clothing-color" className="block text-sm font-medium mb-1">
-        Color
-      </label>
-      <input
-        id="clothing-color"
-        type="text"
-        name="color"
-        placeholder="Color"
-        value={form.color}
-        onChange={handleChange}
-        className="border p-2 mb-3 w-full rounded"
-      />
-
-      <label htmlFor="clothing-material" className="block text-sm font-medium mb-1">
-        Material
-      </label>
-      <input
-        id="clothing-material"
-        type="text"
-        name="material"
-        placeholder="Material"
-        value={form.material}
-        onChange={handleChange}
-        className="border p-2 mb-3 w-full rounded"
-      />
-
-      <label htmlFor="clothing-size" className="block text-sm font-medium mb-1">
-        Talla
-      </label>
-      <input
-        id="clothing-size"
-        type="text"
-        name="size"
-        placeholder="Talla"
-        value={form.size}
-        onChange={handleChange}
-        className="border p-2 mb-3 w-full rounded"
-      />
-
-      <label htmlFor="clothing-occasion" className="block text-sm font-medium mb-1">
-        Ocasión
-      </label>
-      <input
-        id="clothing-occasion"
-        type="text"
-        name="occasion"
-        placeholder="Ocasión"
-        value={form.occasion}
-        onChange={handleChange}
-        className="border p-2 mb-3 w-full rounded"
-      />
-
-      {/* El input de imagen solo se muestra en creación */}
+      {/* Upload */}
       {mode === "create" && (
-        <>
-          <label htmlFor="clothing-image" className="block text-sm font-medium mb-1">
-            Imagen
+        <div className="cf-upload-area">
+          <label className="cf-upload-label" htmlFor="cf-file-input">
+            {preview ? (
+              <img src={preview} alt="Vista previa" className="cf-upload-preview" />
+            ) : (
+              <div className="cf-upload-placeholder">
+                <IoShirtOutline className="cf-upload-icon" />
+                <span className="cf-upload-text">Subir imagen</span>
+                <span className="cf-upload-hint">JPG, PNG, WEBP</span>
+              </div>
+            )}
           </label>
+
           <input
-            id="clothing-image"
+            id="cf-file-input"
             type="file"
             accept="image/*"
-            onChange={(e) => handleFileChange(e.target.files?.[0] ?? null)}
-            className="border p-2 mb-3 w-full rounded"
+            className="cf-file-input"
+            onChange={(e) =>
+              handleFileChange(e.target.files?.[0] ?? null)
+            }
           />
+
           {isAnalyzing && (
-            <p className="text-sm text-slate-500 mb-3">Analizando imagen...</p>
+            <div className="cf-analyzing">
+              <BsStars size={14} />
+              <span>Analizando imagen...</span>
+            </div>
           )}
-          {!isAnalyzing && file && (
-            <p className="text-sm text-slate-500 mb-3">
-              Los valores se han completado automáticamente; puedes modificarlos antes de guardar.
-            </p>
-          )}
-        </>
+        </div>
       )}
+
+      {/* Fields */}
+      <div className="cf-fields">
+        <div className="cf-field">
+          <label className="cf-label">Nombre</label>
+          <input
+            type="text"
+            name="name"
+            value={form.name}
+            onChange={handleChange}
+            required
+            className="cf-input"
+          />
+        </div>
+
+        <div className="cf-field">
+          <label className="cf-label">Tipo</label>
+          <select
+            name="type"
+            value={form.type}
+            onChange={handleChange}
+            className="cf-input"
+          >
+            <option value="Top">Superior</option>
+            <option value="Pants">Inferior</option>
+            <option value="Shoes">Calzado</option>
+          </select>
+        </div>
+
+        <div className="cf-field">
+          <label className="cf-label">Color</label>
+          <input
+            type="text"
+            name="color"
+            value={form.color}
+            onChange={handleChange}
+            className="cf-input"
+          />
+        </div>
+
+        <div className="cf-field">
+          <label className="cf-label">Material</label>
+          <input
+            type="text"
+            name="material"
+            value={form.material}
+            onChange={handleChange}
+            className="cf-input"
+          />
+        </div>
+
+        <div className="cf-field">
+          <label className="cf-label">Talla</label>
+          <input
+            type="text"
+            name="size"
+            value={form.size}
+            onChange={handleChange}
+            className="cf-input"
+          />
+        </div>
+
+        <div className="cf-field">
+          <label className="cf-label">Ocasión</label>
+          <input
+            type="text"
+            name="occasion"
+            value={form.occasion}
+            onChange={handleChange}
+            className="cf-input"
+          />
+        </div>
+      </div>
 
       <button
         type="submit"
         disabled={loading || isAnalyzing}
-        className="bg-[#365f66] text-white py-2 px-4 rounded w-full transition-colors"
+        className="cf-submit-btn"
       >
-        {loading
-          ? "Guardando..."
-          : isAnalyzing
-          ? "Analizando..."
-          : mode === "create"
-          ? "Añadir prenda"
-          : "Guardar cambios"}
+        {loading      ? "Guardando…"   :
+         isAnalyzing  ? "Analizando…"  :
+         mode === "create" ? "Añadir prenda" : "Guardar cambios"}
       </button>
     </form>
   );

@@ -4,8 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { account, ID } from "@/lib/appwrite";
 import { useRouter } from "next/navigation";
-import Card from "react-bootstrap/Card";
-import Button from "react-bootstrap/Button";
+import { BsStars } from "react-icons/bs";
 
 type Props = {
   mode: "login" | "register";
@@ -31,6 +30,7 @@ export default function AuthForm({ mode }: Props) {
       } else {
         await account.createEmailPasswordSession(email, password);
       }
+
       router.push("/");
     } catch (err: any) {
       setMessage(err.message);
@@ -40,85 +40,118 @@ export default function AuthForm({ mode }: Props) {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <Card style={{ maxWidth: 400, width: "100%" }} className="p-4 shadow-md">
-        <Card.Body>
-          <h1 className="text-2xl font-bold text-[#1a2b32] mb-4 text-center">
-            {mode === "login" ? "Iniciar Sesión" : "Registrarse"}
+    <div className="auth-root">
+
+      {/* ── Left: form panel ── */}
+      <div className="auth-panel">
+        <div className="auth-panel-inner">
+
+          {/* Brand */}
+          <div className="auth-brand">
+            <BsStars size={22} className="auth-brand-icon" />
+            <span className="auth-brand-name">PickurFit</span>
+          </div>
+
+          <h1 className="auth-title">
+            {mode === "login" ? "Bienvenido de nuevo" : "Crea tu cuenta"}
           </h1>
-          <form onSubmit={handleSubmit}>
+
+          <p className="auth-subtitle">
+            {mode === "login"
+              ? "Ingresa tus datos para continuar"
+              : "Empieza a generar outfits en segundos"}
+          </p>
+
+          <form onSubmit={handleSubmit} className="auth-form">
+
             {mode === "register" && (
-              <div className="mb-3">
-                <label className="block text-sm mb-1">Nombre completo</label>
+              <div className="auth-field">
+                <label className="auth-label">Nombre completo</label>
                 <input
                   type="text"
-                  placeholder="Nombre completo"
+                  placeholder="Tu nombre"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   required
-                  className="border rounded w-full p-2 focus:border-[#5CA2AE] focus:ring-0"
+                  className="auth-input"
                 />
               </div>
             )}
-            <div className="mb-3">
-              <label className="block text-sm mb-1">Correo electrónico</label>
+
+            <div className="auth-field">
+              <label className="auth-label">Correo electrónico</label>
               <input
                 type="email"
-                placeholder="Correo electrónico"
+                placeholder="correo@ejemplo.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="border rounded w-full p-2 focus:border-[#5CA2AE] focus:ring-0"
+                className="auth-input"
               />
             </div>
-            <div className="mb-4">
-              <label className="block text-sm mb-1">Contraseña</label>
+
+            <div className="auth-field">
+              <label className="auth-label">Contraseña</label>
               <input
                 type="password"
-                placeholder="Contraseña"
+                placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="border rounded w-full p-2 focus:border-[#5CA2AE] focus:ring-0"
+                className="auth-input"
               />
             </div>
-            {message && (
-              <div className="mb-3 text-red-500 text-sm text-center">{message}</div>
-            )}
-            <Button
+
+            {message && <p className="auth-error">{message}</p>}
+
+            <button
               type="submit"
-              variant="primary"
               disabled={loading}
-              style={{
-                backgroundColor: "#5CA2AE",
-                borderColor: "#5CA2AE",
-                width: "100%",
-              }}
-              className="mb-2"
+              className="auth-submit-btn"
             >
               {loading
                 ? "Procesando..."
                 : mode === "login"
                 ? "Ingresar"
                 : "Crear cuenta"}
-            </Button>
-            <div className="flex justify-between text-sm text-slate-600 mt-3">
-              <Link href="/" className="underline hover:text-slate-800">
-                Volver a la landing
-              </Link>
-              {mode === "login" ? (
-                <Link href="/auth/register" className="underline hover:text-slate-800">
-                  Crear cuenta
-                </Link>
-              ) : (
-                <Link href="/auth/login" className="underline hover:text-slate-800">
-                  Iniciar sesión
-                </Link>
-              )}
-            </div>
+            </button>
           </form>
-        </Card.Body>
-      </Card>
+
+          <p className="auth-switch">
+            {mode === "login" ? (
+              <>
+                ¿No tienes cuenta?{" "}
+                <Link href="/auth/register" className="auth-switch-link">
+                  Regístrate
+                </Link>
+              </>
+            ) : (
+              <>
+                ¿Ya tienes cuenta?{" "}
+                <Link href="/auth/login" className="auth-switch-link">
+                  Inicia sesión
+                </Link>
+              </>
+            )}
+          </p>
+
+        </div>
+      </div>
+
+      {/* ── Right: image panel ── */}
+      <div className="auth-image-panel">
+        <img
+          src="/page_images/outfit_image2.jpg"
+          alt="Outfit inspiration"
+          className="auth-image"
+        />
+        <div className="auth-image-overlay">
+          <p className="auth-image-quote">
+            "Tu estilo, generado en segundos"
+          </p>
+        </div>
+      </div>
+
     </div>
   );
 }
