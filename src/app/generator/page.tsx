@@ -12,17 +12,20 @@ import { account } from "@/lib/appwrite";
 import { Clothing } from "../models/Clothing";
 import { outfitController } from "../controllers/OutfitController";
 
-// ─── Image URL helper ─────────────────────────────────────────────────────────
+// ─── helper para la url de imágenes ─────────────────────────────────────────────────────────
+// Construir la url de la imágen de appwrite para la ID del archivo almacenado.
 const imgUrl = (fileId: string) =>
   `https://cloud.appwrite.io/v1/storage/buckets/${process.env.NEXT_PUBLIC_APPWRITE_BUCKET_ID}/files/${fileId}/view?project=${process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID}`;
 
-// ─── Outfit image block ───────────────────────────────────────────────────────
+// ─── Bloque de imagen de atuendo ───────────────────────────────────────────────────────
+// Renderiza la imagen de un atuendo solo cuando existe una ID de archivo, utilizando un texto alternativo descriptivo.
 const OutfitImage = ({ fileId, alt }: { fileId?: string; alt?: string }) =>
   fileId ? (
-    <img src={imgUrl(fileId)} alt={alt || "prenda"} className="gen-outfit-img" />
+    <img src={imgUrl(fileId)} alt={`Imagen de prenda: ${alt || "prenda"}`} className="gen-outfit-img" />
   ) : null;
 
 export default function Generator() {
+  // Estado de componentes para las selecciones de filtros, visibilidad de dropdowns, carga y estado de modales.
   const [selectedContext, setSelectedContext] = useState<string>("");
   const [selectedColor, setSelectedColor]     = useState<string>("");
   const [showContextDropdown, setShowContextDropdown] = useState(false);
@@ -37,7 +40,7 @@ export default function Generator() {
   const [selectedOutfitIndex, setSelectedOutfitIndex] = useState<number | null>(null);
   const [userClothes, setUserClothes] = useState<Clothing[]>([]);
 
-  // Close dropdowns on outside click
+  // Cerrar los dropdowns al hacer clic fuera de ellos.
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (!(e.target as HTMLElement).closest(".gen-dropdown")) {
@@ -49,7 +52,133 @@ export default function Generator() {
     return () => document.removeEventListener("click", handler);
   }, []);
 
-  // Load user clothes
+  // Navegación por teclado para el botón del dropdown de contexto.
+  const handleContextKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      setShowContextDropdown(!showContextDropdown);
+      setShowColorDropdown(false);
+    } else if (e.key === 'Escape') {
+      setShowContextDropdown(false);
+    } else if (e.key === 'ArrowDown' && showContextDropdown) {
+      e.preventDefault();
+      // Focus the first option when the dropdown is already open.
+      const firstOption = document.querySelector('.gen-dropdown-menu .gen-dropdown-item');
+      (firstOption as HTMLElement)?.focus();
+    }
+  };
+
+  const handleColorKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      setShowColorDropdown(!showColorDropdown);
+      setShowContextDropdown(false);
+    } else if (e.key === 'Escape') {
+      setShowColorDropdown(false);
+    } else if (e.key === 'ArrowDown' && showColorDropdown) {
+      e.preventDefault();
+      const firstOption = document.querySelector('.gen-dropdown-menu .gen-dropdown-item');
+      (firstOption as HTMLElement)?.focus();
+    }
+  };
+
+  const handleOptionKeyDown = (e: React.KeyboardEvent, opt: string, setter: (value: string) => void, closeDropdown: () => void) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      setter(opt);
+      closeDropdown();
+    } else if (e.key === 'Escape') {
+      closeDropdown();
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      const prev = e.currentTarget.previousElementSibling as HTMLElement;
+      prev?.focus();
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      const next = e.currentTarget.nextElementSibling as HTMLElement;
+      next?.focus();
+    }
+  };
+
+  // Permitir que los usuarios cierren los modales abiertos con la tecla Escape.
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (showModal) setShowModal(false);
+        if (showSaveModal) setShowSaveModal(false);
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [showModal, showSaveModal]);
+
+  // Focus trapping para el modal de selección de prenda
+  useEffect(() => {
+    if (showModal) {
+      const modal = document.querySelector('.gen-modal') as HTMLElement;
+      if (!modal) return;
+      const focusableElements = modal.querySelectorAll('button, [tabindex="0"]');
+      const firstElement = focusableElements[0] as HTMLElement;
+      const lastElement = focusableElements[focusableElements.length - 1] as HTMLElement;
+
+      // Focus the first element
+      setTimeout(() => firstElement?.focus(), 100); // Delay to ensure modal is rendered
+
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === 'Tab') {
+          if (e.shiftKey) {
+            if (document.activeElement === firstElement) {
+              e.preventDefault();
+              lastElement.focus();
+            }
+          } else {
+            if (document.activeElement === lastElement) {
+              e.preventDefault();
+              firstElement.focus();
+            }
+          }
+        }
+      };
+
+      document.addEventListener('keydown', handleKeyDown);
+      return () => document.removeEventListener('keydown', handleKeyDown);
+    }
+  }, [showModal]);
+
+  // Focus trapping para el modal de guardar outfit
+  useEffect(() => {
+    if (showSaveModal) {
+      const modal = document.querySelector('.gen-modal') as HTMLElement;
+      if (!modal) return;
+      const focusableElements = modal.querySelectorAll('input, button');
+      const firstElement = focusableElements[0] as HTMLElement;
+      const lastElement = focusableElements[focusableElements.length - 1] as HTMLElement;
+
+      // Focus the first element (input)
+      setTimeout(() => firstElement?.focus(), 100);
+
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === 'Tab') {
+          if (e.shiftKey) {
+            if (document.activeElement === firstElement) {
+              e.preventDefault();
+              lastElement.focus();
+            }
+          } else {
+            if (document.activeElement === lastElement) {
+              e.preventDefault();
+              firstElement.focus();
+            }
+          }
+        }
+      };
+
+      document.addEventListener('keydown', handleKeyDown);
+      return () => document.removeEventListener('keydown', handleKeyDown);
+    }
+  }, [showSaveModal]);
+
+  // Cargar las prendas del usuario
   useEffect(() => {
     account.get().then(async () => {
       const clothes = await clothingController.getUserClothes();
@@ -57,6 +186,7 @@ export default function Generator() {
     });
   }, []);
 
+  // Generar atuendos basados en los filtros seleccionados y mostrarlos.
   const handleGenerate = async () => {
     setLoading(true);
     const results = await clothingController.generateOutfits(
@@ -95,7 +225,8 @@ export default function Generator() {
   return (
     <ProtectedRoute>
 
-      {/* ── Clothing picker modal ── */}
+      {/* ── Modal de selección de prenda ── */}
+      {/* Aquí se muestran las prendas que el usuario tiene en su guardarropa, el texto alternativo se genera dinámicamente */}
       {showModal && (
         <div className="gen-modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) setShowModal(false); }}>
           <div className="gen-modal">
@@ -107,15 +238,25 @@ export default function Generator() {
                 <div
                   key={cloth.$id}
                   className="gen-modal-item"
+                  tabIndex={0}
                   onClick={async () => {
                     const result = await clothingController.generateOutfitWithBase(cloth.$id!);
                     setOutfits([result]);
                     setShowModal(false);
                   }}
+                  onKeyDown={async (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      // Simulate click
+                      const result = await clothingController.generateOutfitWithBase(cloth.$id!);
+                      setOutfits([result]);
+                      setShowModal(false);
+                    }
+                  }}
                 >
                   <img
                     src={imgUrl(cloth.image ?? '')}
-                    alt="prenda"
+                    alt={`Prenda: ${cloth.name}, tipo: ${cloth.type}, color: ${cloth.color}`}
                     className="gen-modal-item-img"
                   />
                 </div>
@@ -162,31 +303,40 @@ export default function Generator() {
         <AppNavbar />
 
         <main className="gen-main">
-          <h2 className="gen-heading">¿Qué tipo de outfit quieres hoy?</h2>
+          <h1 className="gen-heading">¿Qué tipo de outfit quieres hoy?</h1>
 
           <section className="gen-band">
             <div className="gen-band-inner">
 
-              {/* ── Left column: filters ── */}
+              {/* ── Columna izquierda: filtros ── */}
               <aside className="gen-sidebar">
-                <p className="gen-sidebar-label">Filtros</p>
+                <h2 className="gen-sidebar-label">Filtros</h2>
 
-                {/* Context dropdown */}
+                {/* Dropdown de contexto */}
                 <div className="gen-dropdown">
                   <button
                     className="gen-select-btn"
                     onClick={() => { setShowContextDropdown(!showContextDropdown); setShowColorDropdown(false); }}
+                    onKeyDown={handleContextKeyDown}
+                    aria-expanded={showContextDropdown}
+                    aria-haspopup="listbox"
+                    aria-label="Seleccionar contexto"
                   >
                     <span>{selectedContext || "Contexto"}</span>
-                    <span className="gen-chevron">▾</span>
+                    <span className="gen-chevron" aria-hidden="true">▾</span>
                   </button>
+                  {/* Aquí se mapean las opciones del dropdown y el uso de teclado para navegación */}
                   {showContextDropdown && (
-                    <div className="gen-dropdown-menu">
+                    <div className="gen-dropdown-menu" role="listbox">
                       {["Any", "Formal", "Casual", "Sport"].map((opt) => (
                         <div
                           key={opt}
                           className={`gen-dropdown-item ${selectedContext === opt ? "gen-dropdown-item--active" : ""}`}
                           onClick={() => { setSelectedContext(opt); setShowContextDropdown(false); }}
+                          onKeyDown={(e) => handleOptionKeyDown(e, opt, setSelectedContext, () => setShowContextDropdown(false))}
+                          tabIndex={0}
+                          role="option"
+                          aria-selected={selectedContext === opt}
                         >
                           {opt}
                         </div>
@@ -195,22 +345,30 @@ export default function Generator() {
                   )}
                 </div>
 
-                {/* Color dropdown */}
+                {/* Dropdown de color */}
                 <div className="gen-dropdown">
                   <button
                     className="gen-select-btn"
                     onClick={() => { setShowColorDropdown(!showColorDropdown); setShowContextDropdown(false); }}
+                    onKeyDown={handleColorKeyDown}
+                    aria-expanded={showColorDropdown}
+                    aria-haspopup="listbox"
+                    aria-label="Seleccionar color"
                   >
                     <span>{selectedColor || "Color"}</span>
-                    <span className="gen-chevron">▾</span>
+                    <span className="gen-chevron" aria-hidden="true">▾</span>
                   </button>
                   {showColorDropdown && (
-                    <div className="gen-dropdown-menu">
+                    <div className="gen-dropdown-menu" role="listbox">
                       {["Any", "Red", "Blue", "Yellow", "Green", "Black", "White"].map((opt) => (
                         <div
                           key={opt}
                           className={`gen-dropdown-item ${selectedColor === opt ? "gen-dropdown-item--active" : ""}`}
                           onClick={() => { setSelectedColor(opt); setShowColorDropdown(false); }}
+                          onKeyDown={(e) => handleOptionKeyDown(e, opt, setSelectedColor, () => setShowColorDropdown(false))}
+                          tabIndex={0}
+                          role="option"
+                          aria-selected={selectedColor === opt}
                         >
                           {opt}
                         </div>
@@ -221,14 +379,14 @@ export default function Generator() {
 
                 <div className="gen-sidebar-divider" />
 
-                {/* Generate button */}
+                {/* Botón de generación */}
                 <button className="gen-cta-btn" onClick={handleGenerate} disabled={loading}>
-                  <BsStars size={16} className="gen-cta-icon" />
+                  <BsStars size={16} className="gen-cta-icon" aria-hidden="true" />
                   {loading ? "Generando…" : "Generar"}
                 </button>
               </aside>
 
-              {/* ── Center: outfit results ── */}
+              {/* ── Centro: Resultados ── */}
               <div className="gen-results">
                 {loading ? (
                   <div className="gen-placeholder">
@@ -237,7 +395,7 @@ export default function Generator() {
                   </div>
                 ) : outfits.length === 0 ? (
                   <div className="gen-placeholder">
-                    <IoShirtOutline className="gen-placeholder-icon" />
+                    <IoShirtOutline className="gen-placeholder-icon" aria-hidden="true" />
                     <p className="gen-placeholder-text">
                       Aquí se mostrarán las prendas seleccionadas o generadas.
                     </p>
@@ -274,17 +432,17 @@ export default function Generator() {
                 )}
               </div>
 
-              {/* ── Right column: actions ── */}
+              {/* ── Columna derecha: acciones ── */}
               <aside className="gen-sidebar gen-sidebar--right">
                 <p className="gen-sidebar-label">Acciones</p>
 
                 <Link href="/virtual_wardrobe" className="gen-action-btn">
-                  <HiOutlineViewGrid size={16} className="gen-action-icon" />
+                  <HiOutlineViewGrid size={16} className="gen-action-icon" aria-hidden="true" />
                   Guardarropa
                 </Link>
 
                 <button className="gen-action-btn" onClick={() => setShowModal(true)}>
-                  <IoShirtOutline size={16} className="gen-action-icon" />
+                  <IoShirtOutline size={16} className="gen-action-icon" aria-hidden="true" />
                   Seleccionar prenda
                 </button>
               </aside>

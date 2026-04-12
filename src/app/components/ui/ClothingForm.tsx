@@ -112,7 +112,11 @@ export default function ClothingForm({
         {mode === "create" ? "Añade una prenda" : "Editar prenda"}
       </h2>
 
+      <label htmlFor="clothing-name" className="block text-sm font-medium mb-1">
+        Nombre
+      </label>
       <input
+        id="clothing-name"
         type="text"
         name="name"
         placeholder="Nombre"
@@ -122,7 +126,11 @@ export default function ClothingForm({
         className="border p-2 mb-3 w-full rounded"
       />
 
+      <label htmlFor="clothing-type" className="block text-sm font-medium mb-1">
+        Tipo de prenda
+      </label>
       <select
+        id="clothing-type"
         name="type"
         value={form.type}
         onChange={handleChange}
@@ -133,7 +141,11 @@ export default function ClothingForm({
         <option value="Shoes">Zapatos</option>
       </select>
 
+      <label htmlFor="clothing-color" className="block text-sm font-medium mb-1">
+        Color
+      </label>
       <input
+        id="clothing-color"
         type="text"
         name="color"
         placeholder="Color"
@@ -142,7 +154,11 @@ export default function ClothingForm({
         className="border p-2 mb-3 w-full rounded"
       />
 
+      <label htmlFor="clothing-material" className="block text-sm font-medium mb-1">
+        Material
+      </label>
       <input
+        id="clothing-material"
         type="text"
         name="material"
         placeholder="Material"
@@ -151,7 +167,11 @@ export default function ClothingForm({
         className="border p-2 mb-3 w-full rounded"
       />
 
+      <label htmlFor="clothing-size" className="block text-sm font-medium mb-1">
+        Talla
+      </label>
       <input
+        id="clothing-size"
         type="text"
         name="size"
         placeholder="Talla"
@@ -160,7 +180,11 @@ export default function ClothingForm({
         className="border p-2 mb-3 w-full rounded"
       />
 
+      <label htmlFor="clothing-occasion" className="block text-sm font-medium mb-1">
+        Ocasión
+      </label>
       <input
+        id="clothing-occasion"
         type="text"
         name="occasion"
         placeholder="Ocasión"
@@ -172,7 +196,11 @@ export default function ClothingForm({
       {/* El input de imagen solo se muestra en creación */}
       {mode === "create" && (
         <>
+          <label htmlFor="clothing-image" className="block text-sm font-medium mb-1">
+            Imagen
+          </label>
           <input
+            id="clothing-image"
             type="file"
             accept="image/*"
             onChange={(e) => handleFileChange(e.target.files?.[0] ?? null)}

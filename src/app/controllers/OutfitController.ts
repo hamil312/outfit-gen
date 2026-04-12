@@ -55,8 +55,8 @@ export const outfitController = {
     },
 
 
-    async getPublicOutfits(page: number = 1, perPage: number = 10) {
-        const res = await outfitRepository.getPublicOutfits(page, perPage);
+    async getPublicOutfits(page: number = 1, perPage: number = 10, searchTerm?: string, occasion?: string, sortBy?: 'recent' | 'likes') {
+        const res = await outfitRepository.getPublicOutfits(page, perPage, searchTerm, occasion, sortBy);
         const docs = res.documents || [];
 
         // Enriquecer con info de usuario y prendas

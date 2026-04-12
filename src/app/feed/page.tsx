@@ -1,15 +1,15 @@
 'use client';
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import AppNavbar from '@/app/components/ui/Navbar';
 import { outfitController } from '@/app/controllers/OutfitController';
 import { favouriteController } from '@/app/controllers/FavouriteController';
-import { FaHeart, FaRegHeart } from 'react-icons/fa';
+import { FaHeart, FaRegHeart, FaSearch } from 'react-icons/fa';
 import { HiOutlineViewGrid } from 'react-icons/hi';
 import { IoGridOutline } from 'react-icons/io5';
 
 const PER_PAGE = 9;
 
-// ─── Types ───────────────────────────────────────────────────────────────────
+// ─── Tipos ───────────────────────────────────────────────────────────────────
 interface ClothingItem {
   $id: string;
   image: string;
@@ -29,17 +29,17 @@ interface Outfit {
   $createdAt?: string;
 }
 
-// ─── Image URL helper ────────────────────────────────────────────────────────
+// ─── Helper de URL de imagen ────────────────────────────────────────────────────────
 const getImageUrl = (fileId: string) =>
   `https://cloud.appwrite.io/v1/storage/buckets/${process.env.NEXT_PUBLIC_APPWRITE_BUCKET_ID}/files/${fileId}/view?project=${process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID}`;
 
-// ─── Avatar initials ─────────────────────────────────────────────────────────
+// ─── Iniciales del avatar ─────────────────────────────────────────────────────────
 const getInitials = (name?: string) => {
   if (!name) return '?';
   return name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase();
 };
 
-// ─── Relative time ───────────────────────────────────────────────────────────
+// ─── Tiempo relativo ───────────────────────────────────────────────────────────
 const timeAgo = (dateStr?: string) => {
   if (!dateStr) return '';
   const diff = Date.now() - new Date(dateStr).getTime();
@@ -51,7 +51,7 @@ const timeAgo = (dateStr?: string) => {
   return `hace ${Math.floor(hrs / 24)}d`;
 };
 
-// ─── Pastel avatar colors ─────────────────────────────────────────────────────
+// ─── Colores de avatar ─────────────────────────────────────────────────────
 const avatarPalette = [
   { bg: '#f0e6ff', text: '#7c3aed' },
   { bg: '#fce7f3', text: '#be185d' },
@@ -66,7 +66,7 @@ const getAvatarColor = (name?: string) => {
   return avatarPalette[idx];
 };
 
-// ─── Skeleton card ────────────────────────────────────────────────────────────
+// ─── Esqueleto de la card ────────────────────────────────────────────────────────────
 const SkeletonCard = () => (
   <div className="feed-card-inner">
     <div className="feed-skeleton-avatar" />
@@ -84,7 +84,8 @@ const SkeletonCard = () => (
   </div>
 );
 
-// ─── Like button ──────────────────────────────────────────────────────────────
+// ─── Botón de me gusta ──────────────────────────────────────────────────────────────
+// Componente de botón reutilizable para dar me gusta con una pequeña animación.
 const LikeButton = ({
   liked,
   count,
@@ -135,10 +136,27 @@ const OutfitCard = ({
     .filter(({ idx }) => idx !== heroIndex)
     .slice(0, 3);
 
+  // Actualizar el índice de la imagen principal.
   const handleThumbClick = (idx: number) => {
     if (animating) return;
     setAnimating(true);
     setTimeout(() => { setHeroIndex(idx); setAnimating(false); }, 200);
+  };
+
+  // Soporte de teclado para la selección de miniaturas y navegación horizontal.
+  const handleThumbKeyDown = (e: React.KeyboardEvent, idx: number) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      handleThumbClick(idx);
+    } else if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      const nextIdx = (idx + 1) % thumbItems.length;
+      handleThumbClick(thumbItems[nextIdx].idx);
+    } else if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      const prevIdx = (idx - 1 + thumbItems.length) % thumbItems.length;
+      handleThumbClick(thumbItems[prevIdx].idx);
+    }
   };
 
   return (
@@ -146,7 +164,7 @@ const OutfitCard = ({
 
       {/* Header */}
       <div className="feed-card-header">
-        {/* Avatar: bg/color are dynamic per user so stay as inline style */}
+        {/* Avatar: el color de fondo y el texto son dinámicos por usuario */}
         <div
           className="feed-avatar"
           style={{ background: avatarColor.bg, color: avatarColor.text }}
@@ -164,19 +182,19 @@ const OutfitCard = ({
         />
       </div>
 
-      {/* Outfit name */}
-      <h3 className="feed-outfit-title">{outfit.name || 'Outfit sin nombre'}</h3>
+      {/* Nombre del outfit */}
+      <h2 className="feed-outfit-title">{outfit.name || 'Outfit sin nombre'}</h2>
       {outfit.description && (
         <p className="feed-outfit-description">{outfit.description}</p>
       )}
 
-      {/* Hero image */}
+      {/* Imagen principal: notese como se utiliza el tipo y el color para crear texto alternativo de forma dinámica */}
       {heroItem && (
         <div className="feed-hero-wrap">
           <img
             key={heroItem.$id}
             src={getImageUrl(heroItem.image)}
-            alt={heroItem.type}
+            alt={`Imagen principal del outfit: ${heroItem.type}, color: ${heroItem.color}`}
             className={`feed-hero-img ${animating ? 'feed-hero-img--animating' : ''}`}
             loading="lazy"
           />
@@ -186,14 +204,33 @@ const OutfitCard = ({
           {clothes.length > 1 && (
             <div className="feed-dot-row">
               {clothes.map((_, idx) => (
-                <div key={idx} className={`feed-dot ${idx === heroIndex ? 'feed-dot--active' : ''}`} />
+                <button
+                  key={idx}
+                  className={`feed-dot ${idx === heroIndex ? 'feed-dot--active' : ''}`}
+                  onClick={() => handleThumbClick(idx)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      handleThumbClick(idx);
+                    } else if (e.key === 'ArrowRight') {
+                      e.preventDefault();
+                      const nextIdx = (idx + 1) % clothes.length;
+                      handleThumbClick(nextIdx);
+                    } else if (e.key === 'ArrowLeft') {
+                      e.preventDefault();
+                      const prevIdx = (idx - 1 + clothes.length) % clothes.length;
+                      handleThumbClick(prevIdx);
+                    }
+                  }}
+                  aria-label={`Ver prenda ${idx + 1} como imagen principal`}
+                />
               ))}
             </div>
           )}
         </div>
       )}
 
-      {/* Thumbnails */}
+      {/* Miniaturas */}
       {thumbItems.length > 0 && (
         <div className="feed-clothes-row">
           {thumbItems.map(({ item, idx }) => (
@@ -204,12 +241,12 @@ const OutfitCard = ({
               tabIndex={0}
               aria-label={`Ver ${item.type} en detalle`}
               onClick={() => handleThumbClick(idx)}
-              onKeyDown={e => e.key === 'Enter' && handleThumbClick(idx)}
+              onKeyDown={e => handleThumbKeyDown(e, idx)}
             >
               <div className="feed-thumb-img-wrap">
                 <img
                   src={getImageUrl(item.image)}
-                  alt={item.type}
+                  alt={`Miniatura de prenda: ${item.type}, color: ${item.color}`}
                   className="feed-thumb-img"
                   loading="lazy"
                 />
@@ -234,7 +271,7 @@ const OutfitCard = ({
         </div>
       )}
 
-      {/* Color palette dots — background is dynamic so keeps inline style */}
+      {/* Paleta de colores */}
       {clothes.length > 0 && (
         <div className="feed-palette-row">
           {clothes.slice(0, 6).map(item => (
@@ -252,31 +289,49 @@ const OutfitCard = ({
   );
 };
 
-// ─── Main Feed Page ───────────────────────────────────────────────────────────
+// ─── Página principal del feed ───────────────────────────────────────────────────────────
 const FeedPage = () => {
   const [page, setPage] = useState(1);
   const [outfits, setOutfits] = useState<Outfit[]>([]);
   const [loading, setLoading] = useState(false);
   const [total, setTotal] = useState<number | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedOccasion, setSelectedOccasion] = useState('');
+  const [sortBy, setSortBy] = useState<'recent' | 'likes'>('recent');
   const topRef = useRef<HTMLDivElement>(null);
 
   const totalPages = total ? Math.ceil(total / PER_PAGE) : null;
 
-  const fetchPage = async (p: number) => {
+  // Función para obtener outfits
+  const fetchPage = useCallback(async (pageNum: number, search?: string, occasion?: string, sort?: 'recent' | 'likes') => {
     setLoading(true);
     try {
-      const res = await outfitController.getPublicOutfits(p, PER_PAGE);
-      setOutfits(res.outfits || []);
-      setTotal(res.total ?? null);
-    } catch (err) {
-      console.error('Error cargando feed:', err);
+      const result = await outfitController.getPublicOutfits(pageNum, PER_PAGE, search, occasion, sort);
+      setOutfits(result.outfits);
+      setTotal(result.total);
+    } catch (error) {
+      console.error('Error fetching outfits:', error);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  // Debounced search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setPage(1); // Reset to page 1 on search
+      fetchPage(1, searchTerm || undefined, selectedOccasion || undefined, sortBy);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchTerm, selectedOccasion, sortBy]);
 
   useEffect(() => {
-    fetchPage(page);
+    if (page > 1) {
+      fetchPage(page, searchTerm || undefined, selectedOccasion || undefined, sortBy);
+    }
+  }, [page]);
+
+  useEffect(() => {
     topRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [page]);
 
@@ -332,11 +387,11 @@ const FeedPage = () => {
 
       <main className="feed-main">
 
-        {/* Page header */}
+        {/* Header de la página */}
         <header className="feed-page-header">
           <div>
             <h1 className="feed-page-title">
-              <IoGridOutline className="feed-page-title-icon" />
+              <IoGridOutline className="feed-page-title-icon" aria-hidden="true" />
               Explorar outfits
             </h1>
             {total !== null && (
@@ -344,6 +399,54 @@ const FeedPage = () => {
             )}
           </div>
         </header>
+
+        {/* Filtros y búsqueda */}
+        <div className="feed-filters">
+          <div className="feed-search">
+            <label htmlFor="search-input" className="block text-sm font-medium text-gray-700 mb-1">Buscar</label>
+            <div className="flex items-center">
+              <FaSearch className="feed-search-icon mr-2 text-gray-400 mb-4" aria-hidden="true" />
+              <input
+                id="search-input"
+                type="text"
+                placeholder="Buscar por nombre de usuario, atuendo o descripción..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="feed-search-input flex-1 pl-4 pr-4 py-2 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+              />
+            </div>
+          </div>
+          <div className="feed-filter-row flex gap-4 mb-4">
+            <div className="feed-filter-group">
+              <label htmlFor="occasion-select" className="block text-sm font-medium text-gray-700 mb-1">Ocasion</label>
+              <select
+                id="occasion-select"
+                value={selectedOccasion}
+                onChange={(e) => setSelectedOccasion(e.target.value)}
+                className="feed-filter-select border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+              >
+                <option value="">Todas las ocasiones</option>
+                <option value="Casual">Casual</option>
+                <option value="Formal">Formal</option>
+                <option value="Deporte">Deporte</option>
+                <option value="Fiesta">Fiesta</option>
+                <option value="Trabajo">Trabajo</option>
+              </select>
+            </div>
+            <div className="feed-filter-group">
+              <label htmlFor="sort-select" className="block text-sm font-medium text-gray-700 mb-1">Ordenar por</label>
+              <select
+                id="sort-select"
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as 'recent' | 'likes')}
+                className="feed-filter-select border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+              >
+                <option value="recent">Más reciente</option>
+                <option value="likes">Más me gusta</option>
+              </select>
+            </div>
+          </div>
+        </div>
 
         {/* Grid */}
         {loading ? (
@@ -356,7 +459,7 @@ const FeedPage = () => {
           </div>
         ) : outfits.length === 0 ? (
           <div className="feed-empty-state">
-            <HiOutlineViewGrid className="feed-empty-icon" />
+            <HiOutlineViewGrid className="feed-empty-icon" aria-hidden="true" />
             <p className="feed-empty-text">Todavía no hay publicaciones públicas.</p>
             <p className="feed-empty-sub">¡Sé el primero en compartir tu outfit!</p>
           </div>
@@ -368,7 +471,7 @@ const FeedPage = () => {
           </div>
         )}
 
-        {/* Pagination */}
+        {/* Paginación */}
         {!loading && outfits.length > 0 && (
           <nav className="feed-pagination" aria-label="Paginación">
             <button

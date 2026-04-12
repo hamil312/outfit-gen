@@ -32,23 +32,48 @@ export const outfitRepository = {
     );
   },
 
-  async getPublicOutfits(page: number = 1, perPage: number = 10) {
-    const offset = (page - 1) * perPage;
+  async getPublicOutfits(page: number = 1, perPage: number = 10, searchTerm?: string, occasion?: string, sortBy?: 'recent' | 'likes') {
+    const queries: any[] = [
+      Query.equal("public", true),
+    ];
+
+    if (occasion) {
+      queries.push(Query.equal("occasion", occasion));
+    }
+
+    // Obtener todos los documentos que cumplan con los filtros (sin paginación para filtrar)
     const res = await databases.listDocuments(
       process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID!,
       process.env.NEXT_PUBLIC_APPWRITE_OUTFITS_COLLECTION_ID!,
-      [
-        // Solo públicos
-        Query.equal("public", true),
-        // Ordenar por fecha de actualización descendente
-        Query.orderDesc("$updatedAt"),
-        // Paginación
-        Query.limit(perPage),
-        Query.offset(offset),
-      ]
+      queries
     );
 
-    return res;
+    let documents = res.documents;
+
+    // Filtrar por searchTerm si existe
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      documents = documents.filter(doc =>
+        (doc.name && doc.name.toLowerCase().includes(term)) ||
+        (doc.description && doc.description.toLowerCase().includes(term)) ||
+        (doc.userName && doc.userName.toLowerCase().includes(term))
+      );
+    }
+
+    // Ordenar
+    if (sortBy === 'recent') {
+      documents.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
+    } else if (sortBy === 'likes') {
+      documents.sort((a, b) => (b.likes || 0) - (a.likes || 0));
+    } else {
+      documents.sort((a, b) => new Date(b.$updatedAt).getTime() - new Date(a.$updatedAt).getTime());
+    }
+
+    // Paginación manual
+    const offset = (page - 1) * perPage;
+    const paginatedDocs = documents.slice(offset, offset + perPage);
+
+    return { documents: paginatedDocs, total: documents.length };
   },
 
   async getOutfitsByUser(userId: string) {

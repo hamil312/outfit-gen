@@ -404,7 +404,7 @@
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: #9ca3af;
+  color: #595d65;
   margin: 0 0 4px;
 }
 
@@ -426,7 +426,7 @@
   justify-content: space-between;
   padding: 9px 14px;
   background: #fff;
-  border: 1.5px solid #d1d5db;
+  border: 1.5px solid #515358;
   border-radius: 10px;
   font-size: 14px;
   font-family: "PT Sans", sans-serif;
@@ -442,7 +442,7 @@
 
 .gen-chevron {
   font-size: 12px;
-  opacity: 0.5;
+  opacity: 1;
 }
 
 .gen-dropdown-menu {
@@ -569,6 +569,7 @@
   max-width: 280px;
   line-height: 1.6;
   margin: 0;
+  color:#1a1a2e;
 }
 
 /* Spinner */
@@ -609,7 +610,7 @@
 .gen-outfit-badge {
   font-size: 12px;
   font-weight: 700;
-  color: #5ca2ae;
+  color: #30565d;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   margin: 0;
@@ -687,7 +688,7 @@
 
 .gen-modal-sub {
   font-size: 13px;
-  color: #9ca3af;
+  color: #565b63;
   margin: 0 0 20px;
   text-align: center;
 }
@@ -1252,7 +1253,7 @@
 
 .vw-outfit-item-color {
   font-size: 11px;
-  color: #9ca3af;
+  color: #50545b;
   margin: 0;
 }
 
@@ -1339,7 +1340,7 @@
  
 .feed-page-subtitle {
   font-size: 13px;
-  color: #9ca3af;
+  color: #5d6168;
   margin-top: 4px;
   font-weight: 400;
 }
@@ -1432,7 +1433,7 @@
  
 .feed-time-label {
   font-size: 12px;
-  color: #b0a99e;
+  color: #5b564e;
   font-weight: 400;
   margin-top: 1px;
   margin-bottom: 0;
@@ -1499,20 +1500,22 @@
   left: 50%;
   transform: translateX(-50%);
   display: flex;
-  gap: 4px;
+  gap: 10px;
   align-items: center;
 }
  
 .feed-dot {
-  height: 6px;
-  width: 6px;
+  height: 15px;
+  width: 20px;
+  padding-left:5px;
+  padding-right:5px;
   border-radius: 99px;
   background: rgba(255, 255, 255, 0.45);
   transition: width 0.25s ease, background 0.25s ease;
 }
  
 .feed-dot--active {
-  width: 18px;
+  width: 25px;
   background: #fff;
 }
  
@@ -1575,7 +1578,7 @@
 }
  
 .feed-thumb-type {
-  font-size: 11px;
+  font-size: 15px;
   font-weight: 600;
   color: #1a1a2e;
   white-space: nowrap;
@@ -1584,8 +1587,8 @@
 }
  
 .feed-thumb-color {
-  font-size: 10px;
-  color: #9ca3af;
+  font-size: 15px;
+  color: #5d6168;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1599,7 +1602,7 @@
  
 .feed-more-label {
   font-size: 10px;
-  color: #9ca3af;
+  color: #5d6168;
 }
  
 /* thumb-swap hover (shared with existing class) */
@@ -1644,7 +1647,7 @@
 .feed-like-icon {
   font-size: 18px;
   display: flex;
-  color: #9ca3af;
+  color: #5d6168;
   transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.2s ease;
 }
  
@@ -1659,7 +1662,7 @@
 .feed-like-count {
   font-size: 14px;
   font-weight: 600;
-  color: #9ca3af;
+  color: #5d6168;
   min-width: 18px;
   transition: color 0.2s ease;
 }
@@ -1694,7 +1697,7 @@
  
 .feed-empty-sub {
   font-size: 14px;
-  color: #9ca3af;
+  color: #5e626a;
   margin: 0;
 }
  
@@ -1755,7 +1758,7 @@
 }
  
 .page-btn:disabled {
-  opacity: 0.35;
+  opacity: 0.8;
   cursor: not-allowed;
 }
  

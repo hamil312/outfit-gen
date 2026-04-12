@@ -10,6 +10,7 @@ import { FaGlasses } from "react-icons/fa";
 import { BsStars } from "react-icons/bs";
 
 export default function Home() {
+  // Tags mostrados debajo del título principal en el hero, para dar una idea de las categorías de atuendos que se pueden generar
   const categoryTags = [
     "Atuendo deportivo",
     "Ocasión elegante",
@@ -18,6 +19,7 @@ export default function Home() {
     "Salida a la playa",
   ];
 
+  // Cards de los miembros del equipo mostrados en la sección "Acerca de nosotros" al final de la página, con su nombre, rol, foto y enlace a LinkedIn
   const teamMembers = [
     {
       name: "Mario Fernando Santacruz Pantoja",
@@ -37,13 +39,14 @@ export default function Home() {
     },
   ];
 
+  // Cards de características mostrados en la sección principal de la página, con una imagen ilustrativa, título, descripción y estadística relevante para destacar los beneficios de usar el generador de atuendos
   const featureSections = [
     {
       image: "/figmaAssets/image-4.png",
       imgWide: true,
       description:
         "Explora nuestras opciones, muestranos tus ideas y prendas para crear un atuendo ideal para tu ocasión. Si necesitas inspiracion mira tu feed buscando atuendos creados por la comunidad.",
-      title: "¡Dale provecho a tu guardarropa!",
+      title: "Opciones de generación de atuendos",
       stats:
         "El guardarropa promedio cuenta con 152 artículos de los cuales se usan con regularidad tan solo el 44%",
       icon: <GiClothes className="home-stat-icon" />,
@@ -53,7 +56,7 @@ export default function Home() {
       imgWide: false,
       description:
         "¿No te parece adecuado el atuendo generado? ¡No pasa nada! Vuelve a intentarlo las veces que quieras hasta que creas que es el indicado",
-      title: "¡No pierdas más tu tiempo!",
+      title: "Opciones de regeneración de atuendos",
       stats:
         "En promedio las mujeres tardan 17 minutos en elegir un atuendo y los hombres tardan 13, esto se traduce en 4 y 3 días cada año",
       icon: <BsClockHistory className="home-stat-icon" />,
@@ -81,7 +84,7 @@ export default function Home() {
           </div>
         </section>
 
-        {/* ── Blue band ── */}
+        {/* ── Banda azul ── */}
         <div className="home-blue-band">
 
           {/* Intro + CTA */}
@@ -92,7 +95,7 @@ export default function Home() {
             </p>
             <Link href="/generator" className="no-underline">
               <button className="home-cta-btn">
-                <BsStars size={17} className="mr-2 inline-block align-middle" />
+                <BsStars size={17} className="mr-2 inline-block align-middle" aria-hidden="true" />
                 Empieza a generar
               </button>
             </Link>
@@ -104,7 +107,7 @@ export default function Home() {
             Dinos tu ocasión, proporciona tus prendas y déjanos el resto&hellip;
           </h2>
 
-          {/* Feature cards */}
+          {/* Cards de funciones */}
           <div className="home-features-grid">
             {featureSections.map((sec, i) => (
               <div key={i} className="home-feature-card">
@@ -127,7 +130,7 @@ export default function Home() {
             ))}
           </div>
 
-          {/* ── About us ── */}
+          {/* ── Sobre nosotros ── */}
           <section id="about-us" className="home-about-section">
             <div className="home-divider" />
             <h2 className="home-section-title">Acerca de nosotros</h2>
@@ -136,7 +139,7 @@ export default function Home() {
                 <div key={i} className="home-member-card">
                   <img
                     src={member.photo}
-                    alt={member.name}
+                    alt={`Foto de ${member.name}, ${member.role}`}
                     className="home-member-photo"
                   />
                   <div className="home-member-info">
@@ -151,6 +154,7 @@ export default function Home() {
                         target="_blank"
                         rel="noopener noreferrer"
                         className="home-member-link"
+                        aria-label={`Enlace al perfil de LinkedIn de ${member.name}`}
                       >
                         {member.linkedin}
                       </a>

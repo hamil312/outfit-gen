@@ -26,7 +26,7 @@ export default function Footer() {
             >
               <img
                 src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/gmail.svg"
-                alt="gmail"
+                alt="gmail icon"
                 width="20"
                 height="20"
               />
@@ -42,7 +42,7 @@ export default function Footer() {
             >
               <img
                 src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/whatsapp.svg"
-                alt="whatsapp"
+                alt="whatsapp icon"
                 width="20"
                 height="20"
               />
@@ -58,7 +58,7 @@ export default function Footer() {
             >
               <img
                 src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/github.svg"
-                alt="github"
+                alt="github icon"
                 width="20"
                 height="20"
               />

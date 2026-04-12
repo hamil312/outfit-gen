@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Link from "next/link";
 import { account, ID } from "@/lib/appwrite";
 import { useRouter } from "next/navigation";
 import Card from "react-bootstrap/Card";
@@ -101,6 +102,20 @@ export default function AuthForm({ mode }: Props) {
                 ? "Ingresar"
                 : "Crear cuenta"}
             </Button>
+            <div className="flex justify-between text-sm text-slate-600 mt-3">
+              <Link href="/" className="underline hover:text-slate-800">
+                Volver a la landing
+              </Link>
+              {mode === "login" ? (
+                <Link href="/auth/register" className="underline hover:text-slate-800">
+                  Crear cuenta
+                </Link>
+              ) : (
+                <Link href="/auth/login" className="underline hover:text-slate-800">
+                  Iniciar sesión
+                </Link>
+              )}
+            </div>
           </form>
         </Card.Body>
       </Card>

@@ -27,11 +27,12 @@ import { outfitController } from "../controllers/OutfitController";
 import { favouriteController } from "../controllers/FavouriteController";
 import { account } from "@/lib/appwrite";
 
-// ─── Image URL helper ─────────────────────────────────────────────────────────
+// ─── Helper de URL de imagen ─────────────────────────────────────────────────────────
 const imgUrl = (fileId: string) =>
   `https://cloud.appwrite.io/v1/storage/buckets/${process.env.NEXT_PUBLIC_APPWRITE_BUCKET_ID}/files/${fileId}/view?project=${process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID}`;
 
 // ─── Clothing card ────────────────────────────────────────────────────────────
+// Presenta una prenda individual con imagen, nombre, color y acciones de editar/eliminar.
 const ClothingCard = ({
   item,
   onDelete,
@@ -43,24 +44,24 @@ const ClothingCard = ({
 }) => (
   <div className="vw-clothing-card">
     <div className="vw-clothing-img-wrap">
-      <img src={imgUrl(item.image ?? '')} alt={item.name} className="vw-clothing-img" />
+      <img src={imgUrl(item.image ?? '')} alt={`Imagen de prenda: ${item.name}, color: ${item.color}`} className="vw-clothing-img" />
     </div>
     <div className="vw-clothing-body">
       <p className="vw-clothing-name">{item.name}</p>
       <p className="vw-clothing-color">{item.color}</p>
-      <div className="vw-clothing-actions">
+      <div className="vw-clothing-actions flex flex-wrap gap-2">
         <button className="vw-btn vw-btn--danger" onClick={() => onDelete(item)}>
-          <FaTrash size={13} /> Eliminar
+          <FaTrash size={13} aria-hidden="true" /> Eliminar
         </button>
         <button className="vw-btn vw-btn--primary" onClick={() => onEdit(item)}>
-          <FaEdit size={13} /> Editar
+          <FaEdit size={13} aria-hidden="true" /> Editar
         </button>
       </div>
     </div>
   </div>
 );
 
-// ─── Clothes section ──────────────────────────────────────────────────────────
+// ─── Sección de prendas ──────────────────────────────────────────────────────────
 const ClothesSection = ({
   title,
   items,
@@ -86,8 +87,9 @@ const ClothesSection = ({
   </section>
 );
 
-// ─── Main component ───────────────────────────────────────────────────────────
+// ─── Componente central ───────────────────────────────────────────────────────────
 const VirtualWardrobe = () => {
+  // Estados de la UI para navegar por las secciones.
   const [selectedCategory, setSelectedCategory] = useState('prendas');
   const [selectedSection, setSelectedSection]   = useState('todas');
   const [clothes, setClothes]     = useState<Clothing[]>([]);
@@ -112,6 +114,7 @@ const VirtualWardrobe = () => {
     account.get().then(u => setUserId(u.$id));
   }, []);
 
+  // Cargar la información inicial: prendas del usuario y altura actual de la ventana para el redimensionamiento de la barra lateral.
   useEffect(() => {
     setWindowHeight(window.innerHeight);
     const onResize = () => setWindowHeight(window.innerHeight);
@@ -136,10 +139,24 @@ const VirtualWardrobe = () => {
     fetchData();
   }, [selectedCategory, selectedSection]);
 
+  // Cerrar modales al presionar Escape.
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (showForm) setShowForm(false);
+        if (publishModalOpen) setPublishModalOpen(false);
+        if (showEditModal) setShowEditModal(false);
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [showForm, publishModalOpen, showEditModal]);
+
   const handleResize = (_: any, { size }: { size: { width: number } }) => {
     setSidebarWidth(Math.max(260, Math.min(500, size.width)));
   };
 
+  // Remover una prenda y actualizar el estado local tras su eliminación.
   const handleDelete = async (item: Clothing) => {
     if (!confirm(`¿Eliminar esta prenda (${item.name})?`)) return;
     try {
@@ -224,7 +241,7 @@ const VirtualWardrobe = () => {
     setSelectedSection(section);
   };
 
-  // ─── Sidebar nav items ──────────────────────────────────────────────────────
+  // ─── Objetos de la sidebar ──────────────────────────────────────────────────────
   const navClothes = [
     { label: 'Todas',      section: 'todas',      icon: <BsGrid3X3Gap size={18} /> },
     { label: 'Superiores', section: 'superiores', icon: <FaTshirt size={18} /> },
@@ -236,7 +253,7 @@ const VirtualWardrobe = () => {
     { label: 'Favoritos',  section: 'favoritos',  icon: <FaHeart size={18} /> },
   ];
 
-  // ─── Render content ─────────────────────────────────────────────────────────
+  // ─── Renderizar contenido ─────────────────────────────────────────────────────────
   const renderContent = () => {
     if (selectedCategory === 'prendas') {
       if (selectedSection === 'todas') {
@@ -262,7 +279,7 @@ const VirtualWardrobe = () => {
       );
     }
 
-    // Outfits view
+    // Vista de outfits (tanto favoritos como todos) - muestra los atuendos del usuario o sus favoritos, con opciones para publicar/despublicar, eliminar o quitar de favoritos según corresponda.
     if (outfits.length === 0) {
       return (
         <div className="vw-empty-state">
@@ -291,7 +308,7 @@ const VirtualWardrobe = () => {
                 <div className="vw-outfit-actions">
                   {selectedSection === 'favoritos' && (
                     <button className="vw-btn vw-btn--danger" onClick={() => handleRemoveFavourite(outfit.$id)}>
-                      <FaHeart size={13} /> Quitar favorito
+                      <FaHeart size={13} aria-hidden="true" /> Quitar favorito
                     </button>
                   )}
                   {outfit.userId === userId ? (
@@ -300,10 +317,10 @@ const VirtualWardrobe = () => {
                         className={`vw-btn ${outfit.public ? 'vw-btn--secondary' : 'vw-btn--primary'}`}
                         onClick={() => handleTogglePublish(outfit.$id, outfit.public)}
                       >
-                        {outfit.public ? <><FaEyeSlash size={13} /> Despublicar</> : <><FaEye size={13} /> Publicar</>}
+                        {outfit.public ? <><FaEyeSlash size={13} aria-hidden="true" /> Despublicar</> : <><FaEye size={13} aria-hidden="true" /> Publicar</>}
                       </button>
                       <button className="vw-btn vw-btn--danger" onClick={() => handleDeleteOutfit(outfit.$id)}>
-                        <FaTrash size={13} /> Eliminar
+                        <FaTrash size={13} aria-hidden="true" /> Eliminar
                       </button>
                     </>
                   ) : (
@@ -311,13 +328,13 @@ const VirtualWardrobe = () => {
                   )}
                 </div>
               </div>
-
+              {/*Aquí podemos ver como se muestra el atuendo, el componente alt se genera de forma dinámica*/}
               <div className="vw-outfit-items">
                 {outfitItems.map((item: any) => !item ? null : (
                   <div key={item.$id} className="vw-outfit-item">
                     <img
                       src={imgUrl(item.image)}
-                      alt={item.type}
+                      alt={`Prenda del outfit: ${item.type}, color: ${item.color}`}
                       className="vw-outfit-item-img"
                     />
                     <div className="vw-outfit-item-label">
@@ -357,11 +374,15 @@ const VirtualWardrobe = () => {
               resizeHandles={['e']}
               axis="x"
               handle={(
-                <div className="vw-resize-handle react-resizable-handle react-resizable-handle-e">
-                  <div className="vw-resize-grip">
-                    <SlOptionsVertical size={20} className="vw-resize-icon" />
-                  </div>
-                </div>
+                <button
+              type="button"
+              className="vw-resize-handle react-resizable-handle react-resizable-handle-e"
+              aria-label="Redimensionar sidebar"
+            >
+              <div className="vw-resize-grip">
+                <SlOptionsVertical size={20} className="vw-resize-icon" aria-hidden="true" />
+              </div>
+            </button>
               )}
             >
               <aside className="vw-sidebar" style={{ width: `${sidebarWidth}px` }}>
@@ -410,14 +431,14 @@ const VirtualWardrobe = () => {
 
                 </Accordion>
 
-                {/* Action buttons */}
+                {/* Botones de acción */}
                 <div className="vw-sidebar-actions">
                   <button className="vw-sidebar-action-btn" onClick={() => setShowForm(true)}>
-                    <IoMdAdd size={18} />
+                    <IoMdAdd size={18} aria-hidden="true" />
                     <span>Añadir prenda</span>
                   </button>
                   <button className="vw-sidebar-action-btn vw-sidebar-action-btn--accent">
-                    <BsStars size={18} />
+                    <BsStars size={18} aria-hidden="true" />
                     <span>¿Listo para generar?</span>
                   </button>
                 </div>
@@ -426,7 +447,7 @@ const VirtualWardrobe = () => {
             </Resizable>
           </div>
 
-          {/* ── Main content ── */}
+          {/* ── Contenido Principal ── */}
           <main className="vw-main">
             <nav className="vw-breadcrumb">
               <span className="vw-breadcrumb-root">
@@ -442,7 +463,7 @@ const VirtualWardrobe = () => {
 
         </div>
 
-        {/* ── Add clothing modal ── */}
+        {/* ── Modal para añadir prenda ── */}
         <Modal show={showForm} onHide={() => setShowForm(false)} centered size="lg">
           <Modal.Header closeButton>
             <Modal.Title>Añadir prenda</Modal.Title>
@@ -469,15 +490,16 @@ const VirtualWardrobe = () => {
           </Modal.Body>
         </Modal>
 
-        {/* ── Publish outfit modal ── */}
+        {/* ── Modal para publicar atuendo ── */}
         <Modal show={publishModalOpen} onHide={() => setPublishModalOpen(false)} centered>
           <Modal.Header closeButton>
             <Modal.Title>Publicar atuendo</Modal.Title>
           </Modal.Header>
           <Modal.Body>
             <div className="mb-3">
-              <label className="form-label">Nombre del atuendo</label>
+              <label htmlFor="publish-name" className="form-label">Nombre del atuendo</label>
               <input
+                id="publish-name"
                 type="text"
                 value={publishName}
                 onChange={(e) => setPublishName(e.target.value)}
@@ -486,8 +508,9 @@ const VirtualWardrobe = () => {
               />
             </div>
             <div className="mb-3">
-              <label className="form-label">Descripción</label>
+              <label htmlFor="publish-description" className="form-label">Descripción</label>
               <textarea
+                id="publish-description"
                 value={publishDescription}
                 onChange={(e) => setPublishDescription(e.target.value)}
                 placeholder="Descripción del outfit (opcional)"
@@ -506,7 +529,7 @@ const VirtualWardrobe = () => {
           </Modal.Footer>
         </Modal>
 
-        {/* ── Edit clothing modal ── */}
+        {/* ── Modal para editar prenda ── */}
         <Modal show={showEditModal} onHide={() => setShowEditModal(false)} centered>
           <Modal.Header closeButton>
             <Modal.Title>Editar prenda</Modal.Title>
