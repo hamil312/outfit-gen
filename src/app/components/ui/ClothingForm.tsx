@@ -117,7 +117,17 @@ export default function ClothingForm({
       {/* Upload */}
       {mode === "create" && (
         <div className="cf-upload-area">
-          <label className="cf-upload-label" htmlFor="cf-file-input">
+          <label 
+            className="cf-upload-label" 
+            htmlFor="cf-file-input" 
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                document.getElementById('cf-file-input')?.click();
+              }
+            }}
+          >
             {preview ? (
               <img src={preview} alt="Vista previa" className="cf-upload-preview" />
             ) : (
@@ -151,8 +161,9 @@ export default function ClothingForm({
       {/* Fields */}
       <div className="cf-fields">
         <div className="cf-field">
-          <label className="cf-label">Nombre</label>
+          <label htmlFor="cf-name" className="cf-label">Nombre</label>
           <input
+            id="cf-name"
             type="text"
             name="name"
             value={form.name}
@@ -163,8 +174,9 @@ export default function ClothingForm({
         </div>
 
         <div className="cf-field">
-          <label className="cf-label">Tipo</label>
+          <label htmlFor="cf-type" className="cf-label">Tipo</label>
           <select
+            id="cf-type"
             name="type"
             value={form.type}
             onChange={handleChange}
@@ -177,8 +189,9 @@ export default function ClothingForm({
         </div>
 
         <div className="cf-field">
-          <label className="cf-label">Color</label>
+          <label htmlFor="cf-color" className="cf-label">Color</label>
           <input
+            id="cf-color"
             type="text"
             name="color"
             value={form.color}
@@ -188,8 +201,9 @@ export default function ClothingForm({
         </div>
 
         <div className="cf-field">
-          <label className="cf-label">Material</label>
+          <label htmlFor="cf-material" className="cf-label">Material</label>
           <input
+            id="cf-material"
             type="text"
             name="material"
             value={form.material}
@@ -199,8 +213,9 @@ export default function ClothingForm({
         </div>
 
         <div className="cf-field">
-          <label className="cf-label">Talla</label>
+          <label htmlFor="cf-size" className="cf-label">Talla</label>
           <input
+            id="cf-size"
             type="text"
             name="size"
             value={form.size}
@@ -210,8 +225,9 @@ export default function ClothingForm({
         </div>
 
         <div className="cf-field">
-          <label className="cf-label">Ocasión</label>
+          <label htmlFor="cf-occasion" className="cf-label">Ocasión</label>
           <input
+            id="cf-occasion"
             type="text"
             name="occasion"
             value={form.occasion}

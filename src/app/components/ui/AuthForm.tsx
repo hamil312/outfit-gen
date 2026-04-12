@@ -5,6 +5,7 @@ import Link from "next/link";
 import { account, ID } from "@/lib/appwrite";
 import { useRouter } from "next/navigation";
 import { BsStars } from "react-icons/bs";
+import { FaArrowLeft } from "react-icons/fa";
 
 type Props = {
   mode: "login" | "register";
@@ -44,7 +45,12 @@ export default function AuthForm({ mode }: Props) {
 
       {/* ── Left: form panel ── */}
       <div className="auth-panel">
-        <div className="auth-panel-inner">
+        <div className="auth-panel-inner relative">
+
+          {/* Back to home button */}
+          <Link href="/" className="relative top-4 left-4 text-gray-600 hover:text-gray-800 transition-colors" aria-label="Volver a la página principal">
+            <FaArrowLeft size={20} />
+          </Link>
 
           {/* Brand */}
           <div className="auth-brand">
