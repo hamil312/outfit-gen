@@ -1,21 +1,21 @@
-# 👗 Guardarropa Virtual — Generador de Atuendos con IA
+# Guardarropa Virtual — Generador de Atuendos
 
-> Organiza tu ropa, combina prendas y descubre nuevos looks con ayuda de inteligencia artificial.
+> Organiza tu ropa, combina prendas y descubre nuevos looks.
 
 ---
 
 ## 📌 Descripción del proyecto
 
-**Guardarropa Virtual** es una aplicación web que transforma la manera en que organizas y usas tu ropa. Su propósito principal es ayudarte a sacar el máximo partido a tu armario, sin necesidad de ser un experto en moda.
+**Guardarropa Virtual** es una aplicación web que busca asistir en la organización y el uso de la ropa. Su propósito principal es ayudar a sacar el máximo partido al armario del usuario, sin necesidad de ser un experto en moda.
 
-El funcionamiento es sencillo: subes fotos de tus prendas y la aplicación las analiza automáticamente mediante visión por computadora, identificando características como el color dominante y el tipo de ocasión para la que es adecuada (formal, casual, deportiva, etc.). Con esa información, construyes tu propio **guardarropa virtual** y puedes pedirle al sistema que te proponga combinaciones de atuendos según tus preferencias del momento.
+El funcionamiento es sencillo: subir fotos de las prendas y la aplicación las analiza automáticamente mediante visión por computadora, identificando características como el color dominante y el tipo de ocasión para la que es adecuada (formal, casual, deportiva, etc.). Con esa información, se construye el **guardarropa virtual** y se puede pedirle al sistema que te proponga combinaciones de atuendos según preferencias del momento.
 
-### ¿Qué puedes hacer con la app?
+### ¿Qué se puede hacer con la app?
 
-- **Subir y registrar tus prendas** con análisis automático de color y categoría.
-- **Organizar tu guardarropa virtual** con toda tu ropa catalogada en un solo lugar.
+- **Subir y registrar las prendas** con análisis automático de color y categoría.
+- **Organizar guardarropa virtual** con toda la ropa catalogada en un solo lugar.
 - **Generar atuendos completos** filtrando por color, estilo u ocasión (formal, casual, deportivo, etc.).
-- **Guardar tus combinaciones favoritas** para volver a usarlas cuando quieras.
+- **Guardar combinaciones favoritas** para volver a usarlas.
 - **Publicar y explorar looks** en un feed social donde otros usuarios también comparten sus atuendos.
 
 La aplicación está pensada tanto para quienes quieren simplificar su rutina diaria de vestirse, como para quienes disfrutan explorando nuevas combinaciones con la ropa que ya tienen.
@@ -26,42 +26,43 @@ La aplicación está pensada tanto para quienes quieren simplificar su rutina di
 
 ### Requisitos previos
 
-Antes de empezar, asegúrate de tener instalado en tu equipo:
+Antes de empezar, asegurarse de tener instalado en el equipo:
 
 - [Node.js](https://nodejs.org/) (versión 18 o superior recomendada)
-- [Python](https://www.python.org/) (versión 3.9 o superior)
+- [Python](https://www.python.org/)
 - Un gestor de paquetes como `npm` (incluido con Node.js)
 
-### 1. Clona el repositorio
+### 1. Clonar el repositorio
 
 ```bash
-git clone https://github.com/tu-usuario/tu-repositorio.git
-cd tu-repositorio
+git clone https://github.com/hamil312/outfit-gen
+cd outfit-gen
 ```
 
-### 2. Configura las variables de entorno
+### 2. Configurar las variables de entorno
 
-Crea un archivo `.env` en la raíz del proyecto con tus credenciales de **Appwrite**. El archivo debe tener la siguiente estructura:
+Crear un archivo `.env` en la raíz del proyecto con las credenciales de **Appwrite**. El archivo debe tener la siguiente estructura:
 
 ```env
-NEXT_PUBLIC_APPWRITE_ENDPOINT=https://cloud.appwrite.io/v1
-NEXT_PUBLIC_APPWRITE_PROJECT_ID=tu_project_id
-NEXT_PUBLIC_APPWRITE_DATABASE_ID=tu_database_id
-NEXT_PUBLIC_APPWRITE_BUCKET_ID=tu_bucket_id
-# Agrega aquí cualquier otra variable que tu proyecto requiera
+NEXT_PUBLIC_APPWRITE_PROJECT_ID = "68f02c1a00364ce1861d"
+NEXT_PUBLIC_APPWRITE_PROJECT_NAME = "outfitGen"
+NEXT_PUBLIC_APPWRITE_ENDPOINT = "https://fra.cloud.appwrite.io/v1"
+NEXT_PUBLIC_APPWRITE_DATABASE_ID = "68f3f52b002a7c27f6bd"
+NEXT_PUBLIC_APPWRITE_BUCKET_ID = "68fd1eba0007bdf1fc2a"
+NEXT_PUBLIC_APPWRITE_CLOTHING_COLLECTION_ID = "clothing"
+NEXT_PUBLIC_APPWRITE_OUTFITS_COLLECTION_ID = "outfit"
+NEXT_PUBLIC_APPWRITE_FAVOURITES_COLLECTION_ID = "favourites"
 ```
 
-> ⚠️ **Importante:** Este archivo contiene información sensible. Nunca lo subas a un repositorio público. Asegúrate de que `.env` está incluido en tu `.gitignore`.
+### 3. Instalar las dependencias del frontend
 
-### 3. Instala las dependencias del frontend
-
-Desde la raíz del proyecto, ejecuta:
+Desde la raíz del proyecto, ejecutar:
 
 ```bash
 npm install
 ```
 
-### 4. Inicia el servidor de desarrollo del frontend
+### 4. Iniciar el servidor de desarrollo del frontend
 
 ```bash
 npm run dev
@@ -69,9 +70,9 @@ npm run dev
 
 La aplicación estará disponible en [http://localhost:3000](http://localhost:3000).
 
-### 5. Inicia la API de Flask (servidor de visión por computadora)
+### 5. Iniciar la API de Flask (servidor de visión por computadora)
 
-La API de Flask es la encargada de analizar las imágenes de las prendas y generar las combinaciones de atuendos. Para ponerla en marcha, abre una **nueva terminal** y ejecuta los siguientes comandos:
+La API de Flask es la encargada de analizar las imágenes de las prendas y generar las combinaciones de atuendos. Para ponerla en marcha, abrir una **nueva terminal** y ejecutar los siguientes comandos:
 
 ```bash
 cd server
@@ -80,12 +81,7 @@ python flaskAPI.py
 
 > 💡 **Nota:** La API de Flask es necesaria únicamente para **registrar nuevas prendas** y **generar atuendos**. El resto del frontend (navegación, feed, guardarropa ya cargado) puede visualizarse de forma independiente sin necesidad de tener la API activa.
 
-Asegúrate de tener instaladas las dependencias de Python necesarias. Si no las tienes, puedes instalarlas con:
-
-```bash
-pip install -r server/requirements.txt
-```
-
+Tener instaladas las dependencias de Python necesarias
 ---
 
 ## 🚀 Flujo básico de uso
@@ -93,38 +89,29 @@ pip install -r server/requirements.txt
 A continuación se describe cómo un usuario interactúa con la aplicación desde el primer momento:
 
 1. **Registro o inicio de sesión**
-   Cuando entras a la página principal, puedes crear una cuenta nueva o iniciar sesión con tus credenciales. La autenticación está gestionada de forma segura a través de Appwrite.
+   Al entrar a la página principal, se puede crear una cuenta nueva o iniciar sesión con las credenciales. La autenticación está gestionada de forma segura a través de Appwrite.
+   <img width="1920" height="927" alt="image" src="https://github.com/user-attachments/assets/0fe1d965-14b1-46e9-912e-75248dde908e" />
+   <img width="1920" height="926" alt="image" src="https://github.com/user-attachments/assets/7fd9a21a-46ea-4b86-a646-3ad99ed45057" />
 
-2. **Acceso al guardarropa virtual**
-   Una vez dentro, accedes a tu guardarropa personal, donde verás todas las prendas que hayas registrado previamente. Si es tu primera vez, estará vacío y listo para que empieces a llenarlo.
+3. **Acceso al guardarropa virtual**
+   Una vez dentro, se puede acceder al guardarropa personal, donde estarán todas las prendas que haya registrado previamente. Si es la primera vez, estará vacío.
+   <img width="1920" height="923" alt="image" src="https://github.com/user-attachments/assets/f654b1ab-9d0b-4113-94f6-fbea675d9fc2" />
 
-3. **Subida y registro de prendas**
-   Selecciona la opción para añadir una prenda nueva y sube una foto desde tu dispositivo. La API de Flask procesará la imagen automáticamente e identificará el color dominante y el tipo de prenda, ahorrándote el esfuerzo de clasificarla manualmente.
+5. **Subida y registro de prendas**
+   Seleccionar la opción para añadir una prenda nueva y subir una foto desde tu dispositivo. La API de Flask procesará la imagen automáticamente e identificará el color dominante y el tipo de prenda.
+   <img width="1920" height="925" alt="image" src="https://github.com/user-attachments/assets/9a581000-d771-486a-8b0d-c3731dc17e67" />
 
-4. **Generación de atuendos**
-   Cuando quieras inspirarte, ve a la sección de generación de atuendos. Puedes filtrar por color dominante, contexto (formal, casual, deportivo) o dejar que el sistema proponga una combinación aleatoria a partir de tus prendas disponibles.
+7. **Generación de atuendos**
+   Para generar atuendos, ir a la sección de generación de atuendos. Se puede filtrar por color dominante, contexto (formal, casual, deportivo) o dejar que el sistema proponga una combinación aleatoria a partir de las prendas disponibles.
+   <img width="1920" height="928" alt="image" src="https://github.com/user-attachments/assets/07514928-0a6f-4d1e-9568-cb389bb8e771" />
 
-5. **Guardado de combinaciones**
-   Si una combinación te gusta, puedes guardarla en tu perfil para consultarla en cualquier momento, sin tener que volver a generarla.
+9. **Guardado de combinaciones**
+   Se puede guardar atuendos en el perfil para consultarlos en cualquier momento, sin tener que volver a generarlos.
+   <img width="1920" height="923" alt="image" src="https://github.com/user-attachments/assets/85feb624-e255-4e1b-b087-f9e2fe068e5c" />
 
-6. **Publicación en el feed**
-   También puedes compartir tus atuendos favoritos en el feed de la aplicación, donde otros usuarios podrán ver y explorar tus looks. De la misma manera, puedes navegar por los atuendos que otros han publicado para encontrar ideas nuevas.
-
----
-
-## 🧩 Casos de uso
-
-Aquí algunos ejemplos reales de cómo distintos usuarios podrían aprovechar la aplicación:
-
-- **La persona ocupada de lunes a viernes:** Tiene poca tiempo por las mañanas y quiere decidir qué ponerse rápido. Filtra por "formal" y el sistema le propone un atuendo listo para la oficina en segundos.
-
-- **El estudiante universitario:** Quiere verse bien sin pensar demasiado. Sube las prendas de su armario una sola vez y luego genera looks casuales según el color que más le apetezca ese día.
-
-- **La persona que viaja frecuentemente:** Antes de hacer una maleta, revisa su guardarropa virtual y genera combinaciones con pocas prendas para optimizar el espacio del equipaje.
-
-- **El usuario con interés en moda:** Disfruta explorando combinaciones nuevas, guarda sus looks favoritos y los publica en el feed para compartirlos con la comunidad.
-
-- **Alguien que recibe ropa de regalo:** Sube las prendas nuevas y descubre cómo combinarlas con lo que ya tiene, antes de llegar a la tienda a comprar algo que ya podría tener en casa.
+11. **Publicación en el feed**
+   También es posible compartir atuendos favoritos en el feed de la aplicación, donde otros usuarios podrán ver y explorar los atuendos generados por el usuario. De la misma manera, el usuario puede navegar por los atuendos que otros han publicado para encontrar ideas nuevas.
+   <img width="1920" height="929" alt="image" src="https://github.com/user-attachments/assets/572ba071-a1d5-49a3-b335-e5260d3d5a38" />
 
 ---
 
@@ -132,32 +119,20 @@ Aquí algunos ejemplos reales de cómo distintos usuarios podrían aprovechar la
 
 ### La API de Flask no arranca
 
-- Verifica que estás dentro del directorio correcto (`cd server`) antes de ejecutar el comando.
-- Asegúrate de haber instalado todas las dependencias con `pip install -r requirements.txt`.
-- Confirma que tu versión de Python es 3.9 o superior con `python --version`.
-- Si ves un error relacionado con PyTorch o transformers, es posible que necesites instalarlos manualmente. Consulta la documentación oficial de [PyTorch](https://pytorch.org/) para el comando correcto según tu sistema operativo.
+- Verificar que se esta dentro del directorio correcto (`cd server`) antes de ejecutar el comando.
+- Instalar las librerias correspondientes de python.
+- Si hay un error relacionado con PyTorch o transformers, es posible que sea necesario instalarlos manualmente. Consultar la documentación oficial de [PyTorch](https://pytorch.org/) para el comando correcto según sistema operativo.
 
 ### El frontend no se conecta con la API
 
-- Verifica que la API de Flask está corriendo antes de intentar subir prendas o generar atuendos.
-- Asegúrate de que la URL de la API configurada en el frontend apunta al puerto correcto (por defecto, Flask usa `http://localhost:5000`).
+- Verificar que la API de Flask está corriendo antes de intentar subir prendas o generar atuendos.
+- Asegúrarse de que la URL de la API configurada en el frontend apunta al puerto correcto (por defecto, Flask usa `http://localhost:5000`).
 
 ### Error al iniciar el frontend (`npm run dev`)
 
-- Asegúrate de haber ejecutado `npm install` antes de arrancar el servidor de desarrollo.
-- Verifica que el archivo `.env` existe en la raíz del proyecto y contiene todas las variables necesarias.
-- Si ves errores de módulos no encontrados, intenta borrar la carpeta `node_modules` y el archivo `package-lock.json`, y vuelve a ejecutar `npm install`.
-
-### Las imágenes no se analizan correctamente
-
-- Comprueba que la imagen que subes es nítida y la prenda ocupa la mayor parte del encuadre.
-- Los formatos recomendados son `.jpg` y `.png`.
-- Si el análisis tarda demasiado, es posible que el modelo de visión se esté cargando por primera vez. La carga inicial puede demorar unos segundos extra.
-
-### Problemas con las credenciales de Appwrite
-
-- Verifica que el `.env` contiene los valores correctos copiados directamente desde tu consola de Appwrite.
-- Asegúrate de que tu proyecto de Appwrite tiene los permisos de lectura y escritura correctamente configurados para la base de datos y el bucket de almacenamiento.
+- Asegurarse de haber ejecutado `npm install` antes de arrancar el servidor de desarrollo.
+- Verificar que el archivo `.env` existe en la raíz del proyecto y contiene todas las variables necesarias.
+- Si hay errores de módulos no encontrados, intentar borrar la carpeta `node_modules` y el archivo `package-lock.json`, y volver a ejecutar `npm install`.
 
 ---
 
@@ -192,9 +167,3 @@ El análisis y clasificación de prendas utiliza el modelo **`patrickjohncyh/fas
 > Source: https://huggingface.co/patrickjohncyh/fashion-clip
 > License: MIT
 > ```
-
----
-
-## 📄 Licencia
-
-Este proyecto se distribuye bajo la licencia MIT. Consulta el archivo `LICENSE` para más información.
