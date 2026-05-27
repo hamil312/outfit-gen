@@ -39,6 +39,9 @@ export default function Generator() {
   const [selectedOutfitToSave, setSelectedOutfitToSave] = useState<any>(null);
   const [selectedOutfitIndex, setSelectedOutfitIndex] = useState<number | null>(null);
   const [userClothes, setUserClothes] = useState<Clothing[]>([]);
+  const [showNotificationModal, setShowNotificationModal] = useState(false);
+  const [notificationMessage, setNotificationMessage] = useState<string>("");
+  const [notificationType, setNotificationType] = useState<"success" | "error">("success");
 
   // Cerrar los dropdowns al hacer clic fuera de ellos.
   useEffect(() => {
@@ -106,11 +109,12 @@ export default function Generator() {
       if (e.key === 'Escape') {
         if (showModal) setShowModal(false);
         if (showSaveModal) setShowSaveModal(false);
+        if (showNotificationModal) setShowNotificationModal(false);
       }
     };
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [showModal, showSaveModal]);
+  }, [showModal, showSaveModal, showNotificationModal]);
 
   // Focus trapping para el modal de selección de prenda
   useEffect(() => {
@@ -178,6 +182,16 @@ export default function Generator() {
     }
   }, [showSaveModal]);
 
+  // Auto-cerrar el modal de notificación después de 3 segundos
+  useEffect(() => {
+    if (showNotificationModal) {
+      const timer = setTimeout(() => {
+        setShowNotificationModal(false);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [showNotificationModal]);
+
   // Cargar las prendas del usuario
   useEffect(() => {
     account.get().then(async () => {
@@ -213,10 +227,14 @@ export default function Generator() {
       setSelectedOutfitToSave(null);
       setSelectedOutfitIndex(null);
       setSaveOutfitName("");
-      alert("Outfit guardado correctamente");
+      setNotificationMessage("Outfit guardado correctamente");
+      setNotificationType("success");
+      setShowNotificationModal(true);
     } catch (err) {
       console.error(err);
-      alert("Error al guardar el outfit");
+      setNotificationMessage("Error al guardar el outfit");
+      setNotificationType("error");
+      setShowNotificationModal(true);
     } finally {
       setSavingOutfit(false);
     }
@@ -295,6 +313,24 @@ export default function Generator() {
                 {savingOutfit ? 'Guardando...' : 'Guardar'}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {showNotificationModal && (
+        <div className="gen-modal-overlay" onClick={() => setShowNotificationModal(false)}>
+          <div className={`gen-notification-modal gen-notification-modal--${notificationType}`}>
+            <div className="gen-notification-content">
+              {notificationType === "success" ? (
+                <div className="gen-notification-icon gen-notification-icon--success">✓</div>
+              ) : (
+                <div className="gen-notification-icon gen-notification-icon--error">✕</div>
+              )}
+              <p className="gen-notification-message">{notificationMessage}</p>
+            </div>
+            <button className="gen-notification-close" onClick={() => setShowNotificationModal(false)}>
+              Cerrar
+            </button>
           </div>
         </div>
       )}

@@ -988,6 +988,86 @@
   cursor: not-allowed;
 }
 
+.gen-notification-modal {
+  background: #fff;
+  border-radius: 16px;
+  padding: 24px;
+  width: 90%;
+  max-width: 360px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  animation: slideIn 0.3s ease;
+}
+
+.gen-notification-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+}
+
+.gen-notification-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.gen-notification-icon--success {
+  background: #d1fae5;
+  color: #059669;
+}
+
+.gen-notification-icon--error {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.gen-notification-message {
+  font-size: 15px;
+  font-weight: 500;
+  color: #1f2937;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.gen-notification-close {
+  width: 100%;
+  padding: 10px;
+  background: #f3f4f6;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: "PT Sans", sans-serif;
+  color: #374151;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.gen-notification-close:hover {
+  background: #e5e7eb;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .gen-band-inner {
