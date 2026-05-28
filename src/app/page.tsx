@@ -107,6 +107,19 @@ export default function Home() {
             Dinos tu ocasión, proporciona tus prendas y déjanos el resto&hellip;
           </h2>
 
+          {/* Video container */}
+          <div className="home-video-container">
+            <video 
+              width="100%" 
+              height="auto" 
+              controls
+              className="home-video"
+            >
+              <source src="/home_video/home_pickurfit_video.mp4" type="video/mp4" />
+              Tu navegador no soporta la etiqueta de video
+            </video>
+          </div>
+
           {/* Cards de funciones */}
           <div className="home-features-grid">
             {featureSections.map((sec, i) => (
