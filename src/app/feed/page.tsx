@@ -1,6 +1,7 @@
 'use client';
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import AppNavbar from '@/app/components/ui/Navbar';
+import OutfitModal from '@/app/components/ui/OutfitModal';
 import { outfitController } from '@/app/controllers/OutfitController';
 import { favouriteController } from '@/app/controllers/FavouriteController';
 import { FaHeart, FaRegHeart, FaSearch } from 'react-icons/fa';
@@ -80,12 +81,10 @@ const SkeletonCard = () => (
         <div key={i} className="feed-skeleton-block feed-skeleton-block--thumb" />
       ))}
     </div>
-    <div className="feed-skeleton-line feed-skeleton-line--xs" />
   </div>
 );
 
 // ─── Botón de me gusta ──────────────────────────────────────────────────────────────
-// Componente de botón reutilizable para dar me gusta con una pequeña animación.
 const LikeButton = ({
   liked,
   count,
@@ -121,9 +120,11 @@ const LikeButton = ({
 const OutfitCard = ({
   outfit,
   onToggleLike,
+  onSelect,
 }: {
   outfit: Outfit;
   onToggleLike: (id: string) => void;
+  onSelect: (outfit: Outfit) => void;
 }) => {
   const avatarColor = getAvatarColor(outfit.userName);
   const clothes = outfit.clothes ?? [];
@@ -147,20 +148,35 @@ const OutfitCard = ({
   const handleThumbKeyDown = (e: React.KeyboardEvent, idx: number) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
+      e.stopPropagation();
       handleThumbClick(idx);
     } else if (e.key === 'ArrowRight') {
       e.preventDefault();
+      e.stopPropagation();
       const nextIdx = (idx + 1) % thumbItems.length;
       handleThumbClick(thumbItems[nextIdx].idx);
     } else if (e.key === 'ArrowLeft') {
       e.preventDefault();
+      e.stopPropagation();
       const prevIdx = (idx - 1 + thumbItems.length) % thumbItems.length;
       handleThumbClick(thumbItems[prevIdx].idx);
     }
   };
 
+  const handleThumbMouseClick = (e: React.MouseEvent, idx: number) => {
+    e.stopPropagation();
+    handleThumbClick(idx);
+  };
+
+  const handleCardClick = () => onSelect(outfit);
+
+  const handleLikeClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onToggleLike(outfit.$id);
+  };
+
   return (
-    <article className="feed-card">
+    <article className="feed-card" onClick={handleCardClick} style={{ cursor: 'pointer' }}>
 
       {/* Header */}
       <div className="feed-card-header">
@@ -175,11 +191,13 @@ const OutfitCard = ({
           <p className="feed-username">{outfit.userName || 'Usuario'}</p>
           <p className="feed-time-label">{timeAgo(outfit.$createdAt)}</p>
         </div>
-        <LikeButton
-          liked={outfit.liked}
-          count={outfit.likes ?? 0}
-          onClick={() => onToggleLike(outfit.$id)}
-        />
+        <div onClick={e => e.stopPropagation()}>
+          <LikeButton
+            liked={outfit.liked}
+            count={outfit.likes ?? 0}
+            onClick={handleLikeClick}
+          />
+        </div>
       </div>
 
       {/* Nombre del outfit */}
@@ -207,17 +225,20 @@ const OutfitCard = ({
                 <button
                   key={idx}
                   className={`feed-dot ${idx === heroIndex ? 'feed-dot--active' : ''}`}
-                  onClick={() => handleThumbClick(idx)}
+                  onClick={e => { e.stopPropagation(); handleThumbClick(idx); }}
                   onKeyDown={e => {
                     if (e.key === 'Enter' || e.key === ' ') {
                       e.preventDefault();
+                      e.stopPropagation();
                       handleThumbClick(idx);
                     } else if (e.key === 'ArrowRight') {
                       e.preventDefault();
+                      e.stopPropagation();
                       const nextIdx = (idx + 1) % clothes.length;
                       handleThumbClick(nextIdx);
                     } else if (e.key === 'ArrowLeft') {
                       e.preventDefault();
+                      e.stopPropagation();
                       const prevIdx = (idx - 1 + clothes.length) % clothes.length;
                       handleThumbClick(prevIdx);
                     }
@@ -240,7 +261,7 @@ const OutfitCard = ({
               role="button"
               tabIndex={0}
               aria-label={`Ver ${item.type} en detalle`}
-              onClick={() => handleThumbClick(idx)}
+              onClick={e => handleThumbMouseClick(e, idx)}
               onKeyDown={e => handleThumbKeyDown(e, idx)}
             >
               <div className="feed-thumb-img-wrap">
@@ -298,6 +319,7 @@ const FeedPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedOccasion, setSelectedOccasion] = useState('');
   const [sortBy, setSortBy] = useState<'recent' | 'likes'>('recent');
+  const [selectedOutfit, setSelectedOutfit] = useState<Outfit | null>(null);
   const topRef = useRef<HTMLDivElement>(null);
 
   const totalPages = total ? Math.ceil(total / PER_PAGE) : null;
@@ -466,7 +488,7 @@ const FeedPage = () => {
         ) : (
           <div className="feed-grid">
             {outfits.map(outfit => (
-              <OutfitCard key={outfit.$id} outfit={outfit} onToggleLike={handleToggleLike} />
+              <OutfitCard key={outfit.$id} outfit={outfit} onToggleLike={handleToggleLike} onSelect={setSelectedOutfit} />
             ))}
           </div>
         )}
@@ -509,6 +531,17 @@ const FeedPage = () => {
         )}
 
       </main>
+
+      <OutfitModal
+        outfit={selectedOutfit}
+        isOpen={!!selectedOutfit}
+        onClose={() => setSelectedOutfit(null)}
+        onLikeUpdate={(outfitId, liked, likes) => {
+          setOutfits(prev =>
+            prev.map(o => o.$id === outfitId ? { ...o, liked, likes } : o)
+          );
+        }}
+      />
     </div>
   );
 };
