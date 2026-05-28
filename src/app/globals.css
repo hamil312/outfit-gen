@@ -284,6 +284,21 @@
   letter-spacing: 0.01em;
   transition: background 0.2s ease, color 0.2s ease;
 }
+
+.home-video-container {
+  width: 100%;
+  max-width: 900px;
+  margin: 2rem auto;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.home-video {
+  display: block;
+  width: 100%;
+  height: auto;
+}
  
 .home-tag:hover {
   background: #1a2b32;
