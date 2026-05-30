@@ -15,7 +15,8 @@ const config: Config = {
         sm: "calc(var(--radius) - 4px)",
       },
       fontFamily: {
-        ptsans: ['"PT Sans"', "sans-serif"],
+        hanken: ['"Hanken Grotesk"', "sans-serif"],
+        garamond: ['"EB Garamond"', "serif"],
       },
       keyframes: {
         "accordion-down": {

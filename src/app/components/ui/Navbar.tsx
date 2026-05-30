@@ -11,7 +11,6 @@ export default function AppNavbar() {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  // Obtener sesión actual
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -26,7 +25,6 @@ export default function AppNavbar() {
     fetchUser();
   }, []);
 
-  // Cerrar sesión
   const handleLogout = async () => {
     try {
       await account.deleteSession("current");
@@ -39,54 +37,50 @@ export default function AppNavbar() {
 
   return (
     <Navbar className="bg-white shadow-sm py-3">
-      <Container fluid className="px-8">
+      <Container fluid className="px-8 d-flex">
         <Navbar.Brand
           href="/"
-          className="font-bold text-xl hover:text-[#5CA2AE] transition-colors"
+          className="fw-bold fs-5 navbar-brand-custom"
         >
           PickurFit
         </Navbar.Brand>
 
-        <Nav className="me-auto gap-4 align-items-center">
-          <Button
-            variant="outline-dark"
-            className="border-2 hover:bg-[#5CA2AE] hover:border-[#5CA2AE] hover:text-white transition-colors"
-            onClick={() => router.push("/generator")}
+        <Nav className="mx-auto gap-4 align-items-center">
+          <Nav.Link
+            href="/generator"
+            className="text-dark nav-link-custom"
           >
             Empieza a generar
-          </Button>
-
-          <Button
-            variant="outline-dark"
-            className="border-2 hover:bg-[#5CA2AE] hover:border-[#5CA2AE] hover:text-white transition-colors"
-            onClick={() => router.push("/feed")}
+          </Nav.Link>
+          <Nav.Link
+            href="/feed"
+            className="text-dark nav-link-custom"
           >
             Feed
-          </Button>
-
+          </Nav.Link>
           <Nav.Link
             href="/#about-us"
-            className="text-dark hover:text-[#5CA2AE] transition-colors"
+            className="text-dark nav-link-custom"
           >
             Acerca de
           </Nav.Link>
           <Nav.Link
             href="/#footer"
-            className="text-dark hover:text-[#5CA2AE] transition-colors"
+            className="text-dark nav-link-custom"
           >
             Contáctanos
           </Nav.Link>
         </Nav>
 
-        {/* Zona derecha: Login/Logout/Profile */}
         <Nav className="gap-3 align-items-center">
           {loading ? (
-            <span className="text-gray-400">Cargando...</span>
+            <span className="text-gray-400" style={{ fontSize: 14 }}>Cargando...</span>
           ) : user ? (
             <>
               <Nav.Link
                 href="/profile"
-                className="w-[45px] h-[45px] flex items-center justify-center bg-white rounded-full overflow-hidden border-2 border-black hover:border-[#FCC4C4] transition-colors p-0"
+                className="d-flex align-items-center justify-content-center bg-white rounded-circle overflow-hidden border border-dark"
+                style={{ width: 45, height: 45, minWidth: 45 }}
               >
                 <img
                   className="w-[35px] h-[35px]"
@@ -99,6 +93,7 @@ export default function AppNavbar() {
                 variant="outline-dark"
                 onClick={handleLogout}
                 className="border-2 hover:bg-[#5CA2AE] hover:border-[#5CA2AE] hover:text-white transition-colors"
+                style={{ borderRadius: 10, fontSize: 14 }}
               >
                 Cerrar sesión
               </Button>
@@ -109,6 +104,7 @@ export default function AppNavbar() {
                 variant="outline-dark"
                 onClick={() => router.push("/auth/login")}
                 className="border-2 hover:bg-[#5CA2AE] hover:border-[#5CA2AE] hover:text-white transition-colors"
+                style={{ borderRadius: 10, fontSize: 14 }}
               >
                 Iniciar sesión
               </Button>
@@ -117,6 +113,7 @@ export default function AppNavbar() {
                 variant="outline-dark"
                 onClick={() => router.push("/auth/register")}
                 className="border-2 hover:bg-[#5CA2AE] hover:border-[#5CA2AE] hover:text-white transition-colors"
+                style={{ borderRadius: 10, fontSize: 14 }}
               >
                 Registrarse
               </Button>

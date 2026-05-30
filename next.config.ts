@@ -9,7 +9,7 @@ const nextConfig: NextConfig = {
           {
             key: "Content-Security-Policy",
             value:
-              "img-src 'self' blob: data: http: https:; font-src 'self'; frame-ancestors 'none';",
+              "img-src 'self' blob: data: http: https:; font-src 'self' https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; frame-ancestors 'none';",
           },
           {
             key: "X-Frame-Options",

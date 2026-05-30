@@ -21,7 +21,7 @@
   grid-template-columns: 1fr 1fr;
   height: 100vh;        
   overflow: hidden;     
-  font-family: "PT Sans", sans-serif;
+  font-family: "Hanken Grotesk", sans-serif;
 }
 
 /* ── Left panel ── */
@@ -100,7 +100,7 @@
   border: 1.5px solid #e5e7eb;
   border-radius: 10px;
   font-size: 14px;
-  font-family: "PT Sans", sans-serif;
+  font-family: "Hanken Grotesk", sans-serif;
   color: #1a2b32;
   background: #f9fafb;
   outline: none;
@@ -138,7 +138,7 @@
   border-radius: 10px;
   font-size: 15px;
   font-weight: 700;
-  font-family: "PT Sans", sans-serif;
+  font-family: "Hanken Grotesk", sans-serif;
   cursor: pointer;
   transition: background 0.2s ease, transform 0.15s ease;
   margin-top: 4px;
@@ -233,7 +233,7 @@
 .home-root {
   background: #ffffff;
   width: 100%;
-  font-family: "PT Sans", sans-serif;
+  font-family: "Hanken Grotesk", sans-serif;
 }
  
 /* Hero */
@@ -241,6 +241,7 @@
   background: #ffffff;
   padding: 72px 24px 56px;
   text-align: center;
+  animation: fadeIn 0.6s ease-out;
 }
  
 .home-hero-inner {
@@ -258,6 +259,7 @@
 }
  
 .home-title {
+  font-family: "EB Garamond", serif;
   font-size: clamp(2rem, 5vw, 3.25rem);
   font-weight: 700;
   color: #1a2b32;
@@ -336,7 +338,7 @@
   border-radius: 12px;
   font-size: 15px;
   font-weight: 700;
-  font-family: "PT Sans", sans-serif;
+  font-family: "Hanken Grotesk", sans-serif;
   cursor: pointer;
   letter-spacing: 0.02em;
   transition: background 0.2s ease, transform 0.15s ease;
@@ -357,6 +359,7 @@
  
 /* Section title */
 .home-section-title {
+  font-family: "EB Garamond", serif;
   text-align: center;
   font-size: clamp(1.25rem, 3vw, 1.9rem);
   font-weight: 700;
@@ -384,6 +387,12 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+.home-feature-card:hover {
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.09);
+  transform: translateY(-2px);
 }
  
 .home-feature-img-wrap {
@@ -422,6 +431,7 @@
 }
  
 .home-feature-title {
+  font-family: "EB Garamond", serif;
   font-size: 20px;
   font-weight: 700;
   color: #1a2b32;
@@ -509,6 +519,7 @@
 }
  
 .home-member-name {
+  font-family: "EB Garamond", serif;
   font-size: 16px;
   font-weight: 700;
   color: #1a2b32;
@@ -577,7 +588,7 @@
   min-height: 100vh;
   background: #ffffff;
   width: 100%;
-  font-family: "PT Sans", sans-serif;
+  font-family: "Hanken Grotesk", sans-serif;
 }
 
 /* Main layout */
@@ -658,7 +669,7 @@
   border: 1.5px solid #515358;
   border-radius: 10px;
   font-size: 14px;
-  font-family: "PT Sans", sans-serif;
+  font-family: "Hanken Grotesk", sans-serif;
   color: #1a2b32;
   cursor: pointer;
   transition: border-color 0.2s ease, background 0.2s ease;
@@ -718,7 +729,7 @@
   border-radius: 10px;
   font-size: 14px;
   font-weight: 700;
-  font-family: "PT Sans", sans-serif;
+  font-family: "Hanken Grotesk", sans-serif;
   cursor: pointer;
   transition: background 0.2s ease, transform 0.15s ease;
   margin-top: 4px;
@@ -748,7 +759,7 @@
   border: 1.5px solid #d1d5db;
   border-radius: 10px;
   font-size: 14px;
-  font-family: "PT Sans", sans-serif;
+  font-family: "Hanken Grotesk", sans-serif;
   font-weight: 500;
   color: #1a2b32;
   cursor: pointer;
@@ -870,7 +881,7 @@
   border-radius: 10px;
   font-size: 13px;
   font-weight: 700;
-  font-family: "PT Sans", sans-serif;
+  font-family: "Hanken Grotesk", sans-serif;
   cursor: pointer;
   transition: background 0.2s ease;
   margin-top: 4px;
@@ -963,7 +974,7 @@
   border-radius: 10px;
   font-size: 14px;
   font-weight: 600;
-  font-family: "PT Sans", sans-serif;
+  font-family: "Hanken Grotesk", sans-serif;
   color: #374151;
   cursor: pointer;
   transition: background 0.2s ease;
@@ -989,7 +1000,7 @@
   border-radius: 10px;
   font-size: 14px;
   font-weight: 600;
-  font-family: "PT Sans", sans-serif;
+  font-family: "Hanken Grotesk", sans-serif;
   cursor: pointer;
   transition: background 0.2s ease;
 }
@@ -1062,7 +1073,7 @@
   border-radius: 10px;
   font-size: 14px;
   font-weight: 600;
-  font-family: "PT Sans", sans-serif;
+  font-family: "Hanken Grotesk", sans-serif;
   color: #374151;
   cursor: pointer;
   transition: background 0.2s ease;
@@ -1103,7 +1114,7 @@
 .vw-root {
   min-height: 100vh;
   background: #f8f9fb;
-  font-family: "PT Sans", sans-serif;
+  font-family: "Hanken Grotesk", sans-serif;
 }
 
 /* Page header */
@@ -1187,7 +1198,7 @@
   box-shadow: none !important;
   padding: 10px 12px;
   border-radius: 10px;
-  font-family: "PT Sans", sans-serif;
+  font-family: "Hanken Grotesk", sans-serif;
   color: #1a2b32 !important;
   font-weight: 600;
   font-size: 15px;
@@ -1239,7 +1250,7 @@
   background: transparent;
   color: #374151;
   font-size: 14px;
-  font-family: "PT Sans", sans-serif;
+  font-family: "Hanken Grotesk", sans-serif;
   font-weight: 400;
   cursor: pointer;
   text-align: left;
@@ -1283,7 +1294,7 @@
   border-radius: 10px;
   font-size: 14px;
   font-weight: 600;
-  font-family: "PT Sans", sans-serif;
+  font-family: "Hanken Grotesk", sans-serif;
   color: #1a2b32;
   cursor: pointer;
   transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
@@ -1441,7 +1452,7 @@
   border-radius: 8px;
   font-size: 13px;
   font-weight: 600;
-  font-family: "PT Sans", sans-serif;
+  font-family: "Hanken Grotesk", sans-serif;
   cursor: pointer;
   border: 1.5px solid transparent;
   transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
@@ -1621,7 +1632,7 @@
   max-width: 460px;
   width: 100%;
   margin: 0 auto;
-  font-family: "PT Sans", sans-serif;
+  font-family: "Hanken Grotesk", sans-serif;
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -1757,7 +1768,7 @@
   border: 1.5px solid #e5e7eb;
   border-radius: 10px;
   font-size: 14px;
-  font-family: "PT Sans", sans-serif;
+  font-family: "Hanken Grotesk", sans-serif;
   color: #1a2b32;
   background: #f9fafb;
   outline: none;
@@ -1784,7 +1795,7 @@
   border-radius: 10px;
   font-size: 15px;
   font-weight: 700;
-  font-family: "PT Sans", sans-serif;
+  font-family: "Hanken Grotesk", sans-serif;
   cursor: pointer;
   transition: background 0.2s ease, transform 0.15s ease;
 }
@@ -1808,7 +1819,7 @@
   max-width: 1100px;
   margin: 0 auto;
   padding: 36px 20px 80px;
-  font-family: "PT Sans", sans-serif;
+  font-family: "Hanken Grotesk", sans-serif;
 }
  
 /* Page header */
@@ -1822,7 +1833,7 @@
 }
  
 .feed-page-title {
-  font-family: "PT Sans", sans-serif;
+  font-family: "EB Garamond", serif;
   font-size: 30px;
   font-weight: 700;
   color: #1a1a2e;
@@ -1906,7 +1917,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: "PT Sans", sans-serif;
+  font-family: "Hanken Grotesk", sans-serif;
   font-size: 14px;
   font-weight: 600;
   flex-shrink: 0;
@@ -1939,7 +1950,7 @@
  
 /* Outfit title */
 .feed-outfit-title {
-  font-family: "PT Sans", sans-serif;
+  font-family: "EB Garamond", serif;
   font-size: 17px;
   font-weight: 600;
   color: #1a1a2e;
@@ -2237,7 +2248,7 @@
   color: #1a1a2e;
   font-size: 14px;
   font-weight: 500;
-  font-family: "PT Sans", sans-serif;
+  font-family: "Hanken Grotesk", sans-serif;
   cursor: pointer;
   transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
   letter-spacing: 0.2px;
@@ -2383,7 +2394,8 @@
   --sidebar-ring: var(--ring);
  
   /* Tipografías */
-  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-sans: 'Hanken Grotesk', system-ui, sans-serif;
+  --font-display: 'EB Garamond', serif;
  
   /* Radius */
   --radius: 0.75rem;
@@ -2460,103 +2472,61 @@
   }
  
   body {
-    font-family: "PT Sans", sans-serif !important;
+    font-family: "Hanken Grotesk", sans-serif !important;
     background-color: var(--background);
     color: var(--foreground);
   }
 }
  
+/* ------------------------------
+   NAVBAR
+------------------------------ */
+
+.navbar-brand-custom {
+  font-family: "EB Garamond", serif !important;
+  font-size: 1.5rem !important;
+  letter-spacing: 0.02em;
+  color: #1a2b32 !important;
+}
+
+.nav-link-custom {
+  font-family: "Hanken Grotesk", sans-serif !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  padding: 6px 12px !important;
+  border-radius: 8px !important;
+  transition: color 0.2s ease, background 0.2s ease !important;
+}
+
+.nav-link-custom:hover {
+  color: #5ca2ae !important;
+  background: rgba(92, 162, 174, 0.08) !important;
+}
+
+/* ------------------------------
+   ANIMACIONES
+------------------------------ */
+
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
 }
- 
+
 @keyframes scaleIn {
   from { transform: scale(0.95); opacity: 0; }
   to { transform: scale(1); opacity: 1; }
 }
- 
+
 .animate-fadeIn {
   animation: fadeIn 0.25s ease-out;
 }
- 
+
 .animate-scaleIn {
   animation: scaleIn 0.25s ease-out;
 }
- 
+
 /* ------------------------------
    FEED PAGE
-------------------------------- */
- 
-/* Entrada escalonada de cards */
-@keyframes cardIn {
-  to { opacity: 1; transform: translateY(0); }
-}
- 
-.feed-card {
-  opacity: 0;
-  transform: translateY(18px);
-  animation: cardIn 0.45s ease forwards;
-}
- 
-.feed-card:nth-child(1) { animation-delay: 0.05s; }
-.feed-card:nth-child(2) { animation-delay: 0.12s; }
-.feed-card:nth-child(3) { animation-delay: 0.19s; }
-.feed-card:nth-child(4) { animation-delay: 0.26s; }
-.feed-card:nth-child(5) { animation-delay: 0.33s; }
-.feed-card:nth-child(6) { animation-delay: 0.40s; }
-.feed-card:nth-child(7) { animation-delay: 0.47s; }
-.feed-card:nth-child(8) { animation-delay: 0.54s; }
-.feed-card:nth-child(9) { animation-delay: 0.61s; }
- 
-.feed-card:hover {
-  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.09) !important;
-  transform: translateY(-2px);
-  transition: box-shadow 0.3s ease, transform 0.3s ease !important;
-}
- 
-/* Botones de paginación */
-.page-btn:hover:not(:disabled) {
-  background: #1a1a2e !important;
-  color: #fff !important;
-  border-color: #1a1a2e !important;
-}
- 
-/* Skeleton shimmer */
-@keyframes shimmer {
-  0%   { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
-}
- 
-.skeleton-shimmer {
-  background: linear-gradient(90deg, #ece9e3 25%, #f5f3ef 50%, #ece9e3 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.4s infinite;
-}
- 
-/* Thumbnails intercambiables */
-.thumb-swap:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
-}
- 
-.thumb-swap:hover .thumb-overlay-inner {
-  opacity: 1 !important;
-}
- 
-/* Responsive feed grid */
-@media (max-width: 640px) {
-  .feed-grid {
-    grid-template-columns: 1fr !important;
-  }
-
-  .feed-hero {
-    height: 220px !important;
-  }
-}
-
-/* ------------------------------
-   OUTFIT MODAL
 ------------------------------ */
 
 .modal-overlay {
@@ -2692,6 +2662,7 @@
 }
 
 .outfit-modal-title {
+  font-family: "EB Garamond", serif;
   font-size: 18px;
   font-weight: 700;
   color: #1a1a2e;
@@ -2923,7 +2894,7 @@
   border: 1.5px solid #d1d5db;
   border-radius: 8px;
   font-size: 13px;
-  font-family: "PT Sans", sans-serif;
+  font-family: "Hanken Grotesk", sans-serif;
   resize: none;
   min-height: 60px;
   outline: none;
@@ -2985,7 +2956,7 @@
   border: 1.5px solid #d1d5db;
   border-radius: 12px;
   font-size: 13px;
-  font-family: "PT Sans", sans-serif;
+  font-family: "Hanken Grotesk", sans-serif;
   resize: none;
   outline: none;
   transition: border-color 0.2s;

@@ -170,8 +170,7 @@ const OutfitCard = ({
 
   const handleCardClick = () => onSelect(outfit);
 
-  const handleLikeClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleLikeClick = () => {
     onToggleLike(outfit.$id);
   };
 

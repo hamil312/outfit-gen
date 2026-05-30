@@ -167,3 +167,36 @@ El análisis y clasificación de prendas utiliza el modelo **`patrickjohncyh/fas
 > Source: https://huggingface.co/patrickjohncyh/fashion-clip
 > License: MIT
 > ```
+
+---
+
+## 📋 Requerimientos del sistema
+
+### Requerimientos funcionales
+
+| ID | Nombre | Descripción | Razón | Prioridad |
+|---|---|---|---|---|
+| RF001 | Registro | El usuario debe ser capaz de crear una cuenta definiendo un nombre y contraseña | Permitir que los usuarios creen una cuenta de usuario personal para poder realizar el registro de prendas y creación de atuendos. | Media |
+| RF002 | Inicio de Sesión | El usuario debe ser capaz de ingresar a su cuenta | Mantener las sesiones y datos de los usuarios asiladas. | Media |
+| RF003 | Tomar fotos de prendas para añadirlas a la base de datos | El usuario debe ser capaz de tomar fotos de sus prendas para añadirlas a un inventario personal en la base de datos | Usar las prendas del usuario para la generación de atuendos personalizados. | Alta |
+| RF004 | Asignar atributos a las fotos de las prendas | El sistema a través de machine vision, determina el contexto, color y tipo de prenda y almacena la información en la base de datos a manera de objeto | Es necesario definir las características de las prendas del usuario a través de las fotografías debido a que esta información es la que permite la operación del algoritmo | Alta |
+| RF005 | Ver y eliminar objetos que representan prendas o atuendos del inventario del usuario | El usuario puede ver su inventario personal, así como los elementos almacenados en el mismo y eliminar los objetos que desee | Mantener un guardarropa virtual personalizado a partir de los gustos del usuario | Media |
+| RF006 | Seleccionar un color principal como parámetro durante el proceso de generación | En la pantalla de generación de atuendo, al usuario se le mostrará un campo de selección opcional que permite la selección de un valor de color, que será priorizado por el algoritmo en la selección de elementos para el resultado final | Tener una opción extra para personalizar la generación del atuendo | Media |
+| RF007 | Seleccionar una ocasión como parámetro durante el proceso de generación | En la pantalla de generación de atuendo, al usuario se le mostrará un campo de selección que permite el asignar un valor al contexto, permitiendo elegir entre formal y casual, este valor será utilizado durante el proceso de generación para priorizar determinados elementos | Tener un contexto de uso es clave para una generación de atuendos coherentes para cada momento. | Alta |
+| RF008 | Aceptar los parámetros definidos y generar un atuendo acorde a estos | En la pantalla de generación, el usuario, tras introducir los valores deseados, podrá solicitar que sistema que genere un atuendo siguiendo las condiciones definidas a través de un botón | Permitir que el usuario finalice el proceso de generación y obtenga el resultado final | Alta |
+| RF009 | Seleccionar un objeto específico del inventario como parámetro para que sea tomado como el centro del proceso de generación | Durante el proceso de generación, el usuario tiene la opción de especificar un elemento para que el sistema lo utilice y tome en cuenta sus características definidas para la generación del resultado final | Darle una mayor personalización al atuendo generado en caso de que el usuario desee usar una prenda en específico | Alta |
+| RF010 | Tras el proceso de generación, mostrar en pantalla el resultado final creado por el software | Tras la pulsación del botón "Generar" el sistema debe enviar las características definidas por el usuario al algoritmo para que las utilice en la creación del resultado final, trás esto, el resultado debe mostrarse a través de las imágenes de los elementos seleccionados para el atuendo | El usuario debe ser capaz de ver el resultado final de la generación para poder sacar valor del sistema | Alta |
+| RF011 | Guardar resultado final del proceso de generación en su inventario personal en la base de datos | A través de un botón el usuario puede decidir si desea almacenar el resultado de la generación como un objeto en la base de datos | Permitir el acceso rápido y reutilización de atuendos generados previamente | Baja |
+| RF012 | Cerrar sesión | El usuario debe ser capaz de salir de su cuenta | Por cuestiones de seguridad o en caso de que múltiples usuarios utilicen un mismo dispositivo | Baja |
+
+### Requerimientos no funcionales
+
+| ID | Descripción | Atributo de Calidad |
+|---|---|---|
+| RNF001 | La generación de atuendos se realizará en menos de 5 segundos | Rendimiento |
+| RNF002 | El escaneo de una prenda para añadirla al guardarropa debe ser menor a 5 segundos | Rendimiento |
+| RNF003 | Se impedirá el acceso no autorizado a cuentas de usuario el 99.98% de veces | Seguridad |
+| RNF004 | La aplicación web será compatible con diferentes navegadores como Google Chrome, Firefox, Opera y Brave | Portabilidad |
+| RNF005 | La aplicación estará disponible 24 horas los siete días de la semana | Disponibilidad |
+| RNF006 | La aplicación es de fácil uso e intuitiva en cada uno de los proceso de carga y visualización de los outfits | Usabilidad |
+| RNF007 | El sistema podrá manejar 200 solicitudes en menos de 5 segundos | Fiabilidad |
