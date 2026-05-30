@@ -28,8 +28,48 @@ model = CLIPModel.from_pretrained(model_id).to(device)
 processor = CLIPProcessor.from_pretrained(model_id)
 
 CLOTHING_TYPES = ["shirt", "t-shirt", "pants", "shorts", "dress", "shoes", "jacket", "skirt"]
-OCCASIONS = ["formal", "informal", "sport", "casual"]
+PRINTS = ["solid", "striped", "floral", "plaid", "polka dot", "graphic", "animal print", "geometric", "tie-dye", "checkered", "camouflage", "paisley"]
+MATERIALS = ["cotton", "denim", "leather", "wool", "polyester", "silk", "linen", "nylon", "velvet", "lace", "chiffon", "knit", "fleece", "suede", "canvas"]
 
+# ── Ensemble prompt groups for weaker dimensions ──
+OCCASION_GROUPS = {
+    "formal":   ["a formal suit for a business meeting", "an elegant evening gown", "black tie attire", "a tuxedo"],
+    "informal": ["a casual everyday outfit", "relaxed home wear", "comfortable lounge clothing"],
+    "sport":    ["activewear for the gym", "sportswear for running", "athletic training clothes"],
+    "casual":   ["a relaxed weekend outfit", "comfortable daily wear", "a laid-back casual look"],
+}
+
+STYLE_GROUPS = {
+    "vintage":      ["a vintage retro style outfit", "a classic vintage look", "vintage-inspired clothing"],
+    "bohemian":     ["a bohemian boho chic outfit", "flowing hippie style clothing", "boho chic fashion"],
+    "minimalist":   ["a minimalist clean aesthetic outfit", "simple modern minimalist style", "minimalist sleek design"],
+    "streetwear":   ["urban streetwear style", "street fashion casual cool", "hypebeast streetwear outfit"],
+    "preppy":       ["a preppy ivy league style", "classic preppy college outfit", "preppy sophisticated look"],
+    "classic":      ["a timeless classic elegant outfit", "classic sophisticated fashion", "traditional classic style"],
+    "edgy":         ["an edgy punk rock style", "dark alternative fashion", "edgy modern avant-garde look"],
+    "romantic":     ["a romantic feminine outfit", "soft delicate romantic style", "romantic lace details"],
+    "retro":        ["a retro throwback style", "retro inspired vintage look", "1950s retro fashion"],
+    "avant-garde":  ["avant-garde experimental fashion", "cutting edge artistic clothing", "runway avant-garde design"],
+    "punk":         ["punk rock style clothing", "rebellious punk aesthetic", "punk fashion with leather"],
+    "nautical":     ["a nautical seaside style", "maritime sailor inspired fashion", "nautical striped navy look"],
+}
+
+
+def ensemble_classify(groups, logits_slice):
+    """
+    Given a dict {label: [prompts, ...]} and a logits tensor of shape [1, total_prompts],
+    average logits per group and return (winning_label, confidence).
+    """
+    offsets = []
+    for prompts in groups.values():
+        offsets.append(len(prompts))
+    # Split logits by group
+    split_logits = torch.split(logits_slice, offsets, dim=1)
+    group_means = torch.stack([sl.mean(dim=1) for sl in split_logits], dim=1)  # [1, n_groups]
+    probs = group_means.softmax(dim=1)
+    idx = probs.argmax().item()
+    label = list(groups.keys())[idx]
+    return label, probs[0, idx].item()
 
 def remove_background(image):
     """Elimina el fondo manteniendo transparencia."""
@@ -83,12 +123,73 @@ CATEGORY_MAP = {
     "shirt": "superior",
     "t-shirt": "superior",
     "jacket": "superior",
+    "top": "superior",
     "dress": "completo",
     "pants": "inferior",
     "shorts": "inferior",
     "skirt": "inferior",
     "shoes": "calzado"
 }
+
+def _categorize(type_str):
+    """Look up category case-insensitively, fall back to None."""
+    return CATEGORY_MAP.get(type_str.strip().lower()) if type_str else None
+
+MATERIAL_RULES = {
+    "cotton": ["denim", "linen", "polyester", "knit", "wool"],
+    "denim": ["cotton", "knit", "leather", "wool"],
+    "leather": ["denim", "cotton", "silk", "lace", "wool"],
+    "wool": ["cotton", "silk", "linen", "denim"],
+    "polyester": ["cotton", "nylon", "fleece", "knit"],
+    "silk": ["cotton", "lace", "velvet", "chiffon", "wool"],
+    "linen": ["cotton", "wool", "silk"],
+    "nylon": ["polyester", "fleece", "cotton"],
+    "velvet": ["silk", "lace", "cotton", "chiffon"],
+    "lace": ["silk", "cotton", "velvet", "leather"],
+    "chiffon": ["silk", "cotton", "lace", "velvet"],
+    "knit": ["cotton", "denim", "wool", "fleece"],
+    "fleece": ["cotton", "polyester", "nylon", "knit"],
+    "suede": ["leather", "cotton", "wool", "silk"],
+    "canvas": ["denim", "cotton", "leather", "wool"],
+}
+
+MATERIAL_WEIGHT = {
+    "leather": 10, "denim": 9, "wool": 8, "fleece": 7, "velvet": 7,
+    "knit": 6, "canvas": 6, "suede": 6, "nylon": 5, "polyester": 5,
+    "cotton": 4, "linen": 3, "lace": 2, "chiffon": 2, "silk": 1,
+}
+
+def compatible_material(m1, m2):
+    if m1 == m2:
+        return True
+    if m1 == "unknown" or m2 == "unknown":
+        return True
+    allowed = MATERIAL_RULES.get(m1, [])
+    return m2 in allowed
+
+NEUTRAL_COLORS = {"white", "black", "beige", "gray", "neutral"}
+
+def prints_ok(a, b, rule):
+    """Check print compatibility between two items.
+    rule=None: no check. rule='same': must have same print. rule='solid': printed+others solid neutral.
+    """
+    if rule is None:
+        return True
+    pa = a.get("print", "solid").lower()
+    pb = b.get("print", "solid").lower()
+    if rule == "same":
+        return pa == pb
+    if rule == "solid":
+        # Both printed → must match
+        if pa != "solid" and pb != "solid":
+            return pa == pb
+        # One printed, other must be solid with neutral color
+        if pa != "solid":
+            return pb == "solid" and b.get("color_name") in NEUTRAL_COLORS
+        if pb != "solid":
+            return pa == "solid" and a.get("color_name") in NEUTRAL_COLORS
+        return True  # both solid
+    return True
 
 def rgb_to_name(rgb):
     if isinstance(rgb, str):
@@ -128,61 +229,113 @@ def compatible_ocasion(o1, o2):
         return True
     return False
 
-def generate_outfits(prendas):
-    superiores, inferiores, calzados, completos = [], [], [], []
-    print(prendas)
-    for p in prendas:
-        cat = CATEGORY_MAP.get(p["type"], None)
-        if not cat:
-            continue
-        color_name = rgb_to_name(p["color"])
-        item = {
-            "$id": p.get("$id"),
-            **p,
-            "color_name": color_name,
-            "categoria": cat,
-            "image": p.get("image")
-        }
-        if cat == "superior":
-            superiores.append(item)
-        elif cat == "inferior":
-            inferiores.append(item)
-        elif cat == "calzado":
-            calzados.append(item)
-        elif cat == "completo":
-            completos.append(item)
-
+def _match_outfits(superiores, inferiores, calzados, completos,
+                   strict_material=False, balance=False, print_rule=None):
+    """Build outfit combinations with optional material/print constraints."""
     outfits = []
 
     for comp in completos:
         for c in calzados:
-            if color_compatible(comp["color_name"], c["color_name"]) and compatible_ocasion(comp["occasion"], c["occasion"]):
-                outfits.append({"completo": comp, "calzado": c})
+            if not color_compatible(comp["color_name"], c["color_name"]):
+                continue
+            if not compatible_ocasion(comp.get("occasion", "neutral"), c.get("occasion", "neutral")):
+                continue
+            if strict_material and comp.get("material") != c.get("material"):
+                continue
+            if not prints_ok(comp, c, print_rule):
+                continue
+            outfits.append({"completo": comp, "calzado": c})
 
     for s in superiores:
         for i in inferiores:
             if not color_compatible(s["color_name"], i["color_name"]):
                 continue
-            if not compatible_ocasion(s["occasion"], i["occasion"]):
+            if not compatible_ocasion(s.get("occasion", "neutral"), i.get("occasion", "neutral")):
+                continue
+            if strict_material and s.get("material") != i.get("material"):
+                continue
+            if balance:
+                sw = MATERIAL_WEIGHT.get(s.get("material", "unknown"), 0)
+                iw = MATERIAL_WEIGHT.get(i.get("material", "unknown"), 0)
+                if sw <= iw:
+                    continue
+            if not prints_ok(s, i, print_rule):
                 continue
             for c in calzados:
                 if not color_compatible(i["color_name"], c["color_name"]):
                     continue
-                if not compatible_ocasion(i["occasion"], c["occasion"]):
+                if not compatible_ocasion(i.get("occasion", "neutral"), c.get("occasion", "neutral")):
+                    continue
+                if strict_material and s.get("material") != c.get("material"):
+                    continue
+                if not prints_ok(s, c, print_rule):
                     continue
                 outfits.append({
-                    "superior": s,
-                    "inferior": i,
-                    "calzado": c
+                    "superior": s, "inferior": i, "calzado": c
                 })
 
+    return outfits
+
+def generate_outfits(prendas, style=None, material_matching=False, material_balance=False,
+                     target_material=None, print_matching=False, target_print=None):
+    """Generate outfits with optional style filter, material and print constraints."""
+
+    # ── Style filter ──
+    if style and style.lower() != "any":
+        prendas = [p for p in prendas if p.get("style", "").lower() == style.lower()]
+
+    # ── Categorize ──
+    superiores, inferiores, calzados, completos = [], [], [], []
+    for p in prendas:
+        cat = _categorize(p.get("type", ""))
+        if not cat:
+            continue
+        color_name = rgb_to_name(p["color"])
+        item = {
+            "$id": p.get("$id"), **p,
+            "color_name": color_name,
+            "categoria": cat,
+            "image": p.get("image")
+        }
+        if cat == "superior":     superiores.append(item)
+        elif cat == "inferior":   inferiores.append(item)
+        elif cat == "calzado":    calzados.append(item)
+        elif cat == "completo":   completos.append(item)
+
+    outfits = []
+
+    # ── Filter items by material / print target ──
+    if target_material and target_material.lower() != "any":
+        tm = target_material.lower()
+        superiores = [s for s in superiores if s.get("material", "unknown").lower() == tm]
+        completos  = [c for c in completos  if c.get("material", "unknown").lower() == tm]
+    if target_print and target_print.lower() != "any":
+        tp = target_print.lower()
+        superiores = [s for s in superiores if s.get("print", "solid").lower() == tp]
+        completos  = [c for c in completos  if c.get("print", "solid").lower() == tp]
+
+    # ── Try progressively relaxed combinations ──
+    combo_list = []
+    if material_matching and print_matching:
+        combo_list = [(True, "same"), (True, "solid"), (False, "same"), (False, "solid")]
+    elif material_matching:
+        combo_list = [(True, None), (False, None)]
+    elif print_matching:
+        combo_list = [(False, "same"), (False, "solid")]
+    combo_list.append((False, None))  # ultimate fallback
+
+    for strict_mat, pr_rule in combo_list:
+        outfits = _match_outfits(superiores, inferiores, calzados, completos,
+                                strict_material=strict_mat, balance=material_balance if strict_mat else False,
+                                print_rule=pr_rule)
+        if outfits:
+            break
+
+    # ── Fallback random ──
     if not outfits:
-        print("⚠️ No se encontraron combinaciones compatibles. Generando aleatorias.")
+        print("⚠️ No se encontraron combinaciones. Generando aleatorias.")
         if completos and calzados:
-            outfits.append({
-                "completo": random.choice(completos),
-                "calzado": random.choice(calzados)
-            })
+            outfits.append({"completo": random.choice(completos), "calzado": random.choice(calzados)})
         elif superiores and inferiores and calzados:
             outfits.append({
                 "superior": random.choice(superiores),
@@ -195,12 +348,17 @@ def generate_outfits(prendas):
             if inferiores: partial["inferior"] = random.choice(inferiores)
             if calzados: partial["calzado"] = random.choice(calzados)
             if completos: partial["completo"] = random.choice(completos)
-            if partial: 
-                outfits.append(partial)
+            if partial: outfits.append(partial)
 
     outfits = [o for o in outfits if any(o.values())]
-
     return outfits
+
+
+def _classify_simple(labels, logits_slice):
+    """Single-prompt classification: return (best_label, confidence)."""
+    probs = logits_slice.softmax(dim=1)
+    idx = probs.argmax().item()
+    return labels[idx], probs[0, idx].item()
 
 
 @app.route("/analyze", methods=["POST"])
@@ -208,111 +366,179 @@ def analyze():
     file = request.files["file"]
     image = Image.open(io.BytesIO(file.read())).convert("RGB")
 
-    inputs = processor(
-        text=CLOTHING_TYPES,
-        images=image,
-        return_tensors="pt",
-        padding=True
-    ).to(device)
+    # ── Build flat prompt list ──
+    # Order: types, prints, materials, occasion_prompts*, style_prompts*
+    occ_all_prompts = []
+    for prompts in OCCASION_GROUPS.values():
+        occ_all_prompts.extend(prompts)
+    sty_all_prompts = []
+    for prompts in STYLE_GROUPS.values():
+        sty_all_prompts.extend(prompts)
+
+    all_texts = CLOTHING_TYPES + PRINTS + MATERIALS + occ_all_prompts + sty_all_prompts
+    n_types = len(CLOTHING_TYPES)
+    n_prt   = len(PRINTS)
+    n_mat   = len(MATERIALS)
+    n_occ   = len(occ_all_prompts)
+
+    inputs = processor(text=all_texts, images=image, return_tensors="pt", padding=True).to(device)
 
     with torch.no_grad():
         outputs = model(**inputs)
-        logits_per_image = outputs.logits_per_image
-        probs = logits_per_image.softmax(dim=1)
-        type_index = probs.argmax().item()
-        clothing_type = CLOTHING_TYPES[type_index]
-        confidence = probs[0][type_index].item()
+        logits = outputs.logits_per_image  # [1, total]
 
-    inputs2 = processor(
-        text=OCCASIONS,
-        images=image,
-        return_tensors="pt",
-        padding=True
-    ).to(device)
-    with torch.no_grad():
-        outputs2 = model(**inputs2)
-        logits2 = outputs2.logits_per_image
-        probs2 = logits2.softmax(dim=1)
-        occ_index = probs2.argmax().item()
-        occasion = OCCASIONS[occ_index]
-        occ_conf = probs2[0][occ_index].item()
+        off = 0
+        # Type (simple)
+        clothing_type, type_confidence = _classify_simple(
+            CLOTHING_TYPES, logits[:, off:off+n_types])
+        off += n_types
+
+        # Print (simple)
+        print_label, print_confidence = _classify_simple(
+            PRINTS, logits[:, off:off+n_prt])
+        off += n_prt
+
+        # Material (simple)
+        material_label, material_confidence = _classify_simple(
+            MATERIALS, logits[:, off:off+n_mat])
+        off += n_mat
+
+        # Occasion (ensemble)
+        occasion, occ_confidence = ensemble_classify(
+            OCCASION_GROUPS, logits[:, off:off+n_occ])
+        off += n_occ
+
+        # Style (ensemble)
+        style_label, style_confidence = ensemble_classify(
+            STYLE_GROUPS, logits[:, off:off+len(sty_all_prompts)])
 
     image_no_bg = remove_background(image)
     avg_color = get_dominant_color(image_no_bg)
 
     return jsonify({
         "type": clothing_type,
-        "type_confidence": confidence,
+        "type_confidence": type_confidence,
         "occasion": occasion,
-        "occasion_confidence": occ_conf,
+        "occasion_confidence": occ_confidence,
+        "print": print_label,
+        "print_confidence": print_confidence,
+        "style": style_label,
+        "style_confidence": style_confidence,
+        "material": material_label,
+        "material_confidence": material_confidence,
         "color": avg_color,
         "color_name": rgb_to_name(avg_color)
     })
 
 @app.route("/generate-outfits", methods=["POST"])
 def generate_outfits_endpoint():
-    prendas = request.get_json()
-    if not isinstance(prendas, list):
-        return jsonify({"error": "Debe enviar una lista de prendas"}), 400
+    data = request.get_json()
 
-    outfits = generate_outfits(prendas)
+    # Backward-compatible: plain list = old format
+    if isinstance(data, list):
+        outfits = generate_outfits(data)
+    else:
+        outfits = generate_outfits(
+            data.get("items", []),
+            style=data.get("style"),
+            material_matching=data.get("material_matching", False),
+            material_balance=data.get("material_balance", False),
+            target_material=data.get("material"),
+            print_matching=data.get("print_matching", False),
+            target_print=data.get("print"),
+        )
+
     return jsonify({"outfits": outfits})
 
 @app.route("/generate-outfit-with-base", methods=["POST"])
 def generate_outfit_with_base():
-    data = request.get_json()
-
-    base_item = data.get("base_item")
-    all_items = data.get("all_items")
+    body = request.get_json()
+    base_item = body.get("base_item")
+    all_items = body.get("all_items")
+    material_matching = body.get("material_matching", False)
+    material_balance  = body.get("material_balance", False)
+    print_matching    = body.get("print_matching", False)
 
     if not base_item or not all_items:
         return jsonify({"error": "base_item y all_items son obligatorios"}), 400
 
-    base_cat = CATEGORY_MAP.get(base_item["type"], None)
+    base_cat = _categorize(base_item.get("type", ""))
     base_color = rgb_to_name(base_item["color"])
-    base_occasion = base_item["occasion"]
+    base_occasion = base_item.get("occasion", "neutral")
+    base_material = base_item.get("material", "unknown")
+    base_print    = base_item.get("print", "solid")
 
     superiores, inferiores, calzados = [], [], []
 
     for p in all_items:
-        cat = CATEGORY_MAP.get(p["type"], None)
+        cat = _categorize(p.get("type", ""))
+        if not cat:
+            continue
         color = rgb_to_name(p["color"])
         item = { **p, "color_name": color }
+        if cat == "superior":   superiores.append(item)
+        elif cat == "inferior": inferiores.append(item)
+        elif cat == "calzado":  calzados.append(item)
 
-        if cat == "superior":
-            superiores.append(item)
-        elif cat == "inferior":
-            inferiores.append(item)
-        elif cat == "calzado":
-            calzados.append(item)
+    def pick_basic(candidates, _=None):
+        """Color + occasion compatibility."""
+        ok = [x for x in candidates
+              if color_compatible(base_color, x["color_name"])
+              and compatible_ocasion(base_occasion, x.get("occasion", "neutral"))]
+        return random.choice(ok) if ok else (random.choice(candidates) if candidates else None)
+
+    def pick_with_constraints(candidates, target_cat):
+        """Pick respecting material + print constraints, with fallbacks."""
+        if not candidates:
+            return None
+
+        # Priority 1: same material AND print-ok
+        p1 = [x for x in candidates
+              if color_compatible(base_color, x["color_name"])
+              and compatible_ocasion(base_occasion, x.get("occasion", "neutral"))
+              and (not material_matching or x.get("material", "unknown") == base_material)
+              and (not print_matching or prints_ok(base_item, x, "same"))]
+        if target_cat == "inferior" and material_balance and p1:
+            p1.sort(key=lambda x: MATERIAL_WEIGHT.get(x.get("material", "unknown"), 0))
+            return p1[0]
+        if p1:
+            return random.choice(p1)
+
+        # Priority 2: same material, ignore print
+        p2 = [x for x in candidates
+              if color_compatible(base_color, x["color_name"])
+              and compatible_ocasion(base_occasion, x.get("occasion", "neutral"))
+              and (not material_matching or x.get("material", "unknown") == base_material)]
+        if target_cat == "inferior" and material_balance and p2:
+            p2.sort(key=lambda x: MATERIAL_WEIGHT.get(x.get("material", "unknown"), 0))
+            return p2[0]
+        if p2:
+            return random.choice(p2)
+
+        # Priority 3: print-ok (solid+neutral for printed base), any material
+        p3 = [x for x in candidates
+              if color_compatible(base_color, x["color_name"])
+              and compatible_ocasion(base_occasion, x.get("occasion", "neutral"))
+              and (not print_matching or prints_ok(base_item, x, "solid"))]
+        if p3:
+            return random.choice(p3)
+
+        # Fallback: any color+occasion
+        return pick_basic(candidates)
 
     outfit = { base_cat: base_item }
-
-
-    def pick_compatible(candidates):
-        compatibles = [
-            x for x in candidates
-            if color_compatible(base_color, x["color_name"])
-            and compatible_ocasion(base_occasion, x["occasion"])
-        ]
-        if compatibles:
-            return random.choice(compatibles)
-        if candidates:
-            return random.choice(candidates)
-        return None
+    use_constraints = material_matching or print_matching
+    pick = pick_with_constraints if use_constraints else pick_basic
 
     if base_cat == "superior":
-        outfit["inferior"] = pick_compatible(inferiores)
-        outfit["calzado"] = pick_compatible(calzados)
-
+        outfit["inferior"] = pick(inferiores, "inferior")
+        outfit["calzado"]  = pick(calzados, "calzado")
     elif base_cat == "inferior":
-        outfit["superior"] = pick_compatible(superiores)
-        outfit["calzado"] = pick_compatible(calzados)
-
+        outfit["superior"] = pick(superiores, "superior")
+        outfit["calzado"]  = pick(calzados, "calzado")
     elif base_cat == "calzado":
-        outfit["superior"] = pick_compatible(superiores)
-        outfit["inferior"] = pick_compatible(inferiores)
-
+        outfit["superior"] = pick(superiores, "superior")
+        outfit["inferior"] = pick(inferiores, "inferior")
     else:
         return jsonify({"error": "Tipo de prenda no soportado para base"}), 400
 

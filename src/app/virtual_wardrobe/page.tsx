@@ -1,24 +1,18 @@
 'use client';
 import React, { useState, useEffect } from "react";
-import { Resizable } from 'react-resizable';
-import Accordion from 'react-bootstrap/Accordion';
 import Modal from "react-bootstrap/Modal";
 import AppNavbar from "@/app/components/ui/Navbar";
 import ClothingForm from "@/app/components/ui/ClothingForm";
 import ProtectedRoute from "../components/ui/ProtectedRoute";
 
-import { SlOptionsVertical } from "react-icons/sl";
 import { BsGrid3X3Gap } from 'react-icons/bs';
-import { BiSolidTShirt } from "react-icons/bi";
 import { PiPantsFill, PiSneakerFill } from "react-icons/pi";
-import { BiCloset } from 'react-icons/bi';
 import { FaTshirt, FaHeart, FaEdit, FaTrash, FaEye, FaEyeSlash } from 'react-icons/fa';
 import { IoMdAdd } from 'react-icons/io';
 import { BsStars } from "react-icons/bs";
 import { IoShirtOutline } from "react-icons/io5";
 
 import 'bootstrap/dist/css/bootstrap.min.css';
-import 'react-resizable/css/styles.css';
 
 import { Clothing } from "../models/Clothing";
 import { mapClothingTypeToSection } from "@/lib/ClothingCategoryMapper";
@@ -31,8 +25,6 @@ import { account } from "@/lib/appwrite";
 const imgUrl = (fileId: string) =>
   `https://cloud.appwrite.io/v1/storage/buckets/${process.env.NEXT_PUBLIC_APPWRITE_BUCKET_ID}/files/${fileId}/view?project=${process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID}`;
 
-// ─── Clothing card ────────────────────────────────────────────────────────────
-// Presenta una prenda individual con imagen, nombre, color y acciones de editar/eliminar.
 const ClothingCard = ({
   item,
   onDelete,
@@ -49,12 +41,16 @@ const ClothingCard = ({
     <div className="vw-clothing-body">
       <p className="vw-clothing-name">{item.name}</p>
       <p className="vw-clothing-color">{item.color}</p>
-      <div className="vw-clothing-actions flex flex-wrap gap-2">
+      {item.material && item.material !== "Desconocido" && <p className="vw-clothing-detail">{item.material}</p>}
+      {item.print && item.print !== "Desconocido" && <p className="vw-clothing-detail">{item.print}</p>}
+      {item.style && item.style !== "Desconocido" && <p className="vw-clothing-detail">{item.style}</p>}
+      {item.size && <span className="vw-clothing-size">{item.size}</span>}
+      <div className="vw-clothing-actions">
         <button className="vw-btn vw-btn--danger" onClick={() => onDelete(item)}>
-          <FaTrash size={13} aria-hidden="true" /> Eliminar
+          <FaTrash size={12} aria-hidden="true" /> Eliminar
         </button>
         <button className="vw-btn vw-btn--primary" onClick={() => onEdit(item)}>
-          <FaEdit size={13} aria-hidden="true" /> Editar
+          <FaEdit size={12} aria-hidden="true" /> Editar
         </button>
       </div>
     </div>
@@ -103,9 +99,6 @@ const VirtualWardrobe = () => {
   const [publishDescription, setPublishDescription] = useState("");
   const [publishLoading, setPublishLoading] = useState(false);
   const [userId, setUserId]       = useState<string>("");
-  const [sidebarWidth, setSidebarWidth]   = useState(300);
-  const [windowHeight, setWindowHeight]   = useState(800);
-
   const upperClothes = clothes.filter(c => typeof c.type === 'string' && mapClothingTypeToSection(c.type) === "superior");
   const lowerClothes = clothes.filter(c => typeof c.type === 'string' && mapClothingTypeToSection(c.type) === "inferior");
   const shoes        = clothes.filter(c => typeof c.type === 'string' && mapClothingTypeToSection(c.type) === "calzado");
@@ -114,13 +107,8 @@ const VirtualWardrobe = () => {
     account.get().then(u => setUserId(u.$id));
   }, []);
 
-  // Cargar la información inicial: prendas del usuario y altura actual de la ventana para el redimensionamiento de la barra lateral.
   useEffect(() => {
-    setWindowHeight(window.innerHeight);
-    const onResize = () => setWindowHeight(window.innerHeight);
-    window.addEventListener('resize', onResize);
     clothingController.getUserClothes().then(setClothes).catch(console.error);
-    return () => window.removeEventListener('resize', onResize);
   }, []);
 
   useEffect(() => {
@@ -151,10 +139,6 @@ const VirtualWardrobe = () => {
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [showForm, publishModalOpen, showEditModal]);
-
-  const handleResize = (_: any, { size }: { size: { width: number } }) => {
-    setSidebarWidth(Math.max(260, Math.min(500, size.width)));
-  };
 
   // Remover una prenda y actualizar el estado local tras su eliminación.
   const handleDelete = async (item: Clothing) => {
@@ -249,7 +233,7 @@ const VirtualWardrobe = () => {
     { label: 'Calzado',    section: 'calzado',    icon: <PiSneakerFill size={18} /> },
   ];
   const navOutfits = [
-    { label: 'Todos',      section: 'todos',      icon: <BsGrid3X3Gap size={18} /> },
+    { label: 'Planeados',  section: 'todos',      icon: <BsGrid3X3Gap size={18} /> },
     { label: 'Favoritos',  section: 'favoritos',  icon: <FaHeart size={18} /> },
   ];
 
@@ -364,98 +348,54 @@ const VirtualWardrobe = () => {
         <div className="vw-layout">
 
           {/* ── Sidebar ── */}
-          <div className="vw-sidebar-wrap">
-            <Resizable
-              width={sidebarWidth}
-              height={windowHeight}
-              onResize={handleResize}
-              minConstraints={[260, windowHeight]}
-              maxConstraints={[500, windowHeight]}
-              resizeHandles={['e']}
-              axis="x"
-              handle={(
-                <button
-              type="button"
-              className="vw-resize-handle react-resizable-handle react-resizable-handle-e"
-              aria-label="Redimensionar sidebar"
-            >
-              <div className="vw-resize-grip">
-                <SlOptionsVertical size={20} className="vw-resize-icon" aria-hidden="true" />
-              </div>
-            </button>
-              )}
-            >
-              <aside className="vw-sidebar" style={{ width: `${sidebarWidth}px` }}>
+          <aside className="vw-sidebar">
 
-                <Accordion defaultActiveKey={['0']} alwaysOpen className="vw-accordion">
+            <p className="vw-sidebar-group-label">Prendas</p>
+            {navClothes.map(({ label, section, icon }) => (
+              <button
+                key={section}
+                className={`vw-nav-btn ${selectedCategory === 'prendas' && selectedSection === section ? 'vw-nav-btn--active' : ''}`}
+                onClick={() => handleCategoryClick('prendas', section)}
+              >
+                {icon}
+                <span>{label}</span>
+              </button>
+            ))}
 
-                  {/* Prendas */}
-                  <Accordion.Item eventKey="0" className="vw-accordion-item">
-                    <Accordion.Header>
-                      <BiCloset size={20} className="vw-accordion-icon" />
-                      <span className="vw-accordion-label">Tus prendas</span>
-                    </Accordion.Header>
-                    <Accordion.Body className="vw-accordion-body">
-                      {navClothes.map(({ label, section, icon }) => (
-                        <button
-                          key={section}
-                          className={`vw-nav-btn ${selectedCategory === 'prendas' && selectedSection === section ? 'vw-nav-btn--active' : ''}`}
-                          onClick={() => handleCategoryClick('prendas', section)}
-                        >
-                          {icon}
-                          <span>{label}</span>
-                        </button>
-                      ))}
-                    </Accordion.Body>
-                  </Accordion.Item>
+            <p className="vw-sidebar-group-label">Atuendos</p>
+            {navOutfits.map(({ label, section, icon }) => (
+              <button
+                key={section}
+                className={`vw-nav-btn ${selectedCategory === 'atuendos' && selectedSection === section ? 'vw-nav-btn--active' : ''}`}
+                onClick={() => handleCategoryClick('atuendos', section)}
+              >
+                {icon}
+                <span>{label}</span>
+              </button>
+            ))}
 
-                  {/* Atuendos */}
-                  <Accordion.Item eventKey="1" className="vw-accordion-item">
-                    <Accordion.Header>
-                      <BiSolidTShirt size={20} className="vw-accordion-icon" />
-                      <span className="vw-accordion-label">Tus atuendos</span>
-                    </Accordion.Header>
-                    <Accordion.Body className="vw-accordion-body">
-                      {navOutfits.map(({ label, section, icon }) => (
-                        <button
-                          key={section}
-                          className={`vw-nav-btn ${selectedCategory === 'atuendos' && selectedSection === section ? 'vw-nav-btn--active' : ''}`}
-                          onClick={() => handleCategoryClick('atuendos', section)}
-                        >
-                          {icon}
-                          <span>{label}</span>
-                        </button>
-                      ))}
-                    </Accordion.Body>
-                  </Accordion.Item>
+            <div className="vw-sidebar-actions">
+              <button className="vw-sidebar-action-btn vw-sidebar-action-btn--primary" onClick={() => setShowForm(true)}>
+                <IoMdAdd size={18} aria-hidden="true" />
+                <span>AÑADIR PRENDA</span>
+              </button>
+              <button className="vw-sidebar-action-btn vw-sidebar-action-btn--outline">
+                <BsStars size={18} aria-hidden="true" />
+                <span>¿LISTO PARA GENERAR?</span>
+              </button>
+            </div>
 
-                </Accordion>
-
-                {/* Botones de acción */}
-                <div className="vw-sidebar-actions">
-                  <button className="vw-sidebar-action-btn" onClick={() => setShowForm(true)}>
-                    <IoMdAdd size={18} aria-hidden="true" />
-                    <span>Añadir prenda</span>
-                  </button>
-                  <button className="vw-sidebar-action-btn vw-sidebar-action-btn--accent">
-                    <BsStars size={18} aria-hidden="true" />
-                    <span>¿Listo para generar?</span>
-                  </button>
-                </div>
-
-              </aside>
-            </Resizable>
-          </div>
+          </aside>
 
           {/* ── Contenido Principal ── */}
           <main className="vw-main">
             <nav className="vw-breadcrumb">
               <span className="vw-breadcrumb-root">
-                {selectedCategory === 'prendas' ? 'Tus prendas' : 'Tus atuendos'}
+                {selectedCategory === 'prendas' ? 'TUS PRENDAS' : 'TUS ATUENDOS'}
               </span>
               <span className="vw-breadcrumb-sep">/</span>
               <span className="vw-breadcrumb-active">
-                {selectedSection.charAt(0).toUpperCase() + selectedSection.slice(1)}
+                {selectedSection === 'todas' ? 'TODAS' : selectedSection.toUpperCase()}
               </span>
             </nav>
             {renderContent()}

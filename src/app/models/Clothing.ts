@@ -4,6 +4,8 @@ export interface Clothing {
   color?: string;
   type?: string;
   material?: string;
+  print?: string;
+  style?: string;
   size?: string;
   occasion?: string;
   image?: string;

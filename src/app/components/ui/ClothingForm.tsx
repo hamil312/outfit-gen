@@ -5,6 +5,38 @@ import { Clothing } from "@/app/models/Clothing";
 import { IoShirtOutline } from "react-icons/io5";
 import { BsStars } from "react-icons/bs";
 
+const TYPE_OPTIONS = [
+  { label: "Camisa", value: "shirt" },
+  { label: "Camiseta", value: "t-shirt" },
+  { label: "Chamarra", value: "jacket" },
+  { label: "Vestido", value: "dress" },
+  { label: "Pantalón", value: "pants" },
+  { label: "Short", value: "shorts" },
+  { label: "Falda", value: "skirt" },
+  { label: "Zapatos", value: "shoes" },
+];
+
+const COLOR_OPTIONS = [
+  "black", "white", "gray", "beige", "red", "blue", "green", "yellow", "neutral"
+];
+
+const MATERIAL_OPTIONS = [
+  "cotton", "denim", "leather", "wool", "polyester", "silk", "linen",
+  "nylon", "velvet", "lace", "chiffon", "knit", "fleece", "suede", "canvas"
+];
+
+const PRINT_OPTIONS = [
+  "solid", "striped", "floral", "plaid", "polka dot", "graphic",
+  "animal print", "geometric", "tie-dye", "checkered", "camouflage", "paisley"
+];
+
+const STYLE_OPTIONS = [
+  "vintage", "bohemian", "minimalist", "streetwear", "preppy", "classic",
+  "edgy", "romantic", "retro", "avant-garde", "punk", "nautical"
+];
+
+const OCCASION_OPTIONS = ["formal", "casual", "sport", "informal"];
+
 interface ClothingFormProps {
   initialValues?: Partial<Clothing>;
   mode?: "create" | "edit";
@@ -23,8 +55,10 @@ export default function ClothingForm({
   const [form, setForm] = useState({
     name: initialValues.name || "",
     color: initialValues.color || "",
-    type: initialValues.type || "Top",
+    type: initialValues.type || "shirt",
     material: initialValues.material || "",
+    print: initialValues.print || "",
+    style: initialValues.style || "",
     size: initialValues.size || "",
     occasion: initialValues.occasion || "",
   });
@@ -56,6 +90,9 @@ export default function ClothingForm({
         ...current,
         type: analysis.type || current.type,
         color: analysis.color_name || current.color,
+        material: analysis.material || current.material,
+        print: analysis.print || current.print,
+        style: analysis.style || current.style,
         occasion: analysis.occasion || current.occasion,
       }));
     } catch (error) {
@@ -92,8 +129,10 @@ export default function ClothingForm({
         setForm({
           name: "",
           color: "",
-          type: "Top",
+          type: "shirt",
           material: "",
+          print: "",
+          style: "",
           size: "",
           occasion: "",
         });
@@ -117,9 +156,9 @@ export default function ClothingForm({
       {/* Upload */}
       {mode === "create" && (
         <div className="cf-upload-area">
-          <label 
-            className="cf-upload-label" 
-            htmlFor="cf-file-input" 
+          <label
+            className="cf-upload-label"
+            htmlFor="cf-file-input"
             tabIndex={0}
             onKeyDown={(e) => {
               if (e.key === 'Enter' || e.key === ' ') {
@@ -182,34 +221,74 @@ export default function ClothingForm({
             onChange={handleChange}
             className="cf-input"
           >
-            <option value="Top">Superior</option>
-            <option value="Pants">Inferior</option>
-            <option value="Shoes">Calzado</option>
+            {TYPE_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>{o.label}</option>
+            ))}
           </select>
         </div>
 
         <div className="cf-field">
           <label htmlFor="cf-color" className="cf-label">Color</label>
-          <input
+          <select
             id="cf-color"
-            type="text"
             name="color"
             value={form.color}
             onChange={handleChange}
             className="cf-input"
-          />
+          >
+            <option value="">Seleccionar</option>
+            {COLOR_OPTIONS.map((c) => (
+              <option key={c} value={c}>{c}</option>
+            ))}
+          </select>
         </div>
 
         <div className="cf-field">
           <label htmlFor="cf-material" className="cf-label">Material</label>
-          <input
+          <select
             id="cf-material"
-            type="text"
             name="material"
             value={form.material}
             onChange={handleChange}
             className="cf-input"
-          />
+          >
+            <option value="">Seleccionar</option>
+            {MATERIAL_OPTIONS.map((m) => (
+              <option key={m} value={m}>{m}</option>
+            ))}
+          </select>
+        </div>
+
+        <div className="cf-field">
+          <label htmlFor="cf-print" className="cf-label">Estampado</label>
+          <select
+            id="cf-print"
+            name="print"
+            value={form.print}
+            onChange={handleChange}
+            className="cf-input"
+          >
+            <option value="">Seleccionar</option>
+            {PRINT_OPTIONS.map((p) => (
+              <option key={p} value={p}>{p}</option>
+            ))}
+          </select>
+        </div>
+
+        <div className="cf-field">
+          <label htmlFor="cf-style" className="cf-label">Estilo</label>
+          <select
+            id="cf-style"
+            name="style"
+            value={form.style}
+            onChange={handleChange}
+            className="cf-input"
+          >
+            <option value="">Seleccionar</option>
+            {STYLE_OPTIONS.map((s) => (
+              <option key={s} value={s}>{s}</option>
+            ))}
+          </select>
         </div>
 
         <div className="cf-field">
@@ -226,14 +305,18 @@ export default function ClothingForm({
 
         <div className="cf-field">
           <label htmlFor="cf-occasion" className="cf-label">Ocasión</label>
-          <input
+          <select
             id="cf-occasion"
-            type="text"
             name="occasion"
             value={form.occasion}
             onChange={handleChange}
             className="cf-input"
-          />
+          >
+            <option value="">Seleccionar</option>
+            {OCCASION_OPTIONS.map((o) => (
+              <option key={o} value={o}>{o}</option>
+            ))}
+          </select>
         </div>
       </div>
 

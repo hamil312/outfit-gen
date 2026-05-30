@@ -5,8 +5,9 @@ import AppNavbar from "../components/ui/Navbar";
 import Footer from "@/app/components/ui/Footer";
 import ProtectedRoute from "../components/ui/ProtectedRoute";
 import { BsStars } from "react-icons/bs";
-import { HiOutlineViewGrid } from "react-icons/hi";
+import { HiOutlineViewGrid, HiChevronRight } from "react-icons/hi";
 import { IoShirtOutline } from "react-icons/io5";
+import { IoMdAdd } from "react-icons/io";
 import { clothingController } from "../controllers/ClothingController";
 import { account } from "@/lib/appwrite";
 import { Clothing } from "../models/Clothing";
@@ -28,8 +29,16 @@ export default function Generator() {
   // Estado de componentes para las selecciones de filtros, visibilidad de dropdowns, carga y estado de modales.
   const [selectedContext, setSelectedContext] = useState<string>("");
   const [selectedColor, setSelectedColor]     = useState<string>("");
+  const [selectedStyle, setSelectedStyle]     = useState<string>("");
   const [showContextDropdown, setShowContextDropdown] = useState(false);
-  const [showColorDropdown, setShowColorDropdown]     = useState(false);
+  const [showStyleDropdown, setShowStyleDropdown] = useState(false);
+  const [useMaterialMatching, setUseMaterialMatching] = useState(false);
+  const [useMaterialBalance, setUseMaterialBalance] = useState(false);
+  const [selectedMaterial, setSelectedMaterial] = useState<string>("");
+  const [showMaterialDropdown, setShowMaterialDropdown] = useState(false);
+  const [usePrintMatching, setUsePrintMatching] = useState(false);
+  const [selectedPrint, setSelectedPrint] = useState<string>("");
+  const [showPrintDropdown, setShowPrintDropdown] = useState(false);
   const [loading, setLoading]       = useState(false);
   const [outfits, setOutfits]       = useState<any[]>([]);
   const [showModal, setShowModal]   = useState(false);
@@ -46,10 +55,12 @@ export default function Generator() {
   // Cerrar los dropdowns al hacer clic fuera de ellos.
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (!(e.target as HTMLElement).closest(".gen-dropdown")) {
-        setShowContextDropdown(false);
-        setShowColorDropdown(false);
-      }
+        if (!(e.target as HTMLElement).closest(".gen-dropdown")) {
+          setShowContextDropdown(false);
+          setShowStyleDropdown(false);
+          setShowMaterialDropdown(false);
+          setShowPrintDropdown(false);
+        }
     };
     document.addEventListener("click", handler);
     return () => document.removeEventListener("click", handler);
@@ -60,26 +71,11 @@ export default function Generator() {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
       setShowContextDropdown(!showContextDropdown);
-      setShowColorDropdown(false);
     } else if (e.key === 'Escape') {
       setShowContextDropdown(false);
     } else if (e.key === 'ArrowDown' && showContextDropdown) {
       e.preventDefault();
       // Focus the first option when the dropdown is already open.
-      const firstOption = document.querySelector('.gen-dropdown-menu .gen-dropdown-item');
-      (firstOption as HTMLElement)?.focus();
-    }
-  };
-
-  const handleColorKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      setShowColorDropdown(!showColorDropdown);
-      setShowContextDropdown(false);
-    } else if (e.key === 'Escape') {
-      setShowColorDropdown(false);
-    } else if (e.key === 'ArrowDown' && showColorDropdown) {
-      e.preventDefault();
       const firstOption = document.querySelector('.gen-dropdown-menu .gen-dropdown-item');
       (firstOption as HTMLElement)?.focus();
     }
@@ -200,12 +196,22 @@ export default function Generator() {
     });
   }, []);
 
+  const PRINT_OPTIONS = ["Any", "Solid", "Striped", "Floral", "Plaid", "Polka dot", "Graphic", "Animal print", "Geometric", "Tie-dye", "Checkered", "Camouflage", "Paisley"];
+  const STYLE_OPTIONS = ["Any", "Vintage", "Bohemian", "Minimalist", "Streetwear", "Preppy", "Classic", "Edgy", "Romantic", "Retro", "Avant-garde", "Punk", "Nautical"];
+  const MATERIAL_OPTIONS = ["Any", "Cotton", "Denim", "Leather", "Wool", "Polyester", "Silk", "Linen", "Nylon", "Velvet", "Lace", "Chiffon", "Knit", "Fleece", "Suede", "Canvas"];
+
   // Generar atuendos basados en los filtros seleccionados y mostrarlos.
   const handleGenerate = async () => {
     setLoading(true);
     const results = await clothingController.generateOutfits(
       selectedColor.toLowerCase(),
-      selectedContext.toLowerCase()
+      selectedContext.toLowerCase(),
+      selectedStyle.toLowerCase(),
+      useMaterialMatching,
+      useMaterialBalance,
+      selectedMaterial,
+      usePrintMatching,
+      selectedPrint,
     );
     setOutfits(results);
     setLoading(false);
@@ -258,15 +264,18 @@ export default function Generator() {
                   className="gen-modal-item"
                   tabIndex={0}
                   onClick={async () => {
-                    const result = await clothingController.generateOutfitWithBase(cloth.$id!);
+                    const result = await clothingController.generateOutfitWithBase(
+                      cloth.$id!, [], useMaterialMatching, useMaterialBalance, usePrintMatching
+                    );
                     setOutfits([result]);
                     setShowModal(false);
                   }}
                   onKeyDown={async (e) => {
                     if (e.key === 'Enter' || e.key === ' ') {
                       e.preventDefault();
-                      // Simulate click
-                      const result = await clothingController.generateOutfitWithBase(cloth.$id!);
+                      const result = await clothingController.generateOutfitWithBase(
+                        cloth.$id!, [], useMaterialMatching, useMaterialBalance, usePrintMatching
+                      );
                       setOutfits([result]);
                       setShowModal(false);
                     }
@@ -339,29 +348,26 @@ export default function Generator() {
         <AppNavbar />
 
         <main className="gen-main">
-          <h1 className="gen-heading">¿Qué tipo de outfit quieres hoy?</h1>
-
-          <section className="gen-band">
+          <div className="gen-band">
             <div className="gen-band-inner">
 
               {/* ── Columna izquierda: filtros ── */}
               <aside className="gen-sidebar">
-                <h2 className="gen-sidebar-label">Filtros</h2>
+                <p className="gen-sidebar-label">Filtros</p>
 
-                {/* Dropdown de contexto */}
+                <p className="gen-field-label">Contexto</p>
                 <div className="gen-dropdown">
                   <button
                     className="gen-select-btn"
-                    onClick={() => { setShowContextDropdown(!showContextDropdown); setShowColorDropdown(false); }}
+                    onClick={() => setShowContextDropdown(!showContextDropdown)}
                     onKeyDown={handleContextKeyDown}
                     aria-expanded={showContextDropdown}
                     aria-haspopup="listbox"
                     aria-label="Seleccionar contexto"
                   >
-                    <span>{selectedContext || "Contexto"}</span>
+                    <span>{selectedContext || "Evento Formal"}</span>
                     <span className="gen-chevron" aria-hidden="true">▾</span>
                   </button>
-                  {/* Aquí se mapean las opciones del dropdown y el uso de teclado para navegación */}
                   {showContextDropdown && (
                     <div className="gen-dropdown-menu" role="listbox">
                       {["Any", "Formal", "Casual", "Sport"].map((opt) => (
@@ -381,30 +387,55 @@ export default function Generator() {
                   )}
                 </div>
 
-                {/* Dropdown de color */}
+                <p className="gen-color-label">Color predominante</p>
+                <div className="gen-color-options">
+                  {[
+                    { label: 'Any',   hex: '#00000000', cls: 'gen-color-circle--any',  txt: 'A' },
+                    { label: 'black', hex: '#1a1a1a' },
+                    { label: 'white', hex: '#ffffff' },
+                    { label: 'gray',  hex: '#9ca3af' },
+                    { label: 'beige', hex: '#d4c5a9' },
+                    { label: 'red',   hex: '#dc2626' },
+                    { label: 'blue',  hex: '#2563eb' },
+                    { label: 'green', hex: '#16a34a' },
+                    { label: 'yellow', hex: '#eab308' },
+                  ].map(({ label, hex, cls, txt }) => (
+                    <button
+                      key={label}
+                      className={`gen-color-circle ${selectedColor === label ? 'gen-color-circle--selected' : ''} ${cls || ''}`}
+                      onClick={() => setSelectedColor(selectedColor === label ? '' : label)}
+                      aria-label={label}
+                      title={label}
+                      style={hex !== '#00000000' ? { backgroundColor: hex, borderColor: hex === '#ffffff' ? '#d1d5db' : undefined } : {}}
+                    >
+                      {txt || ''}
+                    </button>
+                  ))}
+                </div>
+
+                <p className="gen-field-label">Estilo</p>
                 <div className="gen-dropdown">
                   <button
                     className="gen-select-btn"
-                    onClick={() => { setShowColorDropdown(!showColorDropdown); setShowContextDropdown(false); }}
-                    onKeyDown={handleColorKeyDown}
-                    aria-expanded={showColorDropdown}
+                    onClick={() => setShowStyleDropdown(!showStyleDropdown)}
+                    aria-expanded={showStyleDropdown}
                     aria-haspopup="listbox"
-                    aria-label="Seleccionar color"
+                    aria-label="Seleccionar estilo"
                   >
-                    <span>{selectedColor || "Color"}</span>
+                    <span>{selectedStyle || "Cualquier estilo"}</span>
                     <span className="gen-chevron" aria-hidden="true">▾</span>
                   </button>
-                  {showColorDropdown && (
-                    <div className="gen-dropdown-menu" role="listbox">
-                      {["Any", "Red", "Blue", "Yellow", "Green", "Black", "White"].map((opt) => (
+                  {showStyleDropdown && (
+                    <div className="gen-dropdown-menu gen-dropdown-menu--tall" role="listbox">
+                      {STYLE_OPTIONS.map((opt) => (
                         <div
                           key={opt}
-                          className={`gen-dropdown-item ${selectedColor === opt ? "gen-dropdown-item--active" : ""}`}
-                          onClick={() => { setSelectedColor(opt); setShowColorDropdown(false); }}
-                          onKeyDown={(e) => handleOptionKeyDown(e, opt, setSelectedColor, () => setShowColorDropdown(false))}
+                          className={`gen-dropdown-item ${selectedStyle === opt ? "gen-dropdown-item--active" : ""}`}
+                          onClick={() => { setSelectedStyle(opt); setShowStyleDropdown(false); }}
+                          onKeyDown={(e) => handleOptionKeyDown(e, opt, setSelectedStyle, () => setShowStyleDropdown(false))}
                           tabIndex={0}
                           role="option"
-                          aria-selected={selectedColor === opt}
+                          aria-selected={selectedStyle === opt}
                         >
                           {opt}
                         </div>
@@ -415,9 +446,118 @@ export default function Generator() {
 
                 <div className="gen-sidebar-divider" />
 
-                {/* Botón de generación */}
+                <p className="gen-field-label">Material</p>
+
+                <label className="gen-toggle-row">
+                  <input
+                    type="checkbox"
+                    checked={useMaterialMatching}
+                    onChange={(e) => setUseMaterialMatching(e.target.checked)}
+                  />
+                  <span className="gen-toggle-track">
+                    <span className="gen-toggle-knob" />
+                  </span>
+                  <span className="gen-toggle-text">Usar material</span>
+                </label>
+
+                {useMaterialMatching && (
+                  <>
+                    <div className="gen-dropdown" style={{ marginTop: 8 }}>
+                      <button
+                        className="gen-select-btn"
+                        onClick={() => setShowMaterialDropdown(!showMaterialDropdown)}
+                        aria-expanded={showMaterialDropdown}
+                        aria-haspopup="listbox"
+                        aria-label="Seleccionar material"
+                      >
+                        <span>{selectedMaterial || "Cualquier material"}</span>
+                        <span className="gen-chevron" aria-hidden="true">▾</span>
+                      </button>
+                      {showMaterialDropdown && (
+                        <div className="gen-dropdown-menu gen-dropdown-menu--tall" role="listbox">
+                          {MATERIAL_OPTIONS.map((opt) => (
+                            <div
+                              key={opt}
+                              className={`gen-dropdown-item ${selectedMaterial === opt ? "gen-dropdown-item--active" : ""}`}
+                              onClick={() => { setSelectedMaterial(opt); setShowMaterialDropdown(false); }}
+                              onKeyDown={(e) => handleOptionKeyDown(e, opt, setSelectedMaterial, () => setShowMaterialDropdown(false))}
+                              tabIndex={0}
+                              role="option"
+                              aria-selected={selectedMaterial === opt}
+                            >
+                              {opt}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    <label className="gen-toggle-row">
+                      <input
+                        type="checkbox"
+                        checked={useMaterialBalance}
+                        onChange={(e) => setUseMaterialBalance(e.target.checked)}
+                      />
+                      <span className="gen-toggle-track">
+                        <span className="gen-toggle-knob" />
+                      </span>
+                      <span className="gen-toggle-text">Equilibrio (superior pesado / inferior ligero)</span>
+                    </label>
+                  </>
+                )}
+
+                <div className="gen-sidebar-divider" />
+
+                <p className="gen-field-label">Estampado</p>
+
+                <label className="gen-toggle-row">
+                  <input
+                    type="checkbox"
+                    checked={usePrintMatching}
+                    onChange={(e) => setUsePrintMatching(e.target.checked)}
+                  />
+                  <span className="gen-toggle-track">
+                    <span className="gen-toggle-knob" />
+                  </span>
+                  <span className="gen-toggle-text">Usar estampado</span>
+                </label>
+
+                {usePrintMatching && (
+                  <div className="gen-dropdown" style={{ marginTop: 8 }}>
+                    <button
+                      className="gen-select-btn"
+                      onClick={() => setShowPrintDropdown(!showPrintDropdown)}
+                      aria-expanded={showPrintDropdown}
+                      aria-haspopup="listbox"
+                      aria-label="Seleccionar estampado"
+                    >
+                      <span>{selectedPrint || "Cualquier estampado"}</span>
+                      <span className="gen-chevron" aria-hidden="true">▾</span>
+                    </button>
+                    {showPrintDropdown && (
+                      <div className="gen-dropdown-menu" role="listbox">
+                        {PRINT_OPTIONS.map((opt) => (
+                          <div
+                            key={opt}
+                            className={`gen-dropdown-item ${selectedPrint === opt ? "gen-dropdown-item--active" : ""}`}
+                            onClick={() => { setSelectedPrint(opt); setShowPrintDropdown(false); }}
+                            onKeyDown={(e) => handleOptionKeyDown(e, opt, setSelectedPrint, () => setShowPrintDropdown(false))}
+                            tabIndex={0}
+                            role="option"
+                            aria-selected={selectedPrint === opt}
+                          >
+                            {opt}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                <div className="gen-sidebar-divider" />
+
                 <button className="gen-cta-btn" onClick={handleGenerate} disabled={loading}>
-                  <BsStars size={16} className="gen-cta-icon" aria-hidden="true" />
+                  <BsStars size={15} aria-hidden="true" />
                   {loading ? "Generando…" : "Generar"}
                 </button>
               </aside>
@@ -427,13 +567,13 @@ export default function Generator() {
                 {loading ? (
                   <div className="gen-placeholder">
                     <div className="gen-spinner" />
-                    <p>Generando atuendos…</p>
+                    <p className="gen-placeholder-text">Generando atuendos…</p>
                   </div>
                 ) : outfits.length === 0 ? (
                   <div className="gen-placeholder">
                     <IoShirtOutline className="gen-placeholder-icon" aria-hidden="true" />
                     <p className="gen-placeholder-text">
-                      Aquí se mostrarán las prendas seleccionadas o generadas.
+                      Esperando tu visión
                     </p>
                   </div>
                 ) : (
@@ -469,22 +609,47 @@ export default function Generator() {
               </div>
 
               {/* ── Columna derecha: acciones ── */}
-              <aside className="gen-sidebar gen-sidebar--right">
+              <aside className="gen-sidebar--right">
                 <p className="gen-sidebar-label">Acciones</p>
 
                 <Link href="/virtual_wardrobe" className="gen-action-btn">
-                  <HiOutlineViewGrid size={16} className="gen-action-icon" aria-hidden="true" />
-                  Guardarropa
+                  <HiOutlineViewGrid size={16} aria-hidden="true" />
+                  <span style={{ flex: 1, textAlign: 'left' }}>Guardarropa</span>
+                  <HiChevronRight className="gen-action-right" aria-hidden="true" />
                 </Link>
 
                 <button className="gen-action-btn" onClick={() => setShowModal(true)}>
-                  <IoShirtOutline size={16} className="gen-action-icon" aria-hidden="true" />
-                  Seleccionar prenda
+                  <IoShirtOutline size={16} aria-hidden="true" />
+                  <span style={{ flex: 1, textAlign: 'left' }}>Seleccionar prenda</span>
+                  <IoMdAdd size={16} className="gen-action-right" aria-hidden="true" />
                 </button>
+
+                <p className="gen-suggestions-label">Sugerencias del feed</p>
+                <div className="gen-suggestions">
+                  {userClothes.length > 0 ? (
+                    userClothes.slice(0, 2).map((cloth) => (
+                      <div key={cloth.$id} className="gen-suggestion-thumb" onClick={() => setShowModal(true)}>
+                        <img
+                          src={imgUrl(cloth.image ?? '')}
+                          alt={cloth.name}
+                          className="gen-suggestion-img"
+                        />
+                        <div className="gen-suggestion-info">
+                          <p className="gen-suggestion-name">{cloth.name}</p>
+                          <p className="gen-suggestion-meta">{cloth.color} · {cloth.type}</p>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="gen-placeholder-text" style={{ fontSize: 13, textAlign: 'left' }}>
+                      Aún no hay sugerencias.
+                    </p>
+                  )}
+                </div>
               </aside>
 
             </div>
-          </section>
+          </div>
         </main>
 
         <Footer />

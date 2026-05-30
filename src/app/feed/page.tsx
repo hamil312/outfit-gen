@@ -424,27 +424,27 @@ const FeedPage = () => {
         {/* Filtros y búsqueda */}
         <div className="feed-filters">
           <div className="feed-search">
-            <label htmlFor="search-input" className="block text-sm font-medium text-gray-700 mb-1">Buscar</label>
-            <div className="flex items-center">
-              <FaSearch className="feed-search-icon mr-2 text-gray-400 mb-4" aria-hidden="true" />
+            <label htmlFor="search-input" className="feed-search-label">Buscar</label>
+            <div className="feed-search-input-wrap">
+              <FaSearch className="feed-search-icon" aria-hidden="true" />
               <input
                 id="search-input"
                 type="text"
-                placeholder="Buscar por nombre de usuario, atuendo o descripción..."
+                placeholder="Buscar por usuario, atuendo o descripción..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="feed-search-input flex-1 pl-4 pr-4 py-2 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+                className="feed-search-input"
               />
             </div>
           </div>
-          <div className="feed-filter-row flex gap-4 mb-4">
+          <div className="feed-filter-row">
             <div className="feed-filter-group">
-              <label htmlFor="occasion-select" className="block text-sm font-medium text-gray-700 mb-1">Ocasion</label>
+              <label htmlFor="occasion-select">Ocasión</label>
               <select
                 id="occasion-select"
                 value={selectedOccasion}
                 onChange={(e) => setSelectedOccasion(e.target.value)}
-                className="feed-filter-select border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+                className="feed-filter-select"
               >
                 <option value="">Todas las ocasiones</option>
                 <option value="Casual">Casual</option>
@@ -455,12 +455,12 @@ const FeedPage = () => {
               </select>
             </div>
             <div className="feed-filter-group">
-              <label htmlFor="sort-select" className="block text-sm font-medium text-gray-700 mb-1">Ordenar por</label>
+              <label htmlFor="sort-select">Ordenar por</label>
               <select
                 id="sort-select"
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as 'recent' | 'likes')}
-                className="feed-filter-select border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+                className="feed-filter-select"
               >
                 <option value="recent">Más reciente</option>
                 <option value="likes">Más me gusta</option>

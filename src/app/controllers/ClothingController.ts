@@ -2,6 +2,18 @@ import { clothingRepository } from "@/app/repositories/ClothingRepository";
 import { Clothing } from "@/app/models/Clothing";
 import { account, databases } from "@/lib/appwrite";
 
+const normalize = (item: any) => ({
+  $id: item.$id,
+  id: item.$id,
+  image: item.image,
+  type: item.type,
+  color: item.color,
+  occasion: item.occasion?.toLowerCase() || "neutral",
+  style: item.style?.toLowerCase() || "unknown",
+  material: item.material?.toLowerCase() || "unknown",
+  print: item.print?.toLowerCase() || "solid",
+});
+
 export const clothingController = {
   async addClothing(file: File, data: Omit<Clothing, "image">) {
     const imageId = await clothingRepository.uploadImage(file);
@@ -25,12 +37,11 @@ export const clothingController = {
       image: imageId,
       type: data.type?.trim() || analysis.type || "Desconocido",
       color: data.color?.trim() || analysis.color_name || "Desconocido",
-      material: data.material?.trim() || "Desconocido",
+      material: data.material?.trim() || analysis.material || "Desconocido",
+      print: data.print?.trim() || analysis.print || "Desconocido",
+      style: data.style?.trim() || analysis.style || "Desconocido",
       occasion: data.occasion?.trim() || analysis.occasion || "Desconocido",
     };
-    
-
-    
 
     const created = await clothingRepository.createClothing(clothingData);
     return created;
@@ -38,7 +49,6 @@ export const clothingController = {
 
   async deleteClothing(clothing: Clothing) {
     if (!clothing.$id) throw new Error("Missing document ID");
-
     await clothingRepository.deleteClothing(clothing.$id, clothing.image);
     return true;
   },
@@ -48,63 +58,60 @@ export const clothingController = {
     return clothingRepository.getClothingsByUser(user.$id);
   },
 
-  async generateOutfitWithBase(baseClothingId?: string) {
+  async generateOutfitWithBase(
+    baseItem: any,
+    allItems?: any[],
+    useMaterialMatching = false,
+    useMaterialBalance = false,
+    usePrintMatching = false,
+  ) {
     const user = await account.get();
     const allClothes = await clothingRepository.getClothingsByUser(user.$id);
+    const items = allItems && allItems.length ? allItems : allClothes;
 
-    const baseItem = allClothes.find(c => c.$id === baseClothingId);
-    if (!baseItem) throw new Error("Prenda base no encontrada");
+    const base = typeof baseItem === "string"
+      ? allClothes.find(c => c.$id === baseItem)
+      : baseItem;
+    if (!base) throw new Error("Prenda base no encontrada");
 
-    const normalize = (item: any) => {
-      return {
-        $id: item.$id, 
-        id: item.$id,
-        image: item.image,
-        type: item.type,
-        color: item.color,
-        occasion: item.occasion?.toLowerCase() || "neutral"
-      };
-    };
-
-    const base = normalize(baseItem);
-    const all = allClothes.map(normalize);
+    const normalizedBase = normalize(base);
+    const normalizedAll = items.map(normalize);
 
     const response = await fetch("http://localhost:5000/generate-outfit-with-base", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ base_item: base, all_items: all })
+      body: JSON.stringify({
+        base_item: normalizedBase,
+        all_items: normalizedAll,
+        material_matching: useMaterialMatching,
+        material_balance: useMaterialBalance,
+        print_matching: usePrintMatching,
+      }),
     });
 
     const data = await response.json();
     return data.outfit;
   },
 
-  async generateOutfits(selectedColor?: string, selectedContext?: string) {
+  async generateOutfits(
+    selectedColor?: string,
+    selectedContext?: string,
+    selectedStyle?: string,
+    useMaterialMatching = false,
+    useMaterialBalance = false,
+    selectedMaterial?: string,
+    usePrintMatching = false,
+    selectedPrint?: string,
+  ) {
     try {
       const user = await account.get();
       const userClothes = await clothingRepository.getClothingsByUser(user.$id);
-
-      // -----------------------
-      // Normalización
-      // -----------------------
-      const normalize = (item: any) => {
-        return {
-          $id: item.$id,
-          id: item.$id,
-          image: item.image,
-          type: item.type,
-          color: item.color,
-          occasion: item.occasion?.toLowerCase() || "neutral",
-        };
-      };
 
       const all = userClothes.map(normalize);
 
       function getColorName(color: string | number[]) {
         if (typeof color === 'string') return color.toLowerCase();
-
         const [r, g, b] = color;
-
         if (r < 40 && g < 40 && b < 40) return "black";
         if (r > 220 && g > 220 && b > 220) return "white";
         if (Math.abs(r - g) < 20 && Math.abs(g - b) < 20) return "gray";
@@ -113,83 +120,88 @@ export const clothingController = {
         if (g > 120 && r < 120 && b < 120) return "green";
         if (b > 140 && r < 120 && g < 120) return "blue";
         if (r > 120 && g > 100 && b < 80) return "beige";
-
         return "neutral";
       }
 
-      // -----------------------------------
-      // 1) SOLO COLOR → buscar prenda base
-      // -----------------------------------
-      const hasColor = selectedColor && selectedColor.toLowerCase() !== "any";
+      const hasColor   = selectedColor   && selectedColor.toLowerCase() !== "any";
       const hasContext = selectedContext && selectedContext.toLowerCase() !== "any";
+      const hasStyle   = selectedStyle   && selectedStyle.toLowerCase() !== "any";
 
-      if (hasColor && !hasContext) {
-        const targetColor = selectedColor!.toLowerCase();
-
-        const baseItem = all.find((c) => getColorName(c.color) === targetColor);
-
+      // ── Find base item for color-only or color+context mode ──
+      if (hasColor && !hasContext && !hasStyle) {
+        const baseItem = all.find((c) => getColorName(c.color) === selectedColor!.toLowerCase());
         if (baseItem) {
-          // usar generación con base
           const response = await fetch("http://localhost:5000/generate-outfit-with-base", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ base_item: baseItem, all_items: all }),
+            body: JSON.stringify({
+              base_item: baseItem,
+              all_items: all,
+              material_matching: useMaterialMatching,
+              material_balance: useMaterialBalance,
+              print_matching: usePrintMatching,
+            }),
           });
-
           const data = await response.json();
           return [data.outfit];
         }
       }
 
-      // ---------------------------------------------------------
-      // 2) COLOR + CONTEXTO → buscar prenda que cumpla ambos
-      // ---------------------------------------------------------
-      if (hasColor && hasContext) {
-        const targetColor = selectedColor!.toLowerCase();
-        const targetContext = selectedContext!.toLowerCase();
-
+      if (hasColor && hasContext && !hasStyle) {
         const baseItem = all.find(
           (c) =>
-            getColorName(c.color) === targetColor &&
-            c.occasion === targetContext
+            getColorName(c.color) === selectedColor!.toLowerCase() &&
+            c.occasion === selectedContext!.toLowerCase()
         );
-
         if (baseItem) {
           const response = await fetch("http://localhost:5000/generate-outfit-with-base", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ base_item: baseItem, all_items: all }),
+            body: JSON.stringify({
+              base_item: baseItem,
+              all_items: all,
+              material_matching: useMaterialMatching,
+              material_balance: useMaterialBalance,
+              print_matching: usePrintMatching,
+            }),
           });
-
           const data = await response.json();
           return [data.outfit];
         }
       }
 
-      // ---------------------------------------------------------
-      // 3) SOLO CONTEXTO → usar lógica previa de filtrado
-      // ---------------------------------------------------------
+      // ── Filter clothes ──
       let filtered = all;
 
       if (hasContext) {
         filtered = filtered.filter((c) => c.occasion === selectedContext!.toLowerCase());
       }
-
+      if (hasStyle) {
+        filtered = filtered.filter((c) => c.style === selectedStyle!.toLowerCase());
+      }
       if (hasColor) {
         const targetColor = selectedColor!.toLowerCase();
         filtered = filtered.filter((c) => getColorName(c.color) === targetColor);
       }
 
-      // Si no hay prendas filtradas → usar todas
-      if (filtered.length === 0) filtered = all;
+      // Fallback to all if filters are too restrictive
+      if (filtered.length === 0) {
+        filtered = all;
+      }
 
-      // -----------------------------------
-      // Generación normal con el endpoint
-      // -----------------------------------
+      // ── Generate via Flask ──
       const response = await fetch("http://localhost:5000/generate-outfits", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(filtered),
+        body: JSON.stringify({
+          items: filtered,
+          style: selectedStyle,
+          material_matching: useMaterialMatching,
+          material_balance: useMaterialBalance,
+          material: selectedMaterial,
+          print_matching: usePrintMatching,
+          print: selectedPrint,
+        }),
       });
 
       const data = await response.json();

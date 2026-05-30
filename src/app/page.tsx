@@ -84,8 +84,7 @@ export default function Home() {
           </div>
         </section>
 
-        {/* ── Banda azul ── */}
-        <div className="home-blue-band">
+        <div className="home-section-wrap">
 
           {/* Intro + CTA */}
           <div className="home-intro-block">
