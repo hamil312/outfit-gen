@@ -1,34 +1,39 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import ProtectedRoute from '@/app/components/ui/ProtectedRoute';
-import Card from 'react-bootstrap/Card';
-import Button from 'react-bootstrap/Button';
-import Form from 'react-bootstrap/Form';
-import FloatingLabel from 'react-bootstrap/FloatingLabel';
-import Alert from 'react-bootstrap/Alert';
-import { account } from '@/lib/appwrite';
+import { account, storage, ID } from '@/lib/appwrite';
 
 const MAX_FILE_SIZE = 200 * 1024;
 const ALLOWED_TYPES = ['image/png', 'image/jpeg'];
+const BUCKET_ID = process.env.NEXT_PUBLIC_APPWRITE_BUCKET_ID || '';
 
 export default function UserPage() {
-  const [username, setUsername] = useState<string>('Cargando...');
+  const router = useRouter();
+  const [user, setUser] = useState<any>(null);
   const [nameInput, setNameInput] = useState<string>('');
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
+  const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null);
   const [message, setMessage] = useState<{ type: 'success' | 'danger'; text: string } | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const user = await account.get();
-        setUsername(user.name || 'Usuario');
-        setNameInput(user.name || '');
+        const userData = await account.get();
+        setUser(userData);
+        setNameInput(userData.name || '');
+        
+        // Obtener URL de imagen de perfil si existe
+        const profileImageId = userData.prefs?.profileImageId;
+        if (profileImageId) {
+          const imageUrl = `https://cloud.appwrite.io/v1/storage/buckets/${BUCKET_ID}/files/${profileImageId}/view?project=${process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID}`;
+          setProfileImageUrl(imageUrl);
+        }
       } catch (err) {
         console.error('Error al obtener usuario:', err);
-        setUsername('No autenticado');
       }
     };
     fetchUser();
@@ -51,11 +56,11 @@ export default function UserPage() {
 
     if (!ALLOWED_TYPES.includes(f.type)) {
       setMessage({ type: 'danger', text: 'Formato no válido. Solo PNG o JPG.' });
-      return setFile(null);
+      return;
     }
     if (f.size > MAX_FILE_SIZE) {
       setMessage({ type: 'danger', text: 'Archivo demasiado grande. Máx 200 KB.' });
-      return setFile(null);
+      return;
     }
     setFile(f);
   };
@@ -71,137 +76,166 @@ export default function UserPage() {
 
     setLoading(true);
     try {
+      // Actualizar nombre
       await account.updateName(nameInput.trim());
-      setUsername(nameInput.trim());
-      setMessage({ type: 'success', text: 'Nombre actualizado correctamente.' });
 
+      // Si hay una nueva imagen, subirla y guardar su ID
+      if (file) {
+        try {
+          // Eliminar imagen anterior si existe
+          if (user?.prefs?.profileImageId) {
+            try {
+              await storage.deleteFile(BUCKET_ID, user.prefs.profileImageId);
+            } catch (err) {
+              console.log('No se pudo eliminar imagen anterior');
+            }
+          }
+
+          // Subir nueva imagen
+          const uploadedFile = await storage.createFile(BUCKET_ID, ID.unique(), file);
+          
+          // Guardar ID en preferencias del usuario
+          await account.updatePrefs({
+            ...user?.prefs,
+            profileImageId: uploadedFile.$id,
+          });
+
+          // Actualizar URL de imagen
+          const imageUrl = `https://cloud.appwrite.io/v1/storage/buckets/${BUCKET_ID}/files/${uploadedFile.$id}/view?project=${process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID}`;
+          setProfileImageUrl(imageUrl);
+          setFile(null);
+          setPreview(null);
+        } catch (uploadErr) {
+          console.error('Error al subir imagen:', uploadErr);
+          setMessage({ type: 'danger', text: 'Error al subir la imagen. Intenta de nuevo.' });
+          setLoading(false);
+          return;
+        }
+      }
+
+      setUser({ ...user, name: nameInput.trim() });
+      setMessage({ type: 'success', text: '✓ Perfil actualizado correctamente.' });
     } catch (err) {
+      console.error('Error:', err);
       setMessage({ type: 'danger', text: 'Error al actualizar. Intenta de nuevo.' });
     } finally {
       setLoading(false);
     }
   };
 
+  const handleCancel = () => {
+    setNameInput(user?.name || '');
+    setFile(null);
+    setPreview(null);
+    setMessage(null);
+  };
+
   return (
     <ProtectedRoute>
-      <div className="min-h-screen flex items-center justify-center py-6">
-        <Card style={{ maxWidth: 900, width: '100%' }} className="bg-[#e2e8f0] p-4 shadow-md border">
-          <Card.Body className="flex flex-col md:flex-row gap-6 items-start">
-            <div className="flex-1">
-              <h2 className="text-2xl font-bold text-[#1a2b32] mb-2">
-                Hola, de nuevo {username}
-              </h2>
-              <p className="text-sm text-muted mb-4">
-                Aquí puedes cambiar tu nombre y tu imagen de perfil (PNG/JPG, máx 200KB).
-              </p>
+      <div className="profile-root">
+        <div className="profile-container">
+          <div className="profile-card">
+            {/* Left side - Form */}
+            <div className="profile-content">
+              <div className="profile-header">
+                <h1 className="profile-title">Hola, {user?.name || 'Usuario'}</h1>
+                <p className="profile-subtitle">Personaliza tu perfil y tu imagen (PNG/JPG, máx 200KB)</p>
+              </div>
 
-              <Form onSubmit={handleSubmit}>
-                <FloatingLabel
-                  controlId="changeUserName"
-                  label="Nuevo nombre de usuario"
-                  className="mb-3"
-                >
-                  <Form.Control
+              <form onSubmit={handleSubmit} className="profile-form">
+                {/* Nombre */}
+                <div className="profile-form-group">
+                  <label htmlFor="name" className="profile-label">Nombre de usuario</label>
+                  <input
+                    id="name"
                     type="text"
-                    placeholder="Nombre de usuario"
+                    className="profile-input"
+                    placeholder="Tu nombre completo"
                     value={nameInput}
                     onChange={(e) => setNameInput(e.target.value)}
-                    className="focus:border-[#5CA2AE] focus:ring-0"
                   />
-                </FloatingLabel>
+                </div>
 
-                <Form.Group controlId="formFile" className="mb-3">
-                  <Form.Label>Imagen de perfil (opcional)</Form.Label>
-                  <Form.Control
+                {/* File upload */}
+                <div className="profile-form-group">
+                  <label className="profile-label">Imagen de perfil</label>
+                  <label htmlFor="profileFile" className="profile-file-label">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                      <polyline points="17 8 12 3 7 8"></polyline>
+                      <line x1="12" y1="3" x2="12" y2="15"></line>
+                    </svg>
+                    <span className="profile-file-text">
+                      {file ? file.name : 'Haz clic o arrastra tu imagen'}
+                    </span>
+                    <span className="profile-file-subtext">PNG o JPG, máximo 200 KB</span>
+                  </label>
+                  <input
+                    id="profileFile"
                     type="file"
+                    className="profile-file-input"
                     accept=".png,.jpg,.jpeg"
                     onChange={handleFileChange}
-                    className="focus:border-[#5CA2AE] focus:ring-0"
                   />
-                  <Form.Text className="text-muted">
-                    Formato PNG o JPG. Máximo 200 KB.
-                  </Form.Text>
-                </Form.Group>
+                  <p className="profile-helper-text">Los cambios de imagen se guardarán junto con tu nombre.</p>
+                </div>
 
+                {/* Alert */}
                 {message && (
-                  <Alert
-                    variant={message.type === 'success' ? 'success' : 'danger'}
-                    className="mb-3"
-                  >
-                    {message.text}
-                  </Alert>
+                  <div className={`profile-alert ${message.type === 'success' ? 'profile-alert-success' : 'profile-alert-danger'}`}>
+                    <span>{message.text}</span>
+                  </div>
                 )}
 
-                <div className="flex gap-3">
-                  <Button
+                {/* Buttons */}
+                <div className="profile-button-group">
+                  <button
                     type="submit"
-                    variant="primary"
+                    className="profile-btn profile-btn-primary"
                     disabled={loading}
-                    style={{
-                      backgroundColor: '#5CA2AE',
-                      borderColor: '#5CA2AE',
-                    }}
                   >
-                    {loading ? 'Guardando...' : 'Editar'}
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    onClick={() => {
-                      setNameInput(username);
-                      setFile(null);
-                      setMessage(null);
-                      window.location.href = '/';
-                    }}
-                    className="hover:bg-[#991b1b] focus:ring-0"
+                    {loading ? 'Guardando...' : 'Guardar cambios'}
+                  </button>
+                  <button
+                    type="button"
+                    className="profile-btn profile-btn-secondary"
+                    onClick={handleCancel}
+                    disabled={loading}
                   >
                     Cancelar
-                  </Button>
+                  </button>
+                  <button
+                    type="button"
+                    className="profile-btn profile-btn-secondary"
+                    onClick={() => router.push('/')}
+                  >
+                    ← Volver al home
+                  </button>
                 </div>
-              </Form>
+              </form>
             </div>
 
-            <div className="w-full md:w-48 flex flex-col items-center">
-              <div className="w-[320px] h-[320px] rounded-full overflow-hidden border-2 border-gray-200 mb-3 bg-white flex items-center justify-center">
+            {/* Right side - Avatar */}
+            <div className="profile-avatar-section">
+              <div className="profile-avatar-container">
                 {preview ? (
-                  <img
-                    src={preview}
-                    alt="Preview"
-                    className="w-full h-full object-cover"
-                  />
+                  <img src={preview} alt="Preview" className="profile-avatar-img" />
+                ) : profileImageUrl ? (
+                  <img src={profileImageUrl} alt="Perfil" className="profile-avatar-img" />
                 ) : (
-                  <div className="text-center text-gray-500">
-                    <svg
-                      width="56"
-                      height="56"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"
-                        stroke="#9CA3AF"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                      <path
-                        d="M4 20a8 8 0 0 1 16 0"
-                        stroke="#9CA3AF"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
+                  <div className="profile-avatar-placeholder">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                      <circle cx="12" cy="7" r="4"></circle>
                     </svg>
-                    <div className="text-sm mt-2">Sin imagen</div>
+                    <div style={{ fontSize: '12px', marginTop: '8px' }}>Sin imagen</div>
                   </div>
                 )}
               </div>
-              <div className="text-center">
-                <div className="text-sm text-muted mb-1">Imagen actual</div>
-              </div>
+              <p className="profile-avatar-label">Imagen actual</p>
             </div>
-          </Card.Body>
-        </Card>
+          </div>
+        </div>
       </div>
     </ProtectedRoute>
   );
