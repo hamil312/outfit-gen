@@ -7,4 +7,5 @@ numpy
 opencv-python-headless
 scikit-learn
 rembg
+onnxruntime
 gunicorn
