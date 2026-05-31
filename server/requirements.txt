@@ -1,0 +1,10 @@
+flask
+flask-cors
+Pillow
+torch
+transformers
+numpy
+opencv-python-headless
+scikit-learn
+rembg
+gunicorn

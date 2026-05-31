@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { Clothing } from "@/app/models/Clothing";
+import { FLASK_API_URL } from "@/lib/config";
 import { IoShirtOutline } from "react-icons/io5";
 import { BsStars } from "react-icons/bs";
 
@@ -77,7 +78,7 @@ export default function ClothingForm({
       const formData = new FormData();
       formData.append("file", file);
 
-      const response = await fetch("http://localhost:5000/analyze", {
+      const response = await fetch(`${FLASK_API_URL}/analyze`, {
         method: "POST",
         body: formData,
       });

@@ -1,6 +1,7 @@
 import { clothingRepository } from "@/app/repositories/ClothingRepository";
 import { Clothing } from "@/app/models/Clothing";
 import { account, databases } from "@/lib/appwrite";
+import { FLASK_API_URL } from "@/lib/config";
 
 const normalize = (item: any) => ({
   $id: item.$id,
@@ -50,7 +51,7 @@ export const clothingController = {
 
     let analysis: any = {};
     try {
-      const response = await fetch("http://localhost:5000/analyze", {
+      const response = await fetch(`${FLASK_API_URL}/analyze`, {
         method: "POST",
         body: formData,
       });
@@ -104,7 +105,7 @@ export const clothingController = {
     const normalizedBase = normalize(base);
     const normalizedAll = items.map(normalize);
 
-    const response = await fetch("http://localhost:5000/generate-outfit-with-base", {
+    const response = await fetch(`${FLASK_API_URL}/generate-outfit-with-base`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -165,7 +166,7 @@ export const clothingController = {
           return match;
         });
         if (baseItem) {
-          const response = await fetch("http://localhost:5000/generate-outfit-with-base", {
+    const response = await fetch(`${FLASK_API_URL}/generate-outfit-with-base`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -201,7 +202,7 @@ export const clothingController = {
       }
 
       // ── Generate via Flask ──
-      const response = await fetch("http://localhost:5000/generate-outfits", {
+      const response = await fetch(`${FLASK_API_URL}/generate-outfits`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

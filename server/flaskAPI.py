@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from PIL import Image
 import io
+import os
 import torch
 import numpy as np
 from transformers import CLIPProcessor, CLIPModel
@@ -13,9 +14,7 @@ import random
 app = Flask(__name__)
 CORS(app, resources={
     r"/*": {
-        "origins": [
-            "http://localhost:3000"
-        ],
+        "origins": os.getenv("ALLOWED_ORIGINS", "http://localhost:3000").split(","),
         "methods": ["GET", "POST"],
         "allow_headers": ["Content-Type"],
     }
@@ -548,4 +547,5 @@ def generate_outfit_with_base():
     return jsonify({ "outfit": outfit })
 
 if __name__ == "__main__":
-    app.run(port=5000)
+    port = int(os.getenv("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
