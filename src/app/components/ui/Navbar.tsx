@@ -1,21 +1,29 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Navbar, Nav, Container, Button } from "react-bootstrap";
 import { account } from "@/lib/appwrite";
+
+const BUCKET_ID = process.env.NEXT_PUBLIC_APPWRITE_BUCKET_ID || '';
 
 export default function AppNavbar() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchUser = async () => {
       try {
         const current = await account.get();
         setUser(current);
+        
+        // Obtener URL de imagen de perfil si existe
+        const profileImageId = current.prefs?.profileImageId;
+        if (profileImageId) {
+          const imageUrl = `https://cloud.appwrite.io/v1/storage/buckets/${BUCKET_ID}/files/${profileImageId}/view?project=${process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID}`;
+          setProfileImageUrl(imageUrl);
+        }
       } catch {
         setUser(null);
       } finally {
@@ -36,91 +44,122 @@ export default function AppNavbar() {
   };
 
   return (
-    <Navbar className="bg-white shadow-sm py-3">
-      <Container fluid className="px-8 d-flex">
-        <Navbar.Brand
+    <nav className="navbar-custom">
+      <div style={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'space-between',
+        maxWidth: '100%',
+        paddingLeft: '32px',
+        paddingRight: '32px',
+        gap: '32px',
+        flexWrap: 'wrap'
+      }}>
+        {/* Brand */}
+        <a 
           href="/"
-          className="fw-bold fs-5 navbar-brand-custom"
+          className="navbar-brand-custom"
+          style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}
         >
           PickurFit
-        </Navbar.Brand>
+        </a>
 
-        <Nav className="mx-auto gap-4 align-items-center">
-          <Nav.Link
+        {/* Center Navigation Links */}
+        <div style={{ 
+          display: 'flex', 
+          gap: '32px', 
+          alignItems: 'center',
+          flex: 1,
+          justifyContent: 'center',
+          flexWrap: 'wrap'
+        }}>
+          <a 
             href="/generator"
-            className="text-dark nav-link-custom"
+            className="nav-link-custom"
           >
             Empieza a generar
-          </Nav.Link>
-          <Nav.Link
+          </a>
+          <a 
             href="/feed"
-            className="text-dark nav-link-custom"
+            className="nav-link-custom"
           >
             Feed
-          </Nav.Link>
-          <Nav.Link
+          </a>
+          <a 
             href="/#about-us"
-            className="text-dark nav-link-custom"
+            className="nav-link-custom"
           >
             Acerca de
-          </Nav.Link>
-          <Nav.Link
+          </a>
+          <a 
             href="/#footer"
-            className="text-dark nav-link-custom"
+            className="nav-link-custom"
           >
             Contáctanos
-          </Nav.Link>
-        </Nav>
+          </a>
+        </div>
 
-        <Nav className="gap-3 align-items-center">
+        {/* Right Section - Auth or Profile */}
+        <div style={{ 
+          display: 'flex', 
+          gap: '12px', 
+          alignItems: 'center',
+          whiteSpace: 'nowrap'
+        }}>
           {loading ? (
-            <span className="text-gray-400" style={{ fontSize: 14 }}>Cargando...</span>
+            <span style={{ fontSize: 14, color: '#9ca3af' }}>Cargando...</span>
           ) : user ? (
             <>
-              <Nav.Link
-                href="/profile"
-                className="d-flex align-items-center justify-content-center bg-white rounded-circle overflow-hidden border border-dark"
-                style={{ width: 45, height: 45, minWidth: 45 }}
+              {/* Profile Avatar */}
+              <button
+                onClick={() => router.push('/profile')}
+                className="navbar-avatar-link"
+                aria-label="Ir al perfil"
               >
-                <img
-                  className="w-[35px] h-[35px]"
-                  alt="User"
-                  src="/figmaAssets/intersect.svg"
-                />
-              </Nav.Link>
+                {profileImageUrl ? (
+                  <img
+                    alt="Perfil del usuario"
+                    src={profileImageUrl}
+                    className="navbar-avatar-img"
+                  />
+                ) : (
+                  <div className="navbar-avatar-placeholder">
+                    <img
+                      alt="Perfil"
+                      src="/figmaAssets/intersect.svg"
+                      style={{ width: '24px', height: '24px' }}
+                    />
+                  </div>
+                )}
+              </button>
 
-              <Button
-                variant="outline-dark"
+              {/* Logout Button */}
+              <button
                 onClick={handleLogout}
-                className="border-2 hover:bg-[#5CA2AE] hover:border-[#5CA2AE] hover:text-white transition-colors"
-                style={{ borderRadius: 10, fontSize: 14 }}
+                className="navbar-btn navbar-btn-logout"
               >
                 Cerrar sesión
-              </Button>
+              </button>
             </>
           ) : (
             <>
-              <Button
-                variant="outline-dark"
+              <button
                 onClick={() => router.push("/auth/login")}
-                className="border-2 hover:bg-[#5CA2AE] hover:border-[#5CA2AE] hover:text-white transition-colors"
-                style={{ borderRadius: 10, fontSize: 14 }}
+                className="navbar-btn"
               >
                 Iniciar sesión
-              </Button>
+              </button>
 
-              <Button
-                variant="outline-dark"
+              <button
                 onClick={() => router.push("/auth/register")}
-                className="border-2 hover:bg-[#5CA2AE] hover:border-[#5CA2AE] hover:text-white transition-colors"
-                style={{ borderRadius: 10, fontSize: 14 }}
+                className="navbar-btn"
               >
                 Registrarse
-              </Button>
+              </button>
             </>
           )}
-        </Nav>
-      </Container>
-    </Navbar>
+        </div>
+      </div>
+    </nav>
   );
 }

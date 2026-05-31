@@ -1,34 +1,27 @@
 "use client";
 import React from "react";
-import Container from "react-bootstrap/Container";
-import Row from "react-bootstrap/Row";
-import Col from "react-bootstrap/Col";
 
 export default function Footer() {
   return (
-    <footer className="bg-white text-dark py-5 mt-5">
-      <Container>
-        <Row className="align-items-center">
-          {/* Columna izquierda */}
-          <Col md={6} className="text-start">
-            <h3 className="m-0 fw-bold">Pickurfit</h3>
-          </Col>
+    <footer className="app-footer">
+      <div className="footer-container">
+        <div className="footer-top">
+          {/* Brand */}
+          <h3 className="footer-brand">PickurFit</h3>
 
-          {/* Columna derecha */}
-          <Col md={6} className="text-end d-flex justify-content-end gap-4">
-
+          {/* Links */}
+          <div className="footer-links">
             {/* Gmail */}
             <a
               href="mailto:mariofernandosantacruzp@gmail.com"
-              className="text-dark text-decoration-none d-flex align-items-center gap-2 fs-5"
+              className="footer-link"
               target="_blank"
               rel="noopener noreferrer"
+              aria-label="Enviar email"
             >
               <img
                 src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/gmail.svg"
-                alt="gmail icon"
-                width="20"
-                height="20"
+                alt="Gmail"
               />
               Gmail
             </a>
@@ -36,15 +29,14 @@ export default function Footer() {
             {/* WhatsApp */}
             <a
               href="https://wa.me/+573185279720"
-              className="text-dark text-decoration-none d-flex align-items-center gap-2 fs-5"
+              className="footer-link"
               target="_blank"
               rel="noopener noreferrer"
+              aria-label="Contactar por WhatsApp"
             >
               <img
                 src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/whatsapp.svg"
-                alt="whatsapp icon"
-                width="20"
-                height="20"
+                alt="WhatsApp"
               />
               WhatsApp
             </a>
@@ -52,30 +44,28 @@ export default function Footer() {
             {/* GitHub */}
             <a
               href="https://github.com/hamil312/outfit-gen"
-              className="text-dark text-decoration-none d-flex align-items-center gap-2 fs-5"
+              className="footer-link"
               target="_blank"
               rel="noopener noreferrer"
+              aria-label="Ir a GitHub"
             >
               <img
                 src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/github.svg"
-                alt="github icon"
-                width="20"
-                height="20"
+                alt="GitHub"
               />
               GitHub
             </a>
-
-          </Col>
-        </Row>
-
-        {/* Línea separadora */}
-        <hr className="border-dark mt-4" />
-
-        {/* Texto centrado final */}
-        <div className="text-center mt-3 fs-6">
-          © Pickurfit 2025
+          </div>
         </div>
-      </Container>
+
+        {/* Divider */}
+        <div className="footer-divider" />
+
+        {/* Copyright */}
+        <div className="footer-bottom">
+          © PickurFit 2025 • Todos los derechos reservados
+        </div>
+      </div>
     </footer>
   );
 }
