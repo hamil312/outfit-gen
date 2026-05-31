@@ -15,11 +15,38 @@ const normalize = (item: any) => ({
 });
 
 export const clothingController = {
+  async compressToWebP(file: File, quality = 0.8): Promise<File> {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+        const canvas = document.createElement("canvas");
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext("2d")!;
+        ctx.drawImage(img, 0, 0);
+        canvas.toBlob(
+          (blob) => {
+            if (!blob) return reject(new Error("WebP compression failed"));
+            const webpName = file.name.replace(/\.[^.]+$/, ".webp");
+            resolve(new File([blob], webpName, { type: "image/webp" }));
+          },
+          "image/webp",
+          quality
+        );
+      };
+      img.onerror = reject;
+      img.src = url;
+    });
+  },
+
   async addClothing(file: File, data: Omit<Clothing, "image">) {
-    const imageId = await clothingRepository.uploadImage(file);
+    const compressed = await this.compressToWebP(file);
+    const imageId = await clothingRepository.uploadImage(compressed);
 
     const formData = new FormData();
-    formData.append("file", file);
+    formData.append("file", compressed);
 
     let analysis: any = {};
     try {
@@ -127,32 +154,16 @@ export const clothingController = {
       const hasContext = selectedContext && selectedContext.toLowerCase() !== "any";
       const hasStyle   = selectedStyle   && selectedStyle.toLowerCase() !== "any";
 
-      // ── Find base item for color-only or color+context mode ──
-      if (hasColor && !hasContext && !hasStyle) {
-        const baseItem = all.find((c) => getColorName(c.color) === selectedColor!.toLowerCase());
-        if (baseItem) {
-          const response = await fetch("http://localhost:5000/generate-outfit-with-base", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              base_item: baseItem,
-              all_items: all,
-              material_matching: useMaterialMatching,
-              material_balance: useMaterialBalance,
-              print_matching: usePrintMatching,
-            }),
-          });
-          const data = await response.json();
-          return [data.outfit];
-        }
-      }
-
-      if (hasColor && hasContext && !hasStyle) {
-        const baseItem = all.find(
-          (c) =>
-            getColorName(c.color) === selectedColor!.toLowerCase() &&
-            c.occasion === selectedContext!.toLowerCase()
-        );
+      // ── Try to find a base item matching any active filter ──
+      const anyFilter = hasColor || hasContext || hasStyle;
+      if (anyFilter) {
+        const baseItem = all.find((c) => {
+          let match = true;
+          if (hasColor)   match = match && getColorName(c.color) === selectedColor!.toLowerCase();
+          if (hasContext) match = match && c.occasion === selectedContext!.toLowerCase();
+          if (hasStyle)   match = match && c.style === selectedStyle!.toLowerCase();
+          return match;
+        });
         if (baseItem) {
           const response = await fetch("http://localhost:5000/generate-outfit-with-base", {
             method: "POST",

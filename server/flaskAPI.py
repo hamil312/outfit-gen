@@ -227,6 +227,8 @@ def compatible_ocasion(o1, o2):
         return True
     if "neutral" in [o1, o2]:
         return True
+    if {"informal", "casual"} == {o1, o2}:
+        return True
     return False
 
 def _match_outfits(superiores, inferiores, calzados, completos,
@@ -481,10 +483,9 @@ def generate_outfit_with_base():
         elif cat == "calzado":  calzados.append(item)
 
     def pick_basic(candidates, _=None):
-        """Color + occasion compatibility."""
+        """Color compatibility."""
         ok = [x for x in candidates
-              if color_compatible(base_color, x["color_name"])
-              and compatible_ocasion(base_occasion, x.get("occasion", "neutral"))]
+              if color_compatible(base_color, x["color_name"])]
         return random.choice(ok) if ok else (random.choice(candidates) if candidates else None)
 
     def pick_with_constraints(candidates, target_cat):
@@ -495,7 +496,6 @@ def generate_outfit_with_base():
         # Priority 1: same material AND print-ok
         p1 = [x for x in candidates
               if color_compatible(base_color, x["color_name"])
-              and compatible_ocasion(base_occasion, x.get("occasion", "neutral"))
               and (not material_matching or x.get("material", "unknown") == base_material)
               and (not print_matching or prints_ok(base_item, x, "same"))]
         if target_cat == "inferior" and material_balance and p1:
@@ -507,7 +507,6 @@ def generate_outfit_with_base():
         # Priority 2: same material, ignore print
         p2 = [x for x in candidates
               if color_compatible(base_color, x["color_name"])
-              and compatible_ocasion(base_occasion, x.get("occasion", "neutral"))
               and (not material_matching or x.get("material", "unknown") == base_material)]
         if target_cat == "inferior" and material_balance and p2:
             p2.sort(key=lambda x: MATERIAL_WEIGHT.get(x.get("material", "unknown"), 0))
@@ -518,27 +517,31 @@ def generate_outfit_with_base():
         # Priority 3: print-ok (solid+neutral for printed base), any material
         p3 = [x for x in candidates
               if color_compatible(base_color, x["color_name"])
-              and compatible_ocasion(base_occasion, x.get("occasion", "neutral"))
               and (not print_matching or prints_ok(base_item, x, "solid"))]
         if p3:
             return random.choice(p3)
 
-        # Fallback: any color+occasion
+        # Fallback: any color
         return pick_basic(candidates)
 
     outfit = { base_cat: base_item }
     use_constraints = material_matching or print_matching
     pick = pick_with_constraints if use_constraints else pick_basic
 
+    # ── Filter each slot by occasion first (respects user's context choice) ──
+    def _by_occasion(items):
+        matched = [x for x in items if compatible_ocasion(base_occasion, x.get("occasion", "neutral"))]
+        return matched if matched else items  # fallback to all if none match
+
     if base_cat == "superior":
-        outfit["inferior"] = pick(inferiores, "inferior")
-        outfit["calzado"]  = pick(calzados, "calzado")
+        outfit["inferior"] = pick(_by_occasion(inferiores), "inferior")
+        outfit["calzado"]  = pick(_by_occasion(calzados), "calzado")
     elif base_cat == "inferior":
-        outfit["superior"] = pick(superiores, "superior")
-        outfit["calzado"]  = pick(calzados, "calzado")
+        outfit["superior"] = pick(_by_occasion(superiores), "superior")
+        outfit["calzado"]  = pick(_by_occasion(calzados), "calzado")
     elif base_cat == "calzado":
-        outfit["superior"] = pick(superiores, "superior")
-        outfit["inferior"] = pick(inferiores, "inferior")
+        outfit["superior"] = pick(_by_occasion(superiores), "superior")
+        outfit["inferior"] = pick(_by_occasion(inferiores), "inferior")
     else:
         return jsonify({"error": "Tipo de prenda no soportado para base"}), 400
 

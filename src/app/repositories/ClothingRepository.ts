@@ -23,12 +23,20 @@ export const clothingRepository = {
   },
 
   async getClothingsByUser(userId: string) {
-    const result = await databases.listDocuments(
-      DATABASE_ID,
-      CLOTHING_COLLECTION_ID,
-      [Query.equal("userId", userId)]
-    );
-    return result.documents as unknown as Clothing[];
+    let all: any[] = [];
+    let offset = 0;
+    const limit = 100;
+    while (true) {
+      const result = await databases.listDocuments(
+        DATABASE_ID,
+        CLOTHING_COLLECTION_ID,
+        [Query.equal("userId", userId), Query.limit(limit), Query.offset(offset)]
+      );
+      all = all.concat(result.documents);
+      if (result.documents.length < limit) break;
+      offset += limit;
+    }
+    return all as unknown as Clothing[];
   },
 
   async deleteClothing(clothingId: string | undefined, imageId: string | undefined) {

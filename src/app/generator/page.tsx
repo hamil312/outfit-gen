@@ -49,6 +49,11 @@ export default function Generator() {
   const [selectedOutfitIndex, setSelectedOutfitIndex] = useState<number | null>(null);
   const [userClothes, setUserClothes] = useState<Clothing[]>([]);
   const [showNotificationModal, setShowNotificationModal] = useState(false);
+
+  // ── Modal-specific toggles (independent from sidebar) ──
+  const [modalUseMaterial, setModalUseMaterial] = useState(false);
+  const [modalUseBalance, setModalUseBalance] = useState(false);
+  const [modalUsePrint, setModalUsePrint] = useState(false);
   const [notificationMessage, setNotificationMessage] = useState<string>("");
   const [notificationType, setNotificationType] = useState<"success" | "error">("success");
 
@@ -257,6 +262,26 @@ export default function Generator() {
             <h2 className="gen-modal-title">Selecciona una prenda</h2>
             <p className="gen-modal-sub">El outfit se generará a partir de ella</p>
 
+            <div className="gen-modal-options">
+              <label className="gen-toggle-row gen-toggle-row--sm">
+                <input type="checkbox" checked={modalUseMaterial} onChange={(e) => setModalUseMaterial(e.target.checked)} />
+                <span className="gen-toggle-track"><span className="gen-toggle-knob" /></span>
+                <span className="gen-toggle-text">Material</span>
+              </label>
+              {modalUseMaterial && (
+                <label className="gen-toggle-row gen-toggle-row--sm" style={{ marginLeft: 24 }}>
+                  <input type="checkbox" checked={modalUseBalance} onChange={(e) => setModalUseBalance(e.target.checked)} />
+                  <span className="gen-toggle-track"><span className="gen-toggle-knob" /></span>
+                  <span className="gen-toggle-text">Equilibrio</span>
+                </label>
+              )}
+              <label className="gen-toggle-row gen-toggle-row--sm">
+                <input type="checkbox" checked={modalUsePrint} onChange={(e) => setModalUsePrint(e.target.checked)} />
+                <span className="gen-toggle-track"><span className="gen-toggle-knob" /></span>
+                <span className="gen-toggle-text">Estampado</span>
+              </label>
+            </div>
+
             <div className="gen-modal-grid">
               {userClothes.map((cloth) => (
                 <div
@@ -265,7 +290,7 @@ export default function Generator() {
                   tabIndex={0}
                   onClick={async () => {
                     const result = await clothingController.generateOutfitWithBase(
-                      cloth.$id!, [], useMaterialMatching, useMaterialBalance, usePrintMatching
+                      cloth.$id!, [], modalUseMaterial, modalUseBalance, modalUsePrint
                     );
                     setOutfits([result]);
                     setShowModal(false);
@@ -274,7 +299,7 @@ export default function Generator() {
                     if (e.key === 'Enter' || e.key === ' ') {
                       e.preventDefault();
                       const result = await clothingController.generateOutfitWithBase(
-                        cloth.$id!, [], useMaterialMatching, useMaterialBalance, usePrintMatching
+                        cloth.$id!, [], modalUseMaterial, modalUseBalance, modalUsePrint
                       );
                       setOutfits([result]);
                       setShowModal(false);
@@ -370,7 +395,7 @@ export default function Generator() {
                   </button>
                   {showContextDropdown && (
                     <div className="gen-dropdown-menu" role="listbox">
-                      {["Any", "Formal", "Casual", "Sport"].map((opt) => (
+                      {["Any", "Formal", "Casual", "Sport", "Informal"].map((opt) => (
                         <div
                           key={opt}
                           className={`gen-dropdown-item ${selectedContext === opt ? "gen-dropdown-item--active" : ""}`}

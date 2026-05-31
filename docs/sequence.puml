@@ -1,0 +1,56 @@
+@startuml Secuencia - OutfitGen
+actor Usuario
+participant Browser as "Browser UI\n(React + Next.js)"
+participant Appwrite as "Appwrite\n(Auth + DB + Storage)"
+participant Flask as "Flask API\n(Análisis + Generación)"
+participant ML as "Modelo CLIP\n(Fashion-CLIP)"
+
+== Inicio de Sesión ==
+
+Usuario -> Browser: Ingresa credenciales\n(email + contraseña)
+Browser -> Appwrite: account.createEmailSession()
+Appwrite --> Browser: Sesión iniciada (token)
+Browser --> Usuario: Redirige al dashboard
+
+== Registro de Prenda ==
+
+Usuario -> Browser: Selecciona imagen + datos
+Browser -> Browser: Compresión a WebP\n(compressToWebP)
+Browser -> Flask: POST /analyze\n(imagen comprimida)
+Flask -> ML: CLIPProcessor + CLIPModel\n(classify)
+ML --> Flask: type, color_name, material,\nprint, style, occasion
+Flask --> Browser: Resultado del análisis
+Browser -> Appwrite: storage.createFile\n(subir WebP)
+Appwrite --> Browser: image ID ($id)
+Browser -> Appwrite: databases.createDocument\n(guardar metadatos)
+Appwrite --> Browser: Prenda creada
+Browser --> Usuario: Confirmación + previsualización
+
+== Generación de Atuendo por Parámetros ==
+
+Usuario -> Browser: Selecciona filtros:\ncolor, contexto, estilo,\nmaterial, estampado
+Usuario -> Browser: Clic en "Generar"
+Browser -> Browser: Filtra prendas según\ncolor/contexto/estilo
+alt Encontró prenda base
+    Browser -> Flask: POST /generate-outfit-with-base\n(prenda base + items + toggles)
+    Flask -> Flask: pick_by_occasion / pick_basic /\npick_with_constraints
+    Flask --> Browser: Outfit completo
+    Browser --> Usuario: Muestra outfit
+else Sin filtros específicos
+    Browser -> Flask: POST /generate-outfits\n(items filtrados + parámetros)
+    Flask -> Flask: _match_outfits\n(color + occasion + material + print)
+    Flask --> Browser: Combinaciones de outfits
+    Browser --> Usuario: Muestra resultados
+end
+
+== Generación por Prenda Seleccionada ==
+
+Usuario -> Browser: Clic en "Seleccionar prenda"
+Browser --> Usuario: Modal con guardarropa
+Usuario -> Browser: Elige una prenda\n(con toggles modales)
+Browser -> Flask: POST /generate-outfit-with-base\n(prenda elegida + items + toggles)
+Flask -> Flask: _by_occasion() + pick()\n(color + material + print según toggles)
+Flask --> Browser: Outfit generado
+Browser --> Usuario: Muestra resultado
+
+@enduml

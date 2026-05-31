@@ -1,0 +1,169 @@
+@startuml Clases - OutfitGen
+
+skinparam classAttributeIconSize 0
+
+class Clothing {
+  + $id: string
+  + userID: string
+  + imageID: string
+  + type: string
+  + color_name: string
+  + material: string
+  + print: string
+  + style: string
+  + occasion: string
+  + colour_hex: string
+  + usageCount: number
+  + created_at: string
+  + __(constructor)(data: Clothing)
+  + fromJSON(json: any): Clothing
+}
+
+class Outfit {
+  + $id: string
+  + userID: string
+  + name: string
+  + clothes: string[]
+  + occasion: string
+  + colour_hex: string
+  + context: string
+  + image: string
+  + published: boolean
+  + totalScore: number
+  + userName: string
+  + created_at: string
+}
+
+class User {
+  + $id: string
+  + name: string
+  + email: string
+}
+
+class Comment {
+  + $id: string
+  + userID: string
+  + outfitID: string
+  + comment: string
+  + created_at: string
+}
+
+class Favourite {
+  + $id: string
+  + userID: string
+  + outfitID: string
+}
+
+class ClothingController {
+  - repository: ClothingRepository
+  - provider: AnalysisProvider
+  + addClothing(data, file): Promise<Clothing>
+  + updateClothing(id, data, file): Promise<Clothing>
+  + deleteClothing(id): Promise<void>
+  + compressToWebP(file): Promise<File>
+  + generateOutfits(userID, params): Promise<Outfit[]>
+  + generateOutfitWithBase(userID, baseItemID, params): Promise<Outfit>
+  + getClothingsByUser(userID): Promise<Clothing[]>
+}
+
+class OutfitController {
+  - repository: OutfitRepository
+  + saveOutfit(outfit): Promise<Outfit>
+  + getUserOutfits(userID): Promise<Outfit[]>
+  + getPublicOutfits(): Promise<Outfit[]>
+  + publishOutfit(id): Promise<Outfit>
+  + deleteOutfit(id): Promise<void>
+}
+
+class CommentController {
+  - repository: CommentRepository
+  + addComment(outfitID, userID, text): Promise<Comment>
+  + getComments(outfitID): Promise<Comment[]>
+  + deleteComment(id): Promise<void>
+}
+
+class FavouriteController {
+  - repository: FavouriteRepository
+  + toggleFavourite(outfitID, userID): Promise<boolean>
+  + getUserFavourites(userID): Promise<Favourite[]>
+}
+
+class ClothingRepository {
+  + list(userID): Promise<Clothing[]>
+  + create(data): Promise<Clothing>
+  + update(id, data): Promise<Clothing>
+  + delete(id): Promise<void>
+  + getById(id): Promise<Clothing>
+}
+
+class OutfitRepository {
+  + list(userID): Promise<Outfit[]>
+  + listPublic(): Promise<Outfit[]>
+  + create(data): Promise<Outfit>
+  + update(id, data): Promise<Outfit>
+  + delete(id): Promise<void>
+}
+
+class CommentRepository {
+  + list(outfitID): Promise<Comment[]>
+  + create(data): Promise<Comment>
+  + delete(id): Promise<void>
+}
+
+class FavouriteRepository {
+  + list(userID): Promise<Favourite[]>
+  + create(data): Promise<Favourite>
+  + delete(id): Promise<void>
+  + getByUserAndOutfit(userID, outfitID): Promise<Favourite|null>
+}
+
+class FlaskAPI {
+  + POST /analyze: classify()
+  + POST /generate-outfits: generate()
+  + POST /generate-outfit-with-base: generateWithBase()
+  .. Funciones internas ..
+  + _categorize(type): str
+  + color_compatible(c1, c2): bool
+  + compatible_material(m1, m2): bool
+  + prints_ok(print1, print2, rule): bool
+  + compatible_ocasion(o1, o2): bool
+  + rgb_to_name(r, g, b): str
+  + _match_outfits(items, params): list
+}
+
+class ClothingCategoryMapper {
+  + {static} mapTypeToCategory(type): string
+  + {static} getAvailableCategories(): string[]
+}
+
+ClothingRepository --> "Appwrite DB" : databases
+OutfitRepository --> "Appwrite DB" : databases
+CommentRepository --> "Appwrite DB" : databases
+FavouriteRepository --> "Appwrite DB" : databases
+
+ClothingController --> ClothingRepository
+ClothingController --> FlaskAPI : HTTP (fetch)
+OutfitController --> OutfitRepository
+CommentController --> CommentRepository
+FavouriteController --> FavouriteRepository
+
+ClothingController --> Clothing : crea/retorna
+OutfitController --> Outfit : crea/retorna
+CommentController --> Comment : crea/retorna
+FavouriteController --> Favourite : retorna
+
+ClothingRepository --> Clothing : retorna
+OutfitRepository --> Outfit : retorna
+CommentRepository --> Comment : retorna
+FavouriteRepository --> Favourite : retorna
+
+ClothingCategoryMapper ..> Clothing : mapTypeToCategory
+
+FlaskAPI --> "CLIP Model" : classify()
+
+User --> ClothingController : userId
+User --> OutfitController : userId
+User --> CommentController : userId
+User --> FavouriteController : userId
+
+@enduml

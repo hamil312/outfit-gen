@@ -1,0 +1,94 @@
+@startuml ER - OutfitGen
+
+!define table(x) class x << (T,#FFAAAA) >>
+!define primary_key(x) <u>x</u>
+!define foreign_key(x) <i>x</i>
+
+hide methods
+hide stereotypes
+
+skinparam classBorderColor black
+skinparam classBackgroundColor #FFDDDD
+
+table(Clothing) {
+  + primary_key($id) : string
+  + userID : string [FK -> User]
+  + imageID : string
+  + type : string
+  + color_name : string
+  + material : string
+  + print : string
+  + style : string
+  + occasion : string
+  + colour_hex : string
+  + usageCount : number
+  + created_at : string
+}
+
+table(Outfit) {
+  + primary_key($id) : string
+  + userID : string [FK -> User]
+  + name : string
+  + clothes : string[]  [FK -> Clothing]
+  + occasion : string
+  + colour_hex : string
+  + context : string
+  + image : string
+  + published : boolean
+  + totalScore : number
+  + userName : string
+  + created_at : string
+}
+
+table(Favourite) {
+  + primary_key($id) : string
+  + userID : string [FK -> User]
+  + outfitID : string [FK -> Outfit]
+}
+
+table(Comment) {
+  + primary_key($id) : string
+  + userID : string [FK -> User]
+  + outfitID : string [FK -> Outfit]
+  + comment : string
+  + created_at : string
+}
+
+table(User) {
+  + primary_key($id) : string
+  + name : string
+  + email : string
+  + password_hash : string  [hidden]
+}
+
+User ||--o{ Clothing : "tiene"
+User ||--o{ Outfit : "genera"
+User ||--o{ Favourite : "marca"
+User ||--o{ Comment : "escribe"
+Outfit ||--o{ Favourite : "tiene"
+Outfit ||--o{ Comment : "recibe"
+Outfit ||--|{ Clothing : "contiene" \n(clothes[])
+
+note bottom of Clothing
+  userID → Appwrite Auth User
+  type ∈ {upper, lower, footwear,
+          accesory, dress, set, top}
+  color_name ∈ {blanco, negro, gris, beige,
+                azul, rojo, verde, etc.}
+  material ∈ {denim, cotton, leather, silk,
+              polyester, wool, etc.}
+  print ∈ {solid, striped, plaid, floral,
+           graphic, animal}
+  style ∈ {casual, formal, sporty, elegant,
+           boho, preppy, vintage}
+  occasion ∈ {casual, sport, formal, party,
+              office, informal, beach, date}
+end note
+
+note bottom of Outfit
+  clothes[] → IDs de Clothing
+  occasion = contexto del outfit
+  published → visible en galería pública
+end note
+
+@enduml
