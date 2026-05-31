@@ -153,7 +153,7 @@ export default function AuthForm({ mode }: Props) {
         />
         <div className="auth-image-overlay">
           <p className="auth-image-quote">
-            "Tu estilo, generado en segundos"
+            &ldquo;Tu estilo, generado en segundos&rdquo;
           </p>
         </div>
       </div>

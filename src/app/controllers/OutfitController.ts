@@ -61,7 +61,7 @@ export const outfitController = {
 
         // Enriquecer con info de usuario y prendas
         // Intentar obtener favoritos del usuario actual (si está autenticado)
-    let favouritesSet = new Set<string>();
+    const favouritesSet = new Set<string>();
     try {
         const user = await account.get();
         if (user && user.$id) {

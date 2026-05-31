@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { account } from "@/lib/appwrite";
 
 const BUCKET_ID = process.env.NEXT_PUBLIC_APPWRITE_BUCKET_ID || '';
@@ -56,13 +57,13 @@ export default function AppNavbar() {
         flexWrap: 'wrap'
       }}>
         {/* Brand */}
-        <a 
+        <Link 
           href="/"
           className="navbar-brand-custom"
           style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}
         >
           PickurFit
-        </a>
+        </Link>
 
         {/* Center Navigation Links */}
         <div style={{ 
@@ -85,18 +86,18 @@ export default function AppNavbar() {
           >
             Feed
           </a>
-          <a 
+          <Link 
             href="/#about-us"
             className="nav-link-custom"
           >
             Acerca de
-          </a>
-          <a 
+          </Link>
+          <Link 
             href="/#footer"
             className="nav-link-custom"
           >
             Contáctanos
-          </a>
+          </Link>
         </div>
 
         {/* Right Section - Auth or Profile */}
