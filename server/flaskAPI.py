@@ -332,27 +332,51 @@ def generate_outfits(prendas, style=None, material_matching=False, material_bala
         if outfits:
             break
 
-    # ── Fallback random ──
+    was_fallback = False
+
+    # ── Fallback ──
     if not outfits:
-        print("⚠️ No se encontraron combinaciones. Generando aleatorias.")
+        best = []
+
+        # Level 1: best-effort with color compatibility
         if completos and calzados:
-            outfits.append({"completo": random.choice(completos), "calzado": random.choice(calzados)})
-        elif superiores and inferiores and calzados:
-            outfits.append({
-                "superior": random.choice(superiores),
-                "inferior": random.choice(inferiores),
-                "calzado": random.choice(calzados)
-            })
-        else:
-            partial = {}
-            if superiores: partial["superior"] = random.choice(superiores)
-            if inferiores: partial["inferior"] = random.choice(inferiores)
-            if calzados: partial["calzado"] = random.choice(calzados)
-            if completos: partial["completo"] = random.choice(completos)
-            if partial: outfits.append(partial)
+            for c in completos:
+                for z in calzados:
+                    if color_compatible(c["color_name"], z["color_name"]):
+                        best.append({"completo": c, "calzado": z})
+        if not best and superiores and inferiores and calzados:
+            for s in superiores:
+                for i in inferiores:
+                    if not color_compatible(s["color_name"], i["color_name"]):
+                        continue
+                    for z in calzados:
+                        if color_compatible(i["color_name"], z["color_name"]):
+                            best.append({"superior": s, "inferior": i, "calzado": z})
+
+        # Level 2: any available combination (no compatibility check)
+        if not best:
+            if completos and calzados:
+                best.append({"completo": random.choice(completos), "calzado": random.choice(calzados)})
+            elif superiores and inferiores and calzados:
+                best.append({
+                    "superior": random.choice(superiores),
+                    "inferior": random.choice(inferiores),
+                    "calzado": random.choice(calzados)
+                })
+            else:
+                partial = {}
+                if superiores: partial["superior"] = random.choice(superiores)
+                if inferiores: partial["inferior"] = random.choice(inferiores)
+                if calzados: partial["calzado"] = random.choice(calzados)
+                if completos: partial["completo"] = random.choice(completos)
+                if partial: best.append(partial)
+
+        if best:
+            outfits.append(random.choice(best))
+            was_fallback = True
 
     outfits = [o for o in outfits if any(o.values())]
-    return outfits
+    return outfits, was_fallback
 
 
 def _classify_simple(labels, logits_slice):
@@ -437,9 +461,9 @@ def generate_outfits_endpoint():
 
     # Backward-compatible: plain list = old format
     if isinstance(data, list):
-        outfits = generate_outfits(data)
+        outfits, was_fallback = generate_outfits(data)
     else:
-        outfits = generate_outfits(
+        outfits, was_fallback = generate_outfits(
             data.get("items", []),
             style=data.get("style"),
             material_matching=data.get("material_matching", False),
@@ -449,7 +473,7 @@ def generate_outfits_endpoint():
             target_print=data.get("print"),
         )
 
-    return jsonify({"outfits": outfits})
+    return jsonify({"outfits": outfits, "fallback": was_fallback})
 
 @app.route("/generate-outfit-with-base", methods=["POST"])
 def generate_outfit_with_base():

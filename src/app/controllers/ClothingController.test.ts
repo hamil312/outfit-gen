@@ -126,12 +126,13 @@ describe("ClothingController", () => {
           }),
       });
 
-      const outfits = await clothingController.generateOutfits(
+      const { outfits, fallback } = await clothingController.generateOutfits(
         "any", "any", "any"
       );
 
       expect(outfits).toHaveLength(1);
       expect(outfits[0].superior.name).toBe("Shirt");
+      expect(fallback).toBe(false);
     });
   });
 

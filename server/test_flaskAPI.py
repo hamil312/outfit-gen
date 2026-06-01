@@ -294,32 +294,63 @@ class TestGenerateOutfits:
 
     def test_basic_generation(self):
         items = self._items_for_outfit()
-        result = api.generate_outfits(items)
+        result, _ = api.generate_outfits(items)
         assert len(result) >= 1
         o = result[0]
         assert "superior" in o or "completo" in o
 
     def test_style_filter(self):
         items = self._items_for_outfit()
-        result = api.generate_outfits(items, style="vintage")
+        result, _ = api.generate_outfits(items, style="vintage")
         assert len(result) == 0
 
     def test_material_matching(self):
         items = self._items_for_outfit()
-        result = api.generate_outfits(items, material_matching=True)
+        result, _ = api.generate_outfits(items, material_matching=True)
         assert len(result) >= 1
 
     def test_print_matching(self):
         items = self._items_for_outfit()
         # All solid → same-print pass should work
-        result = api.generate_outfits(items, print_matching=True)
+        result, _ = api.generate_outfits(items, print_matching=True)
         assert len(result) >= 1
 
     def test_target_material(self):
         items = self._items_for_outfit()
-        result = api.generate_outfits(items, material_matching=True, target_material="denim")
+        result, _ = api.generate_outfits(items, material_matching=True, target_material="denim")
         assert len(result) >= 1
 
     def test_empty_wardrobe(self):
-        result = api.generate_outfits([])
+        result, fallback = api.generate_outfits([])
         assert result == []
+        assert not fallback
+
+    def test_fallback_level1_color_compatible(self):
+        """Level 1 fallback: items exist but no group matches occasion, fallback picks color-compatible."""
+        items = [
+            self._item(type="shirt", color=[200, 50, 50],  color_name="red",
+                       occasion="party", material="cotton", print="solid", style="classic"),
+            self._item(type="pants", color=[50, 50, 50],   color_name="black",
+                       occasion="party", material="denim",  print="solid", style="classic"),
+            self._item(type="shoes", color=[240, 240, 240],color_name="white",
+                       occasion="party", material="leather",print="solid", style="classic"),
+        ]
+        result, fallback = api.generate_outfits(items, style="vintage")
+        assert len(result) == 0
+        assert not fallback
+
+    def test_fallback_with_incompatible_items(self):
+        """Verify fallback activates when no color-compatible combination exists."""
+        items = [
+            self._item(type="shirt",  color=[200, 50, 50],   color_name="red",
+                       occasion="casual", material="cotton", print="solid", style="casual"),
+            self._item(type="pants",  color=[50, 50, 200],   color_name="blue",
+                       occasion="casual", material="denim",  print="solid", style="casual"),
+            self._item(type="shoes",  color=[50, 50, 200],   color_name="blue",
+                       occasion="casual", material="leather", print="solid", style="casual"),
+        ]
+        result, fallback = api.generate_outfits(items)
+        assert fallback, "Debería activar fallback con colores incompatibles"
+        assert len(result) == 1
+        o = result[0]
+        assert o.get("superior") or o.get("completo")

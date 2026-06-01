@@ -3,6 +3,8 @@ import { Clothing } from "@/app/models/Clothing";
 import { account, databases } from "@/lib/appwrite";
 import { FLASK_API_URL } from "@/lib/config";
 
+const recentBaseItemIds: string[] = [];
+
 const normalize = (item: any) => ({
   $id: item.$id,
   id: item.$id,
@@ -158,14 +160,19 @@ export const clothingController = {
       // ── Try to find a base item matching any active filter ──
       const anyFilter = hasColor || hasContext || hasStyle;
       if (anyFilter) {
-        const baseItem = all.find((c) => {
+        const candidates = all.filter((c) => {
           let match = true;
           if (hasColor)   match = match && getColorName(c.color) === selectedColor!.toLowerCase();
           if (hasContext) match = match && c.occasion === selectedContext!.toLowerCase();
           if (hasStyle)   match = match && c.style === selectedStyle!.toLowerCase();
           return match;
         });
+        // Pick a candidate not recently used, fall back to first if none available
+        let baseItem = candidates.find(c => !recentBaseItemIds.includes(c.$id))
+                      || candidates[0];
         if (baseItem) {
+          recentBaseItemIds.unshift(baseItem.$id);
+          if (recentBaseItemIds.length > 10) recentBaseItemIds.pop();
     const response = await fetch(`${FLASK_API_URL}/generate-outfit-with-base`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -178,7 +185,7 @@ export const clothingController = {
             }),
           });
           const data = await response.json();
-          return [data.outfit];
+          return { outfits: [data.outfit], fallback: false };
         }
       }
 
@@ -217,10 +224,10 @@ export const clothingController = {
       });
 
       const data = await response.json();
-      return data.outfits || [];
+      return { outfits: data.outfits || [], fallback: data.fallback || false };
     } catch (error) {
       console.error("Error generando outfits:", error);
-      return [];
+      return { outfits: [], fallback: false };
     }
   },
 

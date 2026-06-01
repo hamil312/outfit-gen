@@ -41,6 +41,7 @@ export default function Generator() {
   const [showPrintDropdown, setShowPrintDropdown] = useState(false);
   const [loading, setLoading]       = useState(false);
   const [outfits, setOutfits]       = useState<any[]>([]);
+  const [isFallback, setIsFallback] = useState(false);
   const [showModal, setShowModal]   = useState(false);
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [savingOutfit, setSavingOutfit] = useState(false);
@@ -208,7 +209,7 @@ export default function Generator() {
   // Generar atuendos basados en los filtros seleccionados y mostrarlos.
   const handleGenerate = async () => {
     setLoading(true);
-    const results = await clothingController.generateOutfits(
+    const { outfits: generated, fallback } = await clothingController.generateOutfits(
       selectedColor.toLowerCase(),
       selectedContext.toLowerCase(),
       selectedStyle.toLowerCase(),
@@ -218,7 +219,8 @@ export default function Generator() {
       usePrintMatching,
       selectedPrint,
     );
-    setOutfits(results);
+    setOutfits(generated);
+    setIsFallback(fallback);
     setLoading(false);
   };
 
@@ -629,6 +631,11 @@ export default function Generator() {
                         )}
                       </div>
                     ))}
+                    {isFallback && (
+                      <p className="gen-fallback-msg">
+                        No se encontraron combinaciones exactas. Este outfit se armó con las prendas disponibles.
+                      </p>
+                    )}
                   </div>
                 )}
               </div>
