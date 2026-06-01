@@ -219,8 +219,8 @@ export default function Generator() {
       usePrintMatching,
       selectedPrint,
     );
-    setOutfits(generated);
-    setIsFallback(fallback);
+    setOutfits(Array.isArray(generated) ? generated : []);
+    setIsFallback(fallback === true);
     setLoading(false);
   };
 
@@ -417,15 +417,20 @@ export default function Generator() {
                 <p className="gen-color-label">Color predominante</p>
                 <div className="gen-color-options">
                   {[
-                    { label: 'Any',   hex: '#00000000', cls: 'gen-color-circle--any',  txt: 'A' },
-                    { label: 'black', hex: '#1a1a1a' },
-                    { label: 'white', hex: '#ffffff' },
-                    { label: 'gray',  hex: '#9ca3af' },
-                    { label: 'beige', hex: '#d4c5a9' },
-                    { label: 'red',   hex: '#dc2626' },
-                    { label: 'blue',  hex: '#2563eb' },
-                    { label: 'green', hex: '#16a34a' },
+                    { label: 'Any',    hex: '#00000000', cls: 'gen-color-circle--any',  txt: 'A' },
+                    { label: 'black',  hex: '#1a1a1a' },
+                    { label: 'white',  hex: '#ffffff' },
+                    { label: 'gray',   hex: '#9ca3af' },
+                    { label: 'beige',  hex: '#d4c5a9' },
+                    { label: 'red',    hex: '#dc2626' },
+                    { label: 'orange', hex: '#f97316' },
                     { label: 'yellow', hex: '#eab308' },
+                    { label: 'pink',   hex: '#ec4899' },
+                    { label: 'green',  hex: '#16a34a' },
+                    { label: 'blue',   hex: '#2563eb' },
+                    { label: 'navy',   hex: '#1e3a5f' },
+                    { label: 'purple', hex: '#9333ea' },
+                    { label: 'brown',  hex: '#92400e' },
                   ].map(({ label, hex, cls, txt }) => (
                     <button
                       key={label}
@@ -605,7 +610,7 @@ export default function Generator() {
                   </div>
                 ) : (
                   <div className="gen-outfits-grid">
-                    {outfits.map((outfit, index) => (
+                    {outfits.filter(Boolean).map((outfit, index) => (
                       <div key={index} className="gen-outfit-card">
                         {outfit.completo && outfit.calzado ? (
                           <>

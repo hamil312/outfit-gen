@@ -2074,6 +2074,10 @@
   .vw-clothes-grid {
     grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
   }
+
+  .vw-clothing-actions {
+    flex-direction: column;
+  }
 }
 
 /* ------------------------------
@@ -2896,10 +2900,12 @@
   .feed-filters {
     flex-direction: column;
     gap: 12px;
+    align-items: stretch;
   }
 
   .feed-filter-row {
     flex-wrap: wrap;
+    justify-content: flex-start;
   }
 }
 
@@ -3175,6 +3181,121 @@
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+/* ── Navbar layout ── */
+
+.navbar-links-desktop {
+  display: flex;
+  gap: 32px;
+  align-items: center;
+  flex: 1;
+  justify-content: center;
+}
+
+.navbar-right-desktop {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  white-space: nowrap;
+}
+
+/* ── Hamburger button ── */
+
+.navbar-hamburger {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  width: 36px;
+  height: 36px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  transition: background 0.2s ease;
+}
+
+.navbar-hamburger:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.navbar-hamburger span {
+  display: block;
+  width: 22px;
+  height: 2.5px;
+  background: #1a2b32;
+  border-radius: 2px;
+  transition: transform 0.25s ease, opacity 0.25s ease;
+}
+
+.navbar-hamburger--open span:nth-child(1) {
+  transform: translateY(7.5px) rotate(45deg);
+}
+
+.navbar-hamburger--open span:nth-child(2) {
+  opacity: 0;
+}
+
+.navbar-hamburger--open span:nth-child(3) {
+  transform: translateY(-7.5px) rotate(-45deg);
+}
+
+/* ── Mobile menu ── */
+
+.navbar-mobile-menu {
+  display: none;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px 0 8px;
+  border-top: 1px solid #ece7e0;
+  margin-top: 12px;
+}
+
+.navbar-mobile-menu .nav-link-custom {
+  padding: 10px 0;
+  font-size: 15px;
+  border-bottom: 1px solid #f3f0eb;
+}
+
+.navbar-mobile-actions {
+  display: flex;
+  gap: 10px;
+  padding-top: 12px;
+}
+
+.navbar-mobile-actions .navbar-btn {
+  flex: 1;
+}
+
+/* ── Responsive: mobile ── */
+
+@media (max-width: 768px) {
+  .navbar-custom {
+    padding: 12px 20px !important;
+  }
+
+  .navbar-links-desktop {
+    display: none;
+  }
+
+  .navbar-right-desktop {
+    display: none;
+  }
+
+  .navbar-right-desktop--show {
+    display: flex;
+  }
+
+  .navbar-hamburger {
+    display: flex;
+  }
+
+  .navbar-mobile-menu {
+    display: flex;
+  }
 }
 
 /* ------------------------------

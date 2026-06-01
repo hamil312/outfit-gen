@@ -146,9 +146,14 @@ export const clothingController = {
         if (r > 220 && g > 220 && b > 220) return "white";
         if (Math.abs(r - g) < 20 && Math.abs(g - b) < 20) return "gray";
         if (r > 150 && g < 100 && b < 100) return "red";
+        if (r > 200 && g > 80 && g < 150 && b < 70 && r - g > 40) return "orange";
         if (r > 150 && g > 150 && b < 80) return "yellow";
+        if (r > 200 && b > 120 && g > 80 && g < 200 && r - g > 30) return "pink";
         if (g > 120 && r < 120 && b < 120) return "green";
         if (b > 140 && r < 120 && g < 120) return "blue";
+        if (r < 70 && g < 70 && b > 80) return "navy";
+        if (r > 80 && b > 100 && g < 100) return "purple";
+        if (r > 70 && r < 200 && g < 90 && b < 70 && r > g) return "brown";
         if (r > 120 && g > 100 && b < 80) return "beige";
         return "neutral";
       }
@@ -185,7 +190,7 @@ export const clothingController = {
             }),
           });
           const data = await response.json();
-          return { outfits: [data.outfit], fallback: false };
+          return { outfits: data.outfit ? [data.outfit] : [], fallback: !data.outfit };
         }
       }
 
@@ -224,7 +229,7 @@ export const clothingController = {
       });
 
       const data = await response.json();
-      return { outfits: data.outfits || [], fallback: data.fallback || false };
+      return { outfits: Array.isArray(data.outfits) ? data.outfits : [], fallback: data.fallback === true };
     } catch (error) {
       console.error("Error generando outfits:", error);
       return { outfits: [], fallback: false };

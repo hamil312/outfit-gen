@@ -108,14 +108,20 @@ def get_dominant_color(image, k=3):
 
 
 COLOR_RULES = {
-    "neutral": ["black", "white", "gray", "beige", "denim"],
-    "black": ["white", "gray", "red", "beige", "blue", "black"],
-    "white": ["black", "blue", "red", "green", "gray"],
-    "blue": ["white", "beige", "gray"],
-    "red": ["black", "white", "gray"],
-    "green": ["white", "black", "brown", "blue"],
-    "gray": ["white", "black", "blue"],
-    "beige": ["white", "brown", "blue"],
+    "neutral": ["black", "white", "gray", "beige", "denim", "brown", "navy"],
+    "black": ["white", "gray", "red", "beige", "blue", "black", "pink", "purple", "orange", "brown", "navy", "yellow", "green"],
+    "white": ["black", "blue", "red", "green", "gray", "pink", "purple", "orange", "brown", "navy", "yellow", "beige"],
+    "blue": ["white", "beige", "gray", "black", "navy", "yellow"],
+    "red": ["black", "white", "gray", "beige"],
+    "green": ["white", "black", "brown", "blue", "beige", "yellow"],
+    "gray": ["white", "black", "blue", "red", "beige", "pink", "purple", "navy", "yellow"],
+    "beige": ["white", "brown", "blue", "black", "green", "navy", "yellow", "gray"],
+    "yellow": ["white", "black", "blue", "gray", "beige", "green"],
+    "pink": ["white", "black", "gray", "beige", "purple", "blue"],
+    "purple": ["white", "black", "gray", "beige", "pink", "blue"],
+    "orange": ["white", "black", "gray", "beige", "brown", "blue"],
+    "brown": ["white", "beige", "green", "blue", "orange", "black", "gray", "yellow"],
+    "navy": ["white", "beige", "gray", "blue", "black", "red", "green", "yellow", "pink"],
 }
 
 CATEGORY_MAP = {
@@ -166,7 +172,7 @@ def compatible_material(m1, m2):
     allowed = MATERIAL_RULES.get(m1, [])
     return m2 in allowed
 
-NEUTRAL_COLORS = {"white", "black", "beige", "gray", "neutral"}
+NEUTRAL_COLORS = {"white", "black", "beige", "gray", "neutral", "navy", "brown"}
 
 def prints_ok(a, b, rule):
     """Check print compatibility between two items.
@@ -204,12 +210,22 @@ def rgb_to_name(rgb):
         return "gray"
     if r > 150 and g < 100 and b < 100:
         return "red"
+    if r > 200 and g > 80 and g < 150 and b < 70 and r - g > 40:
+        return "orange"
     if r > 150 and g > 150 and b < 80:
         return "yellow"
+    if r > 200 and b > 120 and g > 80 and g < 200 and r - g > 30:
+        return "pink"
     if g > 120 and r < 120 and b < 120:
         return "green"
     if b > 140 and r < 120 and g < 120:
         return "blue"
+    if r < 70 and g < 70 and b > 80:
+        return "navy"
+    if r > 80 and b > 100 and g < 100:
+        return "purple"
+    if r > 70 and r < 200 and g < 90 and b < 70 and r > g:
+        return "brown"
     if r > 120 and g > 100 and b < 80:
         return "beige"
 

@@ -18,7 +18,8 @@ const TYPE_OPTIONS = [
 ];
 
 const COLOR_OPTIONS = [
-  "black", "white", "gray", "beige", "red", "blue", "green", "yellow", "neutral"
+  "black", "white", "gray", "beige", "red", "blue", "green", "yellow",
+  "orange", "pink", "purple", "brown", "navy", "neutral"
 ];
 
 const MATERIAL_OPTIONS = [

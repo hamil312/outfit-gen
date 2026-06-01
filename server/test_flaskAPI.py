@@ -73,6 +73,21 @@ class TestRgbToName:
     def test_string_passthrough(self):
         assert api.rgb_to_name("blue") == "blue"
 
+    def test_orange(self):
+        assert api.rgb_to_name([255, 120, 30]) == "orange"
+
+    def test_pink(self):
+        assert api.rgb_to_name([255, 150, 200]) == "pink"
+
+    def test_purple(self):
+        assert api.rgb_to_name([150, 50, 200]) == "purple"
+
+    def test_brown(self):
+        assert api.rgb_to_name([139, 69, 19]) == "brown"
+
+    def test_navy(self):
+        assert api.rgb_to_name([30, 30, 100]) == "navy"
+
 
 # ── color_compatible ───────────────────────────────────────────────────────
 
@@ -95,6 +110,18 @@ class TestColorCompatible:
 
     def test_beige_with_white(self):
         assert api.color_compatible("beige", "white") is True
+
+    def test_new_colors_compatible_with_neutrals(self):
+        for c in ["orange", "pink", "purple", "brown", "navy"]:
+            assert api.color_compatible(c, "white")
+            assert api.color_compatible(c, "black")
+
+    def test_yellow_with_white(self):
+        assert api.color_compatible("yellow", "white") is True
+
+    def test_navy_with_blue(self):
+        assert api.color_compatible("navy", "blue") is True
+        assert api.color_compatible("blue", "navy") is True
 
 
 # ── _categorize ────────────────────────────────────────────────────────────
