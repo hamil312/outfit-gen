@@ -20,6 +20,8 @@ import { clothingController } from "../controllers/ClothingController";
 import { outfitController } from "../controllers/OutfitController";
 import { favouriteController } from "../controllers/FavouriteController";
 import { account } from "@/lib/appwrite";
+import { profileController } from "../controllers/ProfileController";
+import { extractOutfitFeatures } from "@/lib/OutfitFeatures";
 
 // ─── Helper de URL de imagen ─────────────────────────────────────────────────────────
 const imgUrl = (fileId: string) =>
@@ -154,8 +156,14 @@ const VirtualWardrobe = () => {
   const handleDeleteOutfit = async (outfitId: string) => {
     if (!confirm("¿Deseas eliminar este atuendo?")) return;
     try {
+      const outfit = outfits.find(o => o.$id === outfitId);
       await outfitController.deleteOutfit(outfitId);
       setOutfits(prev => prev.filter(o => o.$id !== outfitId));
+      if (outfit && userId) {
+        profileController.recordInteraction(
+          userId, outfitId, 'discarded', extractOutfitFeatures(outfit)
+        ).catch(console.error);
+      }
     } catch (error: any) {
       if (error?.message?.includes('No autorizado')) { alert('No tienes permiso.'); return; }
       if (error?.message?.includes('Usuario no autenticado')) { window.location.href = '/auth/login'; return; }
@@ -193,8 +201,14 @@ const VirtualWardrobe = () => {
     setPublishLoading(true);
 
     try {
+      const outfit = outfits.find(o => o.$id === publishOutfitId);
       const updated = await outfitController.publishOutfit(publishOutfitId, true, publishDescription, publishName);
       setOutfits(prev => prev.map(o => o.$id === publishOutfitId ? { ...o, ...(updated as any), public: true, description: publishDescription, name: publishName } : o));
+      if (outfit && userId) {
+        profileController.recordInteraction(
+          userId, publishOutfitId, 'published', extractOutfitFeatures(outfit)
+        ).catch(console.error);
+      }
       setPublishModalOpen(false);
       setPublishOutfitId(null);
       setPublishName("");

@@ -4,6 +4,9 @@ import AppNavbar from '@/app/components/ui/Navbar';
 import OutfitModal from '@/app/components/ui/OutfitModal';
 import { outfitController } from '@/app/controllers/OutfitController';
 import { favouriteController } from '@/app/controllers/FavouriteController';
+import { account } from '@/lib/appwrite';
+import { profileController } from '@/app/controllers/ProfileController';
+import { extractOutfitFeatures } from '@/lib/OutfitFeatures';
 import { FaHeart, FaRegHeart, FaSearch } from 'react-icons/fa';
 import { HiOutlineViewGrid } from 'react-icons/hi';
 import { IoGridOutline } from 'react-icons/io5';
@@ -319,7 +322,12 @@ const FeedPage = () => {
   const [selectedOccasion, setSelectedOccasion] = useState('');
   const [sortBy, setSortBy] = useState<'recent' | 'likes'>('recent');
   const [selectedOutfit, setSelectedOutfit] = useState<Outfit | null>(null);
+  const [userId, setUserId] = useState<string>('');
   const topRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    account.get().then(user => setUserId(user.$id)).catch(() => {});
+  }, []);
 
   const totalPages = total ? Math.ceil(total / PER_PAGE) : null;
 
@@ -357,6 +365,9 @@ const FeedPage = () => {
   }, [page]);
 
   const handleToggleLike = async (id: string) => {
+    const outfit = outfits.find(o => o.$id === id);
+    const wasLiked = outfit?.liked ?? false;
+
     setOutfits(prev =>
       prev.map(o =>
         o.$id === id
@@ -369,6 +380,12 @@ const FeedPage = () => {
       setOutfits(prev =>
         prev.map(o => (o.$id === id ? { ...o, liked: res.liked, likes: res.likes } : o))
       );
+      // Solo registrar cuando el usuario da like (no cuando lo quita)
+      if (!wasLiked && res.liked && userId && outfit) {
+        profileController.recordInteraction(
+          userId, id, 'liked', extractOutfitFeatures(outfit)
+        ).catch(console.error);
+      }
     } catch (err: any) {
       setOutfits(prev =>
         prev.map(o =>
