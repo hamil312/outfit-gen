@@ -12,6 +12,8 @@ import { clothingController } from "../controllers/ClothingController";
 import { account } from "@/lib/appwrite";
 import { Clothing } from "../models/Clothing";
 import { outfitController } from "../controllers/OutfitController";
+import { profileController } from "../controllers/ProfileController";
+import { extractOutfitFeatures, syntheticOutfitId } from "@/lib/OutfitFeatures";
 
 // ─── helper para la url de imágenes ─────────────────────────────────────────────────────────
 // Construir la url de la imágen de appwrite para la ID del archivo almacenado.
@@ -49,6 +51,7 @@ export default function Generator() {
   const [selectedOutfitToSave, setSelectedOutfitToSave] = useState<any>(null);
   const [selectedOutfitIndex, setSelectedOutfitIndex] = useState<number | null>(null);
   const [userClothes, setUserClothes] = useState<Clothing[]>([]);
+  const [userId, setUserId] = useState<string>('');
   const [showNotificationModal, setShowNotificationModal] = useState(false);
 
   // ── Modal-specific toggles (independent from sidebar) ──
@@ -194,9 +197,10 @@ export default function Generator() {
     }
   }, [showNotificationModal]);
 
-  // Cargar las prendas del usuario
+  // Cargar las prendas del usuario y capturar el userId para interacciones
   useEffect(() => {
-    account.get().then(async () => {
+    account.get().then(async (user) => {
+      setUserId(user.$id);
       const clothes = await clothingController.getUserClothes();
       setUserClothes(clothes);
     });
@@ -208,6 +212,15 @@ export default function Generator() {
 
   // Generar atuendos basados en los filtros seleccionados y mostrarlos.
   const handleGenerate = async () => {
+    // Si ya hay outfits mostrados, el usuario está regenerando: registrar señal negativa
+    // sobre los outfits descartados. Fire-and-forget para no bloquear la UI.
+    if (outfits.length > 0 && userId) {
+      outfits.forEach(outfit => {
+        profileController.recordInteraction(
+          userId, syntheticOutfitId(), 'regenerated', extractOutfitFeatures(outfit)
+        ).catch(console.error);
+      });
+    }
     setLoading(true);
     const { outfits: generated, fallback } = await clothingController.generateOutfits(
       selectedColor.toLowerCase(),
@@ -235,7 +248,12 @@ export default function Generator() {
     if (!selectedOutfitToSave || selectedOutfitIndex === null) return;
     setSavingOutfit(true);
     try {
-      await outfitController.saveOutfit(selectedOutfitToSave, saveOutfitName.trim() || `Outfit ${selectedOutfitIndex + 1}`);
+      const savedDoc = await outfitController.saveOutfit(selectedOutfitToSave, saveOutfitName.trim() || `Outfit ${selectedOutfitIndex + 1}`);
+      if (userId && savedDoc?.$id) {
+        profileController.recordInteraction(
+          userId, savedDoc.$id, 'saved', extractOutfitFeatures(selectedOutfitToSave)
+        ).catch(console.error);
+      }
       setShowSaveModal(false);
       setSelectedOutfitToSave(null);
       setSelectedOutfitIndex(null);
