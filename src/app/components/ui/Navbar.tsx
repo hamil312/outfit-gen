@@ -50,6 +50,7 @@ export default function AppNavbar() {
     <>
       <a href="/generator" className="nav-link-custom" onClick={closeMenu}>Empieza a generar</a>
       <a href="/calendar" className="nav-link-custom" onClick={closeMenu}>Calendario</a>
+      <a href="/dashboard" className="nav-link-custom" onClick={closeMenu}>Resumen</a>
       <a href="/feed" className="nav-link-custom" onClick={closeMenu}>Feed</a>
       <Link href="/#about-us" className="nav-link-custom" onClick={closeMenu}>Acerca de</Link>
       <Link href="/#footer" className="nav-link-custom" onClick={closeMenu}>Contáctanos</Link>
