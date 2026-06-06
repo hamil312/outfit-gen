@@ -3,7 +3,8 @@ import React, { useState, useEffect, useMemo } from "react";
 import AppNavbar from "@/app/components/ui/Navbar";
 import Footer from "@/app/components/ui/Footer";
 import ProtectedRoute from "@/app/components/ui/ProtectedRoute";
-import { account, databases } from "@/lib/appwrite";
+import { useAuth } from "@/app/context/AuthContext";
+import { databases } from "@/lib/appwrite";
 import { Query } from "appwrite";
 import { clothingController } from "@/app/controllers/ClothingController";
 import { outfitController } from "@/app/controllers/OutfitController";
@@ -73,6 +74,7 @@ const SimpleTooltip = ({ active, payload, label }: any) => {
 };
 
 export default function DashboardPage() {
+  const { user, loading: authLoading } = useAuth();
   const [loading, setLoading]           = useState(true);
   const [userId, setUserId]             = useState("");
   const [profile, setProfile]           = useState<any>(null);
@@ -83,9 +85,10 @@ export default function DashboardPage() {
   const [usedPercent, setUsedPercent]   = useState(0);
 
   useEffect(() => {
+    if (authLoading || !user) return;
+
     const load = async () => {
       try {
-        const user = await account.get();
         setUserId(user.$id);
 
         const [profileData, clothesData, outfitsData, intRes] = await Promise.all([
@@ -127,7 +130,7 @@ export default function DashboardPage() {
       }
     };
     load();
-  }, []);
+  }, [authLoading, user]);
 
   // ── Datos derivados ──────────────────────────────────────────────────────────
 
@@ -197,7 +200,7 @@ export default function DashboardPage() {
   ];
 
   // ── Loading ──────────────────────────────────────────────────────────────────
-  if (loading) {
+  if (authLoading || loading) {
     return (
       <ProtectedRoute>
         <div className="dash-root">
