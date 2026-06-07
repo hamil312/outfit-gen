@@ -5478,3 +5478,208 @@
     padding: 18px 16px;
   }
 }
+
+/* ── Cobertura por ocasión ── */
+.vw-ip-occasion-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.vw-ip-occ-card {
+  border-radius: 10px;
+  padding: 12px;
+  border: 1px solid #e5e7eb;
+  background: #fafaf9;
+}
+.vw-ip-occ-card--ok   { border-color: #bbf7d0; background: #f0fdf4; }
+.vw-ip-occ-card--miss { border-color: #fecaca; background: #fef2f2; }
+
+.vw-ip-occ-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.vw-ip-occ-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #1a2b32;
+}
+
+.vw-ip-occ-slots {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.vw-ip-slot-chip {
+  display: inline-block;
+  font-size: 11px;
+  padding: 2px 7px;
+  border-radius: 20px;
+  background: #e5e7eb;
+  color: #374151;
+  width: fit-content;
+}
+.vw-ip-slot-chip--miss {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.vw-ip-occ-hint {
+  margin-top: 6px;
+  font-size: 11px;
+  color: #dc2626;
+  line-height: 1.4;
+}
+
+/* ── Productos de tienda ── */
+.vw-rec-products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 12px;
+}
+
+.vw-rec-product-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  transition: box-shadow 0.15s;
+}
+.vw-rec-product-card:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.vw-rec-product-img {
+  width: 100%;
+  aspect-ratio: 3/4;
+  object-fit: cover;
+  background: #f3f4f6;
+}
+.vw-rec-product-img-placeholder {
+  width: 100%;
+  aspect-ratio: 3/4;
+  background: #f3f4f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.vw-rec-product-body {
+  padding: 8px 10px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+.vw-rec-product-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: #1a2b32;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.vw-rec-product-price {
+  font-size: 12px;
+  color: #5ca2ae;
+  font-weight: 700;
+}
+.vw-rec-product-link {
+  margin-top: auto;
+  font-size: 11px;
+  color: #1a2b32;
+  text-decoration: underline;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.vw-rec-product-link:hover { color: #5ca2ae; }
+
+/* Store search links grid */
+.vw-rec-store-links {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.vw-rec-store-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: #f9f7f4;
+  border: 1px solid #ece7e0;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #1a2b32;
+  text-decoration: none;
+  transition: background 0.15s, border-color 0.15s;
+}
+.vw-rec-store-link:hover {
+  background: #ece7e0;
+  border-color: #5ca2ae;
+  color: #1a2b32;
+  text-decoration: none;
+}
+
+/* Gender selector for recommendations */
+.vw-rec-gender {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.vw-rec-gender-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #4b5563;
+}
+.vw-rec-gender-toggle {
+  display: inline-flex;
+  background: #f0efeb;
+  border: 1px solid #ece7e0;
+  border-radius: 999px;
+  padding: 3px;
+  gap: 2px;
+}
+/* Selectores específicos para contrarrestar el reset de Bootstrap en <button> */
+.vw-rec-gender-toggle .vw-rec-gender-btn {
+  appearance: none;
+  -webkit-appearance: none;
+  border: none;
+  outline: none;
+  box-shadow: none !important;
+  background: transparent;
+  padding: 6px 20px;
+  border-radius: 999px !important;
+  font-size: 13px;
+  font-weight: 500;
+  color: #6b7280;
+  cursor: pointer;
+  line-height: 1.4;
+  letter-spacing: 0.01em;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+.vw-rec-gender-toggle .vw-rec-gender-btn:hover:not(.vw-rec-gender-btn--active) {
+  background: #ece7e0;
+  color: #1a2b32;
+}
+.vw-rec-gender-toggle .vw-rec-gender-btn:focus {
+  outline: none;
+  box-shadow: none !important;
+}
+.vw-rec-gender-toggle .vw-rec-gender-btn.vw-rec-gender-btn--active {
+  background: #1a2b32 !important;
+  color: #f0efeb !important;
+  border-radius: 999px !important;
+}

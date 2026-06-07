@@ -5,9 +5,9 @@ import AppNavbar from "@/app/components/ui/Navbar";
 import ClothingForm from "@/app/components/ui/ClothingForm";
 import ProtectedRoute from "../components/ui/ProtectedRoute";
 
-import { BsGrid3X3Gap, BsStars, BsGraphUp } from 'react-icons/bs';
+import { BsGrid3X3Gap, BsStars, BsGraphUp, BsShop } from 'react-icons/bs';
 import { PiPantsFill, PiSneakerFill } from "react-icons/pi";
-import { FaTshirt, FaHeart, FaEdit, FaTrash, FaEye, FaEyeSlash, FaCheckCircle, FaExclamationTriangle, FaExclamationCircle, FaLightbulb } from 'react-icons/fa';
+import { FaTshirt, FaHeart, FaEdit, FaTrash, FaEye, FaEyeSlash, FaCheckCircle, FaExclamationTriangle, FaExclamationCircle, FaLightbulb, FaExternalLinkAlt } from 'react-icons/fa';
 import { IoMdAdd } from 'react-icons/io';
 import { IoShirtOutline } from "react-icons/io5";
 
@@ -18,9 +18,10 @@ import { mapClothingTypeToSection } from "@/lib/ClothingCategoryMapper";
 import { clothingController } from "../controllers/ClothingController";
 import { outfitController } from "../controllers/OutfitController";
 import { favouriteController } from "../controllers/FavouriteController";
-import { account } from "@/lib/appwrite";
+import { useAuth } from "@/app/context/AuthContext";
 import { profileController } from "../controllers/ProfileController";
 import { extractOutfitFeatures } from "@/lib/OutfitFeatures";
+import { wardrobeRecommendationController, WardrobeAnalysis, ItemRecommendation, StoreSearchResult, Gender } from "../controllers/WardrobeRecommendationController";
 
 // ─── Análisis inteligente del guardarropa ────────────────────────────────────────────
 type InsightSeverity = 'success' | 'warning' | 'alert' | 'tip';
@@ -156,6 +157,13 @@ const ScoreRing = ({ score }: { score: number }) => {
   );
 };
 
+const OCC_LABELS: Record<string, string> = {
+  formal: "Formal", informal: "Informal", casual: "Casual", sport: "Deporte",
+};
+const SLOT_LABELS: Record<string, string> = {
+  superior: "Superior", inferior: "Inferior", calzado: "Calzado", completo: "Prenda completa",
+};
+
 const WardrobeInsights = ({ clothes }: { clothes: Clothing[] }) => {
   const sup = clothes.filter(c => typeof c.type === 'string' && mapClothingTypeToSection(c.type) === 'superior');
   const inf = clothes.filter(c => typeof c.type === 'string' && mapClothingTypeToSection(c.type) === 'inferior');
@@ -163,6 +171,19 @@ const WardrobeInsights = ({ clothes }: { clothes: Clothing[] }) => {
   const combos = sup.length * inf.length * cal.length;
   const score  = computeScore(clothes, sup, inf, cal);
   const insights = analyzeWardrobe(clothes);
+
+  const [flaskAnalysis, setFlaskAnalysis] = useState<WardrobeAnalysis | null>(null);
+  const [flaskLoading, setFlaskLoading]   = useState(false);
+
+  useEffect(() => {
+    if (clothes.length === 0) return;
+    setFlaskLoading(true);
+    wardrobeRecommendationController
+      .analyzeWardrobe(clothes)
+      .then(setFlaskAnalysis)
+      .catch(() => {})
+      .finally(() => setFlaskLoading(false));
+  }, [clothes]);
 
   const alerts   = insights.filter(i => i.severity === 'alert' || i.severity === 'warning');
   const successes = insights.filter(i => i.severity === 'success');
@@ -304,6 +325,271 @@ const WardrobeInsights = ({ clothes }: { clothes: Clothing[] }) => {
           </div>
         </div>
       )}
+
+      {/* Cobertura de slots por ocasión (desde Flask) */}
+      <div className="vw-ip-section">
+        <div className="vw-ip-section-header vw-ip-section-header--tip">
+          <BsGraphUp size={13} />
+          <p className="vw-ip-section-title">Cobertura por ocasión</p>
+        </div>
+        {flaskLoading && (
+          <p className="vw-ip-empty" style={{ fontSize: 13, color: '#9ca3af' }}>Analizando…</p>
+        )}
+        {!flaskLoading && flaskAnalysis && (
+          <div className="vw-ip-occasion-grid">
+            {Object.entries(flaskAnalysis.occasion_slot_coverage).map(([occ, data]) => (
+              <div key={occ} className={`vw-ip-occ-card ${data.can_make_outfit ? 'vw-ip-occ-card--ok' : 'vw-ip-occ-card--miss'}`}>
+                <div className="vw-ip-occ-header">
+                  {data.can_make_outfit
+                    ? <FaCheckCircle size={13} style={{ color: '#2e7d5e' }} />
+                    : <FaExclamationCircle size={13} style={{ color: '#b91c1c' }} />}
+                  <span className="vw-ip-occ-label">{OCC_LABELS[occ] ?? occ}</span>
+                </div>
+                <div className="vw-ip-occ-slots">
+                  {(["superior", "inferior", "calzado"] as const).map(slot => {
+                    const count   = data.counts[slot] ?? 0;
+                    const missing = data.missing_slots.includes(slot);
+                    return (
+                      <span key={slot} className={`vw-ip-slot-chip ${missing ? 'vw-ip-slot-chip--miss' : ''}`}>
+                        {SLOT_LABELS[slot]}: {count}
+                      </span>
+                    );
+                  })}
+                </div>
+                {!data.can_make_outfit && data.missing_slots.length > 0 && (
+                  <p className="vw-ip-occ-hint">
+                    Faltan: {data.missing_slots.map(s => SLOT_LABELS[s]).join(', ')}
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+        {!flaskLoading && !flaskAnalysis && clothes.length > 0 && (
+          <p className="vw-ip-empty" style={{ fontSize: 13, color: '#9ca3af' }}>
+            No se pudo conectar con el servidor de análisis.
+          </p>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// ─── Recomendaciones personalizadas + búsqueda en tiendas ───────────────────
+const SLOT_ES: Record<string, string>  = { superior: "Superior", inferior: "Inferior", calzado: "Calzado", completo: "Completo" };
+const COLOR_ES_UI: Record<string, string> = {
+  black: "Negro", white: "Blanco", gray: "Gris", navy: "Azul marino",
+  blue: "Azul", red: "Rojo", green: "Verde", yellow: "Amarillo",
+  orange: "Naranja", pink: "Rosa", purple: "Morado", beige: "Beige",
+  brown: "Marrón", neutral: "Neutro",
+};
+const OCC_ES: Record<string, string> = { formal: "Formal", casual: "Casual", informal: "Informal", sport: "Deportivo" };
+
+interface RecCardProps {
+  rec:      ItemRecommendation;
+  result:   StoreSearchResult | null;
+  searching: boolean;
+  onSearch: () => void;
+}
+
+const RecCard = ({ rec, result, searching, onSearch }: RecCardProps) => (
+  <div className="vw-ip-card" style={{ marginBottom: 16 }}>
+    <div className="vw-ip-card-title" style={{ marginBottom: 8 }}>
+      {SLOT_ES[rec.category] ?? rec.category}
+    </div>
+
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 10 }}>
+      <span className="vw-ip-slot-chip">{COLOR_ES_UI[rec.color] ?? rec.color}</span>
+      <span className="vw-ip-slot-chip">{OCC_ES[rec.occasion] ?? rec.occasion}</span>
+    </div>
+
+    <p style={{ fontSize: 13, color: '#4b5563', lineHeight: 1.5, marginBottom: 14 }}>{rec.reason}</p>
+
+    {result === null && !searching && (
+      <button className="vw-btn vw-btn--primary" onClick={onSearch}>
+        <BsShop size={14} style={{ marginRight: 6 }} />
+        Buscar en tiendas
+      </button>
+    )}
+
+    {searching && (
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div className="gen-spinner" style={{ width: 18, height: 18 }} />
+        <span style={{ fontSize: 13, color: '#6b7280' }}>Buscando productos…</span>
+      </div>
+    )}
+
+    {result !== null && !searching && (
+      <>
+        {result.products.length > 0 && (
+          <div style={{ marginBottom: 14 }}>
+            <p className="vw-ip-card-title" style={{ fontSize: 12, marginBottom: 4 }}>Sugerencias de estilo</p>
+            <p style={{ fontSize: 11, color: '#9ca3af', marginBottom: 10 }}>
+              Ejemplos visuales de referencia. Para comprar usa los links de abajo.
+            </p>
+            <div className="vw-rec-products-grid">
+              {result.products.map((p, i) => (
+                <div key={i} className="vw-rec-product-card">
+                  {p.image ? (
+                    <img src={p.image} alt={p.name} className="vw-rec-product-img"
+                      onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                  ) : (
+                    <div className="vw-rec-product-img-placeholder">
+                      <IoShirtOutline size={28} color="#9ca3af" />
+                    </div>
+                  )}
+                  <div className="vw-rec-product-body">
+                    {p.brand && (
+                      <p style={{ fontSize: 10, color: '#9ca3af', margin: '0 0 2px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                        {p.brand}
+                      </p>
+                    )}
+                    <p className="vw-rec-product-name">{p.name}</p>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4 }}>
+                      {p.price && <p className="vw-rec-product-price" style={{ margin: 0 }}>{p.price}</p>}
+                      {!!p.rating && p.rating > 0 && (
+                        <span style={{ fontSize: 11, color: '#f59e0b' }}>★ {p.rating}</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {result.store_links.length > 0 && (
+          <>
+            <p className="vw-ip-card-title" style={{ fontSize: 12, marginBottom: 4 }}>Comprar en tiendas</p>
+            {result.products.length === 0 && (
+              <p style={{ fontSize: 11, color: '#9ca3af', marginBottom: 8 }}>
+                No hay productos de muestra para esta categoría — busca directamente en las tiendas.
+              </p>
+            )}
+            <div className="vw-rec-store-links">
+              {result.store_links.map((link, i) => (
+                <a key={i} href={link.url} target="_blank" rel="noopener noreferrer" className="vw-rec-store-link">
+                  <BsShop size={14} />
+                  <span>{link.store}</span>
+                  <FaExternalLinkAlt size={10} style={{ marginLeft: 'auto', opacity: 0.6 }} />
+                </a>
+              ))}
+            </div>
+          </>
+        )}
+      </>
+    )}
+  </div>
+);
+
+const GENDER_STORAGE_KEY = "pickurfit_rec_gender";
+
+const WardrobeRecommendations = ({ clothes }: { clothes: Clothing[] }) => {
+  const { user } = useAuth();
+  const [gender, setGender]       = useState<Gender>("male");
+  const [recs, setRecs]           = useState<ItemRecommendation[]>([]);
+  const [results, setResults]     = useState<Record<number, StoreSearchResult>>({});
+  const [searching, setSearching] = useState<Record<number, boolean>>({});
+  const [recLoading, setRecLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  // Cargar el género guardado (solo en cliente)
+  useEffect(() => {
+    const saved = localStorage.getItem(GENDER_STORAGE_KEY);
+    if (saved === "male" || saved === "female") setGender(saved);
+  }, []);
+
+  const handleGenderChange = (g: Gender) => {
+    if (g === gender) return;
+    setGender(g);
+    localStorage.setItem(GENDER_STORAGE_KEY, g);
+    // El género cambia las recomendaciones y los productos → limpiar resultados
+    setResults({});
+  };
+
+  // Recalcular recomendaciones cuando cambian las prendas o el género
+  useEffect(() => {
+    if (!user || clothes.length === 0) return;
+    setRecLoading(true);
+    setError("");
+    setRecs([]);
+    setResults({});
+    profileController.getProfile(user.$id).then(profile => {
+      if (!profile) { setError("Completa el quiz de onboarding para recibir recomendaciones."); return; }
+      return wardrobeRecommendationController.getRecommendations(clothes, profile, gender)
+        .then(r => setRecs(r));
+    }).catch(() => setError("No se pudo conectar con el servidor de análisis."))
+      .finally(() => setRecLoading(false));
+  }, [user, clothes, gender]);
+
+  const handleSearch = async (idx: number) => {
+    const rec = recs[idx];
+    if (!rec) return;
+    setSearching(prev => ({ ...prev, [idx]: true }));
+    try {
+      const result = await wardrobeRecommendationController.searchStore(rec, gender);
+      setResults(prev => ({ ...prev, [idx]: result }));
+    } catch {
+      setResults(prev => ({ ...prev, [idx]: { products: [], store_links: [] } }));
+    } finally {
+      setSearching(prev => ({ ...prev, [idx]: false }));
+    }
+  };
+
+  return (
+    <div className="vw-ip-root">
+      <div className="vw-ip-hero">
+        <div className="vw-ip-hero-text">
+          <h2 className="vw-ip-title">Recomendaciones</h2>
+          <p className="vw-ip-sub">Prendas que le faltan a tu guardarropa según tu perfil de estilo</p>
+        </div>
+      </div>
+
+      {/* Selector de género para las recomendaciones */}
+      <div className="vw-rec-gender">
+        <span className="vw-rec-gender-label">Recomendar prendas de:</span>
+        <div className="vw-rec-gender-toggle">
+          <button
+            className={`vw-rec-gender-btn ${gender === 'male' ? 'vw-rec-gender-btn--active' : ''}`}
+            onClick={() => handleGenderChange('male')}
+            type="button"
+          >
+            Hombre
+          </button>
+          <button
+            className={`vw-rec-gender-btn ${gender === 'female' ? 'vw-rec-gender-btn--active' : ''}`}
+            onClick={() => handleGenderChange('female')}
+            type="button"
+          >
+            Mujer
+          </button>
+        </div>
+      </div>
+
+      {recLoading && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '16px 0' }}>
+          <div className="gen-spinner" style={{ width: 20, height: 20 }} />
+          <span style={{ fontSize: 14, color: '#6b7280' }}>Analizando tu guardarropa…</span>
+        </div>
+      )}
+
+      {error && <p style={{ color: '#b91c1c', fontSize: 14 }}>{error}</p>}
+
+      {!recLoading && recs.length === 0 && !error && clothes.length > 0 && (
+        <p style={{ fontSize: 14, color: '#6b7280' }}>
+          Tu guardarropa está bien cubierto en todas las categorías.
+        </p>
+      )}
+
+      {recs.map((rec, idx) => (
+        <RecCard
+          key={`${rec.category}-${idx}`}
+          rec={rec}
+          result={results[idx] ?? null}
+          searching={!!searching[idx]}
+          onSearch={() => handleSearch(idx)}
+        />
+      ))}
     </div>
   );
 };
@@ -372,6 +658,7 @@ const ClothesSection = ({
 
 // ─── Componente central ───────────────────────────────────────────────────────────
 const VirtualWardrobe = () => {
+  const { user } = useAuth();
   // Estados de la UI para navegar por las secciones.
   const [selectedCategory, setSelectedCategory] = useState('prendas');
   const [selectedSection, setSelectedSection]   = useState('todas');
@@ -385,14 +672,10 @@ const VirtualWardrobe = () => {
   const [publishName, setPublishName] = useState("");
   const [publishDescription, setPublishDescription] = useState("");
   const [publishLoading, setPublishLoading] = useState(false);
-  const [userId, setUserId]       = useState<string>("");
+  const userId = user?.$id ?? "";
   const upperClothes = clothes.filter(c => typeof c.type === 'string' && mapClothingTypeToSection(c.type) === "superior");
   const lowerClothes = clothes.filter(c => typeof c.type === 'string' && mapClothingTypeToSection(c.type) === "inferior");
   const shoes        = clothes.filter(c => typeof c.type === 'string' && mapClothingTypeToSection(c.type) === "calzado");
-
-  useEffect(() => {
-    account.get().then(u => setUserId(u.$id));
-  }, []);
 
   useEffect(() => {
     clothingController.getUserClothes().then(setClothes).catch(console.error);
@@ -536,12 +819,14 @@ const VirtualWardrobe = () => {
     { label: 'Favoritos',  section: 'favoritos',  icon: <FaHeart size={18} /> },
   ];
 
-  // ─── Renderizar contenido para análisis ──────────────────────────────────────
+  // ─── Renderizar contenido para análisis / recomendaciones ───────────────────────
   const renderAnalysis = () => <WardrobeInsights clothes={clothes} />;
+  const renderRecommendations = () => <WardrobeRecommendations clothes={clothes} />;
 
   // ─── Renderizar contenido ─────────────────────────────────────────────────────────
   const renderContent = () => {
     if (selectedCategory === 'analisis') return renderAnalysis();
+    if (selectedCategory === 'recomendaciones') return renderRecommendations();
 
     if (selectedCategory === 'prendas') {
       if (selectedSection === 'todas') {
@@ -686,6 +971,13 @@ const VirtualWardrobe = () => {
               <BsGraphUp size={18} />
               <span>Análisis</span>
             </button>
+            <button
+              className={`vw-nav-btn ${selectedCategory === 'recomendaciones' ? 'vw-nav-btn--active' : ''}`}
+              onClick={() => handleCategoryClick('recomendaciones', 'overview')}
+            >
+              <BsShop size={18} />
+              <span>Recomendaciones</span>
+            </button>
 
             <div className="vw-sidebar-actions">
               <button className="vw-sidebar-action-btn vw-sidebar-action-btn--primary" onClick={() => setShowForm(true)}>
@@ -704,11 +996,16 @@ const VirtualWardrobe = () => {
           <main className="vw-main">
             <nav className="vw-breadcrumb">
               <span className="vw-breadcrumb-root">
-                {selectedCategory === 'prendas' ? 'TUS PRENDAS' : selectedCategory === 'analisis' ? 'GUARDARROPA' : 'TUS ATUENDOS'}
+                {selectedCategory === 'prendas' ? 'TUS PRENDAS'
+                  : selectedCategory === 'analisis' || selectedCategory === 'recomendaciones' ? 'GUARDARROPA'
+                  : 'TUS ATUENDOS'}
               </span>
               <span className="vw-breadcrumb-sep">/</span>
               <span className="vw-breadcrumb-active">
-                {selectedCategory === 'analisis' ? 'ANÁLISIS' : selectedSection === 'todas' ? 'TODAS' : selectedSection.toUpperCase()}
+                {selectedCategory === 'analisis' ? 'ANÁLISIS'
+                  : selectedCategory === 'recomendaciones' ? 'RECOMENDACIONES'
+                  : selectedSection === 'todas' ? 'TODAS'
+                  : selectedSection.toUpperCase()}
               </span>
             </nav>
             {renderContent()}

@@ -589,6 +589,9 @@ def generate_outfit_with_base():
 from profile_refiner import register_profile_routes
 register_profile_routes(app)
 
+from wardrobe_analyzer import wardrobe_bp
+app.register_blueprint(wardrobe_bp)
+
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 5000))
     app.run(host="0.0.0.0", port=port)

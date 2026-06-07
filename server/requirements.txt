@@ -9,3 +9,4 @@ scikit-learn
 rembg
 onnxruntime
 gunicorn
+requests
