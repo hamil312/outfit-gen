@@ -10,3 +10,4 @@ rembg
 onnxruntime
 gunicorn
 requests
+python-dotenv

@@ -22,6 +22,7 @@ import { useAuth } from "@/app/context/AuthContext";
 import { profileController } from "../controllers/ProfileController";
 import { extractOutfitFeatures } from "@/lib/OutfitFeatures";
 import { wardrobeRecommendationController, WardrobeAnalysis, ItemRecommendation, StoreSearchResult, Gender } from "../controllers/WardrobeRecommendationController";
+import WardrobeChatbot from "@/app/components/ui/WardrobeChatbot";
 
 // ─── Análisis inteligente del guardarropa ────────────────────────────────────────────
 type InsightSeverity = 'success' | 'warning' | 'alert' | 'tip';
@@ -1111,6 +1112,8 @@ const VirtualWardrobe = () => {
         </Modal>
 
       </div>
+
+      <WardrobeChatbot clothes={clothes} outfits={outfits} />
     </ProtectedRoute>
   );
 };
