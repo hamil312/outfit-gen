@@ -4200,3 +4200,1486 @@
     padding: 24px 18px;
   }
 }
+
+/* ─────────────────────────────────
+   CALENDAR PAGE
+───────────────────────────────── */
+
+.cal-root {
+  background: #fcf9f5;
+  min-height: 100vh;
+  font-family: "Hanken Grotesk", sans-serif;
+}
+
+.cal-main {
+  padding: 32px 24px 64px;
+}
+
+.cal-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* ── Header ── */
+.cal-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.cal-header-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: #1a2b32;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.cal-title {
+  font-family: "EB Garamond", serif;
+  font-size: clamp(1.4rem, 3vw, 1.9rem);
+  font-weight: 700;
+  color: #1a2b32;
+  margin: 0;
+}
+
+.cal-subtitle {
+  font-size: 14px;
+  color: #9ca3af;
+  margin: 4px 0 0;
+}
+
+/* ── Main layout ── */
+.cal-layout {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+/* ── Sidebar ── */
+.cal-sidebar {
+  width: 240px;
+  flex-shrink: 0;
+  background: #ffffff;
+  border: 1px solid #ece7e0;
+  border-radius: 16px;
+  padding: 20px 16px;
+  max-height: calc(100vh - 180px);
+  overflow-y: auto;
+  position: sticky;
+  top: 80px;
+}
+
+.cal-sidebar-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #9ca3af;
+  margin: 0 0 16px;
+}
+
+.cal-empty-outfits {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 32px 12px;
+  text-align: center;
+}
+
+.cal-empty-text {
+  font-size: 13px;
+  color: #9ca3af;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.cal-outfit-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cal-outfit-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  background: #f9fafb;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 12px;
+  cursor: grab;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+  user-select: none;
+}
+
+.cal-outfit-card:hover {
+  border-color: #5ca2ae;
+  box-shadow: 0 2px 8px rgba(92, 162, 174, 0.15);
+  transform: translateY(-1px);
+}
+
+.cal-outfit-card:active {
+  cursor: grabbing;
+  transform: scale(0.97);
+}
+
+.cal-outfit-drag-handle {
+  flex-shrink: 0;
+  opacity: 0.5;
+}
+
+.cal-outfit-thumb {
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: #ede6d8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cal-outfit-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cal-outfit-no-img {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+.cal-outfit-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.cal-outfit-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: #1a2b32;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cal-outfit-badge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 600;
+  color: #5ca2ae;
+  background: rgba(92, 162, 174, 0.1);
+  border-radius: 6px;
+  padding: 1px 6px;
+  margin-top: 3px;
+  text-transform: capitalize;
+}
+
+/* ── Calendar panel ── */
+.cal-calendar {
+  flex: 1;
+  min-width: 0;
+  background: #ffffff;
+  border: 1px solid #ece7e0;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+/* Month navigation */
+.cal-month-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid #f3ede6;
+}
+
+.cal-month-label {
+  font-family: "EB Garamond", serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1a2b32;
+  margin: 0;
+}
+
+.cal-nav-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  border: 1.5px solid #e5e7eb;
+  background: #ffffff;
+  color: #1a2b32;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.cal-nav-btn:hover {
+  background: #1a2b32;
+  color: #ffffff;
+  border-color: #1a2b32;
+}
+
+/* Day-of-week headers */
+.cal-grid-header {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  border-bottom: 1px solid #f3ede6;
+}
+
+.cal-day-hdr {
+  padding: 10px 0;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #9ca3af;
+  text-align: center;
+}
+
+/* Calendar grid */
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+}
+
+.cal-cell {
+  min-height: 110px;
+  border-right: 1px solid #f3ede6;
+  border-bottom: 1px solid #f3ede6;
+  padding: 8px;
+  position: relative;
+  transition: background 0.15s ease;
+  box-sizing: border-box;
+}
+
+.cal-cell:nth-child(7n) {
+  border-right: none;
+}
+
+.cal-cell--pad {
+  background: #fafafa;
+  pointer-events: none;
+}
+
+.cal-cell--today {
+  background: #f0f7f8;
+}
+
+.cal-cell--dragover {
+  background: rgba(92, 162, 174, 0.08);
+  outline: 2px dashed #5ca2ae;
+  outline-offset: -2px;
+}
+
+.cal-cell--has-entry {
+  background: #fffdf9;
+}
+
+.cal-day-num {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+  display: block;
+  margin-bottom: 4px;
+  line-height: 1;
+}
+
+.cal-day-num--today {
+  color: #ffffff;
+  background: #1a2b32;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+}
+
+/* Drop hint (shows on hover when cell is empty) */
+.cal-drop-hint {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 6px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.cal-cell:hover .cal-drop-hint {
+  opacity: 1;
+}
+
+.cal-drop-plus {
+  font-size: 22px;
+  color: #d1d5db;
+  font-weight: 300;
+  line-height: 1;
+}
+
+/* Entry card inside a cell */
+.cal-entry {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-top: 2px;
+}
+
+.cal-entry-img {
+  width: 100%;
+  height: 56px;
+  object-fit: cover;
+  border-radius: 8px;
+  display: block;
+}
+
+.cal-entry-name {
+  font-size: 11px;
+  font-weight: 600;
+  color: #1a2b32;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cal-entry-tag {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 500;
+  color: #5ca2ae;
+  background: rgba(92, 162, 174, 0.12);
+  border-radius: 6px;
+  padding: 1px 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.cal-entry-actions {
+  display: flex;
+  gap: 4px;
+  margin-top: 2px;
+}
+
+.cal-entry-btn {
+  flex: 1;
+  height: 22px;
+  border-radius: 6px;
+  border: none;
+  font-size: 11px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s ease;
+}
+
+.cal-entry-btn--edit {
+  background: #f3ede6;
+  color: #1a2b32;
+}
+
+.cal-entry-btn--edit:hover {
+  background: #e5e7eb;
+}
+
+.cal-entry-btn--remove {
+  background: #fff1f2;
+  color: #e11d48;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.cal-entry-btn--remove:hover {
+  background: #ffe4e6;
+}
+
+/* ── Tag modal ── */
+.cal-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(26, 43, 50, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 24px;
+  animation: fadeIn 0.15s ease;
+}
+
+.cal-modal {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 32px 28px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+  animation: slideUp 0.2s ease;
+}
+
+.cal-modal-title {
+  font-family: "EB Garamond", serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1a2b32;
+  margin: 0 0 6px;
+}
+
+.cal-modal-sub {
+  font-size: 13px;
+  color: #9ca3af;
+  margin: 0 0 20px;
+  line-height: 1.5;
+}
+
+.cal-modal-input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 10px;
+  font-size: 14px;
+  font-family: "Hanken Grotesk", sans-serif;
+  color: #1a2b32;
+  background: #f9fafb;
+  outline: none;
+  transition: border-color 0.2s ease, background 0.2s ease;
+  box-sizing: border-box;
+  margin-bottom: 20px;
+}
+
+.cal-modal-input:focus {
+  border-color: #5ca2ae;
+  background: #ffffff;
+}
+
+.cal-modal-input::placeholder {
+  color: #c4c9d4;
+}
+
+.cal-modal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.cal-modal-cancel {
+  padding: 10px 20px;
+  background: transparent;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: "Hanken Grotesk", sans-serif;
+  color: #6b7280;
+  cursor: pointer;
+  transition: border-color 0.2s ease, color 0.2s ease;
+}
+
+.cal-modal-cancel:hover {
+  border-color: #1a2b32;
+  color: #1a2b32;
+}
+
+.cal-modal-confirm {
+  padding: 10px 24px;
+  background: #1a2b32;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  font-family: "Hanken Grotesk", sans-serif;
+  color: #ffffff;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.15s ease;
+}
+
+.cal-modal-confirm:hover {
+  background: #5ca2ae;
+  transform: translateY(-1px);
+}
+
+/* ── Animations ── */
+@keyframes slideUp {
+  from { transform: translateY(16px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+/* ── Responsive ── */
+@media (max-width: 900px) {
+  .cal-layout {
+    flex-direction: column;
+  }
+
+  .cal-sidebar {
+    width: 100%;
+    max-height: none;
+    position: static;
+  }
+
+  .cal-outfit-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .cal-main {
+    padding: 16px 12px 48px;
+  }
+
+  .cal-cell {
+    min-height: 72px;
+    padding: 5px;
+  }
+
+  .cal-day-hdr {
+    font-size: 9px;
+    padding: 8px 2px;
+  }
+
+  .cal-entry-img {
+    height: 36px;
+  }
+
+  .cal-entry-name {
+    font-size: 9px;
+  }
+
+  .cal-entry-tag {
+    font-size: 9px;
+  }
+
+  .cal-outfit-list {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  }
+}
+
+/* ─────────────────────────────────
+   DASHBOARD PAGE
+───────────────────────────────── */
+
+.dash-root {
+  background: #fcf9f5;
+  min-height: 100vh;
+  font-family: "Hanken Grotesk", sans-serif;
+}
+
+.dash-main {
+  padding: 32px 24px 72px;
+}
+
+.dash-inner {
+  max-width: 1180px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+/* ── Header ── */
+.dash-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.dash-header-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: #1a2b32;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.dash-title {
+  font-family: "EB Garamond", serif;
+  font-size: clamp(1.4rem, 3vw, 1.9rem);
+  font-weight: 700;
+  color: #1a2b32;
+  margin: 0;
+}
+
+.dash-subtitle {
+  font-size: 14px;
+  color: #9ca3af;
+  margin: 4px 0 0;
+}
+
+/* ── Two-column grid ── */
+.dash-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+/* ── Card ── */
+.dash-card {
+  background: #ffffff;
+  border: 1px solid #ece7e0;
+  border-radius: 16px;
+  padding: 24px 24px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.dash-card-head {
+  margin-bottom: 16px;
+}
+
+.dash-card-title {
+  font-family: "EB Garamond", serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1a2b32;
+  margin: 0 0 4px;
+}
+
+.dash-card-sub {
+  font-size: 13px;
+  color: #9ca3af;
+  margin: 0;
+  line-height: 1.45;
+}
+
+/* ── Radar legend ── */
+.dash-radar-legend {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 16px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #f3ede6;
+}
+
+.dash-radar-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dash-radar-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #5ca2ae;
+  flex-shrink: 0;
+}
+
+.dash-radar-label {
+  font-size: 13px;
+  color: #374151;
+  flex: 1;
+}
+
+.dash-radar-pct {
+  font-size: 13px;
+  font-weight: 700;
+  color: #1a2b32;
+}
+
+/* ── Trend chips ── */
+.dash-trend-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid #f3ede6;
+}
+
+.dash-trend-chip {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 8px 14px;
+  flex: 1;
+  min-width: 120px;
+}
+
+.dash-trend-chip span {
+  font-size: 11px;
+  color: #9ca3af;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.dash-trend-chip strong {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+/* ── Stats row ── */
+.dash-stats-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.dash-stat-card {
+  background: #ffffff;
+  border: 1px solid #ece7e0;
+  border-radius: 14px;
+  padding: 20px 20px 18px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.dash-stat-card:hover {
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+  transform: translateY(-1px);
+}
+
+.dash-stat-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.dash-stat-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.dash-stat-value {
+  font-family: "EB Garamond", serif;
+  font-size: 1.65rem;
+  font-weight: 700;
+  color: #1a2b32;
+  margin: 0;
+  line-height: 1.1;
+}
+
+.dash-stat-label {
+  font-size: 12px;
+  color: #9ca3af;
+  margin: 0;
+  font-weight: 500;
+}
+
+/* ── Empty state ── */
+.dash-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 40px 20px;
+  text-align: center;
+  color: #9ca3af;
+  font-size: 13px;
+}
+
+/* ── Hint text ── */
+.dash-hint {
+  font-size: 13px;
+  color: #9ca3af;
+  text-align: center;
+  margin: 12px 0 0;
+  line-height: 1.5;
+}
+
+/* ── Tooltip personalizado ── */
+.dash-tooltip {
+  background: #ffffff;
+  border: 1px solid #ece7e0;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-family: "Hanken Grotesk", sans-serif;
+  font-size: 13px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.dash-tooltip-val {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1a2b32;
+}
+
+.dash-tooltip-label {
+  font-weight: 600;
+  color: #374151;
+  margin: 0 0 4px;
+}
+
+.dash-tooltip-row {
+  margin: 2px 0;
+  color: #6b7280;
+}
+
+/* ── Loading ── */
+.dash-loading-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  gap: 16px;
+}
+
+.dash-loading-text {
+  font-size: 15px;
+  color: #9ca3af;
+  margin: 0;
+}
+
+/* ── Responsive ── */
+@media (max-width: 900px) {
+  .dash-grid-2 {
+    grid-template-columns: 1fr;
+  }
+
+  .dash-stats-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 560px) {
+  .dash-main {
+    padding: 16px 12px 56px;
+  }
+
+  .dash-stats-row {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .dash-stat-card {
+    padding: 16px 14px;
+    gap: 12px;
+  }
+
+  .dash-stat-value {
+    font-size: 1.35rem;
+  }
+
+  .dash-radar-legend {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   SMART WARDROBE INSIGHTS  (vw-ip- prefix)
+══════════════════════════════════════════════════════════════════════════════ */
+
+.vw-ip-root {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  max-width: 700px;
+}
+
+/* ── Hero ── */
+.vw-ip-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #fff;
+  border: 1px solid #ece7e0;
+  border-radius: 16px;
+  padding: 22px 26px;
+  gap: 16px;
+}
+
+.vw-ip-hero-text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.vw-ip-title {
+  font-family: "EB Garamond", Georgia, serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1a2b32;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.vw-ip-sub {
+  font-size: 0.85rem;
+  color: #6b7280;
+  margin: 0;
+}
+
+.vw-ip-score-badge {
+  display: inline-block;
+  margin-top: 8px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 3px 10px;
+  border-radius: 20px;
+  border: 1.5px solid;
+  background: transparent;
+}
+
+/* ── Score Ring ── */
+.vw-ip-ring-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.vw-ip-ring-inner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.vw-ip-ring-n {
+  font-size: 1.3rem;
+  font-weight: 800;
+}
+
+.vw-ip-ring-sub {
+  font-size: 0.58rem;
+  color: #9ca3af;
+  font-weight: 600;
+}
+
+/* ── Two-column grid ── */
+.vw-ip-grid2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+/* ── Card ── */
+.vw-ip-card {
+  background: #fff;
+  border: 1px solid #ece7e0;
+  border-radius: 14px;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.vw-ip-card-title {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: #9ca3af;
+  margin: 0;
+}
+
+/* ── Distribution bars ── */
+.vw-ip-distrib {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.vw-ip-bar-row {
+  display: grid;
+  grid-template-columns: 78px 1fr 22px;
+  align-items: center;
+  gap: 10px;
+}
+
+.vw-ip-bar-lbl {
+  font-size: 0.78rem;
+  color: #374151;
+  font-weight: 500;
+}
+
+.vw-ip-bar-track {
+  height: 7px;
+  background: #f0ede8;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.vw-ip-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.5s ease;
+}
+
+.vw-ip-bar-n {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #1a2b32;
+  text-align: right;
+}
+
+.vw-ip-combos {
+  margin-top: 4px;
+  padding-top: 12px;
+  border-top: 1px solid #ece7e0;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.vw-ip-combos-n {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #5ca2ae;
+  line-height: 1;
+}
+
+.vw-ip-combos-l {
+  font-size: 0.72rem;
+  color: #6b7280;
+}
+
+/* ── Color palette ── */
+.vw-ip-palette {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.vw-ip-color-row {
+  display: grid;
+  grid-template-columns: 13px 1fr auto 18px;
+  align-items: center;
+  gap: 8px;
+}
+
+.vw-ip-color-dot {
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.vw-ip-color-name {
+  font-size: 0.75rem;
+  color: #374151;
+  text-transform: capitalize;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.vw-ip-color-bar-track {
+  width: 48px;
+  height: 5px;
+  background: #f0ede8;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.vw-ip-color-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  opacity: 0.75;
+}
+
+.vw-ip-color-n {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #6b7280;
+  text-align: right;
+}
+
+.vw-ip-empty {
+  font-size: 0.82rem;
+  color: #9ca3af;
+  margin: 0;
+}
+
+/* ── Sections ── */
+.vw-ip-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.vw-ip-section-header {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid;
+}
+
+.vw-ip-section-header--warn    { border-color: #fcd34d; color: #b45309; }
+.vw-ip-section-header--success { border-color: #86efac; color: #2e7d5e; }
+.vw-ip-section-header--tip     { border-color: #93c5fd; color: #1d4ed8; }
+
+.vw-ip-section-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+/* ── Insight cards (alert / warning / tip) ── */
+.vw-ip-insight-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.vw-ip-insight {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: #fff;
+  border: 1px solid #ece7e0;
+  border-radius: 10px;
+  padding: 12px 14px;
+  transition: box-shadow 0.18s ease;
+}
+
+.vw-ip-insight:hover {
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+}
+
+.vw-ip-insight-icon {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.vw-ip-insight--alert   .vw-ip-insight-icon { color: #b91c1c; }
+.vw-ip-insight--warning .vw-ip-insight-icon { color: #b45309; }
+.vw-ip-insight--tip     .vw-ip-insight-icon { color: #1d4ed8; }
+
+.vw-ip-insight-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.vw-ip-insight-title {
+  font-size: 0.87rem;
+  font-weight: 700;
+  color: #1a2b32;
+  margin: 0 0 2px;
+}
+
+.vw-ip-insight-desc {
+  font-size: 0.8rem;
+  color: #4b5563;
+  margin: 0;
+  line-height: 1.45;
+}
+
+.vw-ip-insight-metric {
+  font-size: 0.7rem;
+  font-weight: 700;
+  white-space: nowrap;
+  align-self: center;
+  padding: 3px 9px;
+  border-radius: 20px;
+  background: #f3f0eb;
+  color: #1a2b32;
+  border: 1px solid #ece7e0;
+  flex-shrink: 0;
+}
+
+/* ── Achievement chips ── */
+.vw-ip-achievements {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 10px;
+}
+
+.vw-ip-achievement {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 10px;
+  padding: 12px 14px;
+  transition: box-shadow 0.18s ease;
+}
+
+.vw-ip-achievement:hover {
+  box-shadow: 0 2px 10px rgba(46, 125, 94, 0.12);
+}
+
+.vw-ip-achievement-icon {
+  color: #2e7d5e;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.vw-ip-achievement-title {
+  font-size: 0.83rem;
+  font-weight: 700;
+  color: #14532d;
+  margin: 0 0 2px;
+}
+
+.vw-ip-achievement-metric {
+  font-size: 0.7rem;
+  color: #166534;
+  font-weight: 600;
+}
+
+/* ── Responsive ── */
+@media (max-width: 680px) {
+  .vw-ip-grid2 {
+    grid-template-columns: 1fr;
+  }
+
+  .vw-ip-achievements {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .vw-ip-bar-row {
+    grid-template-columns: 70px 1fr 20px;
+  }
+
+  .vw-ip-insight-metric {
+    display: none;
+  }
+
+  .vw-ip-hero {
+    padding: 18px 16px;
+  }
+}
+
+/* ── Cobertura por ocasión ── */
+.vw-ip-occasion-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.vw-ip-occ-card {
+  border-radius: 10px;
+  padding: 12px;
+  border: 1px solid #e5e7eb;
+  background: #fafaf9;
+}
+.vw-ip-occ-card--ok   { border-color: #bbf7d0; background: #f0fdf4; }
+.vw-ip-occ-card--miss { border-color: #fecaca; background: #fef2f2; }
+
+.vw-ip-occ-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.vw-ip-occ-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #1a2b32;
+}
+
+.vw-ip-occ-slots {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.vw-ip-slot-chip {
+  display: inline-block;
+  font-size: 11px;
+  padding: 2px 7px;
+  border-radius: 20px;
+  background: #e5e7eb;
+  color: #374151;
+  width: fit-content;
+}
+.vw-ip-slot-chip--miss {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.vw-ip-occ-hint {
+  margin-top: 6px;
+  font-size: 11px;
+  color: #dc2626;
+  line-height: 1.4;
+}
+
+/* ── Productos de tienda ── */
+.vw-rec-products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 12px;
+}
+
+.vw-rec-product-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  transition: box-shadow 0.15s;
+}
+.vw-rec-product-card:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.vw-rec-product-img {
+  width: 100%;
+  aspect-ratio: 3/4;
+  object-fit: cover;
+  background: #f3f4f6;
+}
+.vw-rec-product-img-placeholder {
+  width: 100%;
+  aspect-ratio: 3/4;
+  background: #f3f4f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.vw-rec-product-body {
+  padding: 8px 10px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+.vw-rec-product-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: #1a2b32;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.vw-rec-product-price {
+  font-size: 12px;
+  color: #5ca2ae;
+  font-weight: 700;
+}
+.vw-rec-product-link {
+  margin-top: auto;
+  font-size: 11px;
+  color: #1a2b32;
+  text-decoration: underline;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.vw-rec-product-link:hover { color: #5ca2ae; }
+
+/* Store search links grid */
+.vw-rec-store-links {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.vw-rec-store-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: #f9f7f4;
+  border: 1px solid #ece7e0;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #1a2b32;
+  text-decoration: none;
+  transition: background 0.15s, border-color 0.15s;
+}
+.vw-rec-store-link:hover {
+  background: #ece7e0;
+  border-color: #5ca2ae;
+  color: #1a2b32;
+  text-decoration: none;
+}
+
+/* Gender selector for recommendations */
+.vw-rec-gender {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.vw-rec-gender-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #4b5563;
+}
+.vw-rec-gender-toggle {
+  display: inline-flex;
+  background: #f0efeb;
+  border: 1px solid #ece7e0;
+  border-radius: 999px;
+  padding: 3px;
+  gap: 2px;
+}
+/* Selectores específicos para contrarrestar el reset de Bootstrap en <button> */
+.vw-rec-gender-toggle .vw-rec-gender-btn {
+  appearance: none;
+  -webkit-appearance: none;
+  border: none;
+  outline: none;
+  box-shadow: none !important;
+  background: transparent;
+  padding: 6px 20px;
+  border-radius: 999px !important;
+  font-size: 13px;
+  font-weight: 500;
+  color: #6b7280;
+  cursor: pointer;
+  line-height: 1.4;
+  letter-spacing: 0.01em;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+.vw-rec-gender-toggle .vw-rec-gender-btn:hover:not(.vw-rec-gender-btn--active) {
+  background: #ece7e0;
+  color: #1a2b32;
+}
+.vw-rec-gender-toggle .vw-rec-gender-btn:focus {
+  outline: none;
+  box-shadow: none !important;
+}
+.vw-rec-gender-toggle .vw-rec-gender-btn.vw-rec-gender-btn--active {
+  background: #1a2b32 !important;
+  color: #f0efeb !important;
+  border-radius: 999px !important;
+}

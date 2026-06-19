@@ -1,34 +1,22 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { account } from "@/lib/appwrite";
+import { useAuth } from "@/app/context/AuthContext";
 
 type Props = {
   children: React.ReactNode;
 };
 
 export default function ProtectedRoute({ children }: Props) {
-  const [loading, setLoading] = useState(true);
-  const [authorized, setAuthorized] = useState(false);
+  const { user, loading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    const checkSession = async () => {
-      try {
-        const user = await account.get();
-        if (user) {
-          setAuthorized(true);
-        }
-      } catch (err) {
-        router.replace("/auth/login");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    checkSession();
-  }, [router]);
+    if (!loading && !user) {
+      router.replace("/auth/login");
+    }
+  }, [loading, user, router]);
 
   if (loading) {
     return (
@@ -38,7 +26,7 @@ export default function ProtectedRoute({ children }: Props) {
     );
   }
 
-  if (!authorized) {
+  if (!user) {
     return null;
   }
 

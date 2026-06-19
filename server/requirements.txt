@@ -10,4 +10,6 @@ rembg
 onnxruntime
 gunicorn
 requests
+python-dotenv
+requests
 mediapipe

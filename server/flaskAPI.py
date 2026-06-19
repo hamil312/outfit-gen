@@ -4,6 +4,10 @@ from PIL import Image
 import io
 import os
 import torch
+from dotenv import load_dotenv
+
+# Carga el .env de la raíz del proyecto (un nivel arriba de server/)
+load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env'))
 import numpy as np
 from transformers import CLIPProcessor, CLIPModel
 import cv2
@@ -671,6 +675,13 @@ def generate_outfit_with_base():
 
 from profile_refiner import register_profile_routes
 register_profile_routes(app)
+
+from wardrobe_analyzer import wardrobe_bp
+app.register_blueprint(wardrobe_bp)
+
+from wardrobe_chatbot import chatbot_bp
+app.register_blueprint(chatbot_bp)
+
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 5000))
