@@ -2,6 +2,7 @@ import { clothingRepository } from "@/app/repositories/ClothingRepository";
 import { Clothing } from "@/app/models/Clothing";
 import { account, databases } from "@/lib/appwrite";
 import { FLASK_API_URL } from "@/lib/config";
+import { profileController } from "@/app/controllers/ProfileController";
 
 const recentBaseItemIds: string[] = [];
 
@@ -132,12 +133,33 @@ export const clothingController = {
     selectedMaterial?: string,
     usePrintMatching = false,
     selectedPrint?: string,
+    useWeather = false,
+    weatherLocation?: { lat: number; lon: number } | null,
   ) {
     try {
       const user = await account.get();
       const userClothes = await clothingRepository.getClothingsByUser(user.$id);
 
       const all = userClothes.map(normalize);
+
+      let profile: any = null;
+      try {
+        profile = await profileController.getProfile(user.$id);
+      } catch { /* no profile yet */ }
+
+      let activeContext = selectedContext;
+      let activeStyle = selectedStyle;
+
+      if (profile) {
+        if ((!activeContext || activeContext.toLowerCase() === "any") && profile.dominantOccasion) {
+          const occMap: Record<string, string> = { work: "formal", social: "informal", sport: "sport", home: "casual" };
+          activeContext = occMap[profile.dominantOccasion.toLowerCase()] || profile.dominantOccasion;
+        }
+        if ((!activeStyle || activeStyle.toLowerCase() === "any") && profile.styleKeyword) {
+          const styleMap: Record<string, string> = { minimal: "minimalist", urban: "streetwear", classic: "classic", experimental: "avant-garde" };
+          activeStyle = styleMap[profile.styleKeyword.toLowerCase()] || profile.styleKeyword;
+        }
+      }
 
       function getColorName(color: string | number[]) {
         if (typeof color === 'string') return color.toLowerCase();
@@ -159,8 +181,8 @@ export const clothingController = {
       }
 
       const hasColor   = selectedColor   && selectedColor.toLowerCase() !== "any";
-      const hasContext = selectedContext && selectedContext.toLowerCase() !== "any";
-      const hasStyle   = selectedStyle   && selectedStyle.toLowerCase() !== "any";
+      const hasContext = activeContext && activeContext.toLowerCase() !== "any";
+      const hasStyle   = activeStyle   && activeStyle.toLowerCase() !== "any";
 
       // ── Try to find a base item matching any active filter ──
       const anyFilter = hasColor || hasContext || hasStyle;
@@ -168,26 +190,32 @@ export const clothingController = {
         const candidates = all.filter((c) => {
           let match = true;
           if (hasColor)   match = match && getColorName(c.color) === selectedColor!.toLowerCase();
-          if (hasContext) match = match && c.occasion === selectedContext!.toLowerCase();
-          if (hasStyle)   match = match && c.style === selectedStyle!.toLowerCase();
+          if (hasContext) match = match && c.occasion === activeContext!.toLowerCase();
+          if (hasStyle)   match = match && c.style === activeStyle!.toLowerCase();
           return match;
         });
-        // Pick a candidate not recently used, fall back to first if none available
         let baseItem = candidates.find(c => !recentBaseItemIds.includes(c.$id))
                       || candidates[0];
         if (baseItem) {
           recentBaseItemIds.unshift(baseItem.$id);
           if (recentBaseItemIds.length > 10) recentBaseItemIds.pop();
-    const response = await fetch(`${FLASK_API_URL}/generate-outfit-with-base`, {
+          const body: any = {
+            base_item: baseItem,
+            all_items: all,
+            material_matching: useMaterialMatching,
+            material_balance: useMaterialBalance,
+            print_matching: usePrintMatching,
+          };
+          if (useWeather && weatherLocation) {
+            body.context = weatherLocation;
+          }
+          if (profile) {
+            body.profile = profile;
+          }
+          const response = await fetch(`${FLASK_API_URL}/generate-outfit-with-base`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              base_item: baseItem,
-              all_items: all,
-              material_matching: useMaterialMatching,
-              material_balance: useMaterialBalance,
-              print_matching: usePrintMatching,
-            }),
+            body: JSON.stringify(body),
           });
           const data = await response.json();
           return { outfits: data.outfit ? [data.outfit] : [], fallback: !data.outfit };
@@ -198,34 +226,40 @@ export const clothingController = {
       let filtered = all;
 
       if (hasContext) {
-        filtered = filtered.filter((c) => c.occasion === selectedContext!.toLowerCase());
+        filtered = filtered.filter((c) => c.occasion === activeContext!.toLowerCase());
       }
       if (hasStyle) {
-        filtered = filtered.filter((c) => c.style === selectedStyle!.toLowerCase());
+        filtered = filtered.filter((c) => c.style === activeStyle!.toLowerCase());
       }
       if (hasColor) {
         const targetColor = selectedColor!.toLowerCase();
         filtered = filtered.filter((c) => getColorName(c.color) === targetColor);
       }
 
-      // Fallback to all if filters are too restrictive
       if (filtered.length === 0) {
         filtered = all;
       }
 
       // ── Generate via Flask ──
+      const body: any = {
+        items: filtered,
+        style: selectedStyle,
+        material_matching: useMaterialMatching,
+        material_balance: useMaterialBalance,
+        material: selectedMaterial,
+        print_matching: usePrintMatching,
+        print: selectedPrint,
+      };
+      if (useWeather && weatherLocation) {
+        body.context = weatherLocation;
+      }
+      if (profile) {
+        body.profile = profile;
+      }
       const response = await fetch(`${FLASK_API_URL}/generate-outfits`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          items: filtered,
-          style: selectedStyle,
-          material_matching: useMaterialMatching,
-          material_balance: useMaterialBalance,
-          material: selectedMaterial,
-          print_matching: usePrintMatching,
-          print: selectedPrint,
-        }),
+        body: JSON.stringify(body),
       });
 
       const data = await response.json();

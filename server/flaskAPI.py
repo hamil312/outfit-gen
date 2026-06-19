@@ -10,6 +10,12 @@ import cv2
 from sklearn.cluster import KMeans
 from rembg import remove
 import random
+from context_engine import build_context, filter_items_by_context, apply_profile_defaults, filter_items_by_profile
+from skin_tone import detect_skin_tone
+from body_type import detect_body_type
+from compatibility_model import scorer
+from profile_rules import filter_items_by_physical_profile
+from personality import rerank_by_personality
 
 app = Flask(__name__)
 CORS(app, resources={
@@ -25,6 +31,10 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 model_id = "patrickjohncyh/fashion-clip"
 model = CLIPModel.from_pretrained(model_id).to(device)
 processor = CLIPProcessor.from_pretrained(model_id)
+
+scorer.set_clip(model, processor)
+print("Available:", scorer.available)       # True si cargó el .pth
+print("Model:", scorer.model is not None) 
 
 CLOTHING_TYPES = ["shirt", "t-shirt", "pants", "shorts", "dress", "shoes", "jacket", "skirt"]
 PRINTS = ["solid", "striped", "floral", "plaid", "polka dot", "graphic", "animal print", "geometric", "tie-dye", "checkered", "camouflage", "paisley"]
@@ -392,6 +402,14 @@ def generate_outfits(prendas, style=None, material_matching=False, material_bala
             was_fallback = True
 
     outfits = [o for o in outfits if any(o.values())]
+
+    # Re-rank by ML compatibility score if model available
+    if scorer.available and outfits:
+        scored = scorer.rank_outfits(outfits)
+        outfits = [o for _, o in scored]
+        for i, (score, o) in enumerate(scored[:5]):
+            print(f"[ML] Outfit {i+1} | score={score:.4f} | items: {', '.join(o.get(s, {}).get('type','?') for s in ('superior','inferior','calzado','completo') if s in o)}")
+
     return outfits, was_fallback
 
 
@@ -401,6 +419,32 @@ def _classify_simple(labels, logits_slice):
     idx = probs.argmax().item()
     return labels[idx], probs[0, idx].item()
 
+
+@app.route("/api/context", methods=["POST"])
+def context_endpoint():
+    data = request.get_json() or {}
+    lat = data.get("lat")
+    lon = data.get("lon")
+    ctx = build_context(lat=lat, lon=lon)
+    return jsonify(ctx)
+
+@app.route("/analyze-skin-tone", methods=["POST"])
+def analyze_skin_tone_endpoint():
+    file = request.files.get("file")
+    if not file:
+        return jsonify({"error": "No file provided"}), 400
+    image_bytes = file.read()
+    result = detect_skin_tone(image_bytes)
+    return jsonify(result)
+
+@app.route("/analyze-body-type", methods=["POST"])
+def analyze_body_type_endpoint():
+    file = request.files.get("file")
+    if not file:
+        return jsonify({"error": "No file provided"}), 400
+    image_bytes = file.read()
+    result = detect_body_type(image_bytes)
+    return jsonify(result)
 
 @app.route("/analyze", methods=["POST"])
 def analyze():
@@ -475,19 +519,38 @@ def analyze():
 def generate_outfits_endpoint():
     data = request.get_json()
 
-    # Backward-compatible: plain list = old format
     if isinstance(data, list):
         outfits, was_fallback = generate_outfits(data)
-    else:
-        outfits, was_fallback = generate_outfits(
-            data.get("items", []),
-            style=data.get("style"),
-            material_matching=data.get("material_matching", False),
-            material_balance=data.get("material_balance", False),
-            target_material=data.get("material"),
-            print_matching=data.get("print_matching", False),
-            target_print=data.get("print"),
-        )
+        return jsonify({"outfits": outfits, "fallback": was_fallback})
+
+    items = list(data.get("items", []))
+    style = data.get("style")
+    context = data.get("context")
+    profile = data.get("profile")
+
+    style = apply_profile_defaults(profile, style)
+
+    if context:
+        lat = context.get("lat")
+        lon = context.get("lon")
+        weather_ctx = build_context(lat=lat, lon=lon)
+        items = filter_items_by_context(items, weather_ctx)
+
+    if profile:
+        items = filter_items_by_profile(items, profile)
+        items = filter_items_by_physical_profile(items, profile)
+
+    outfits, was_fallback = generate_outfits(
+        items,
+        style=style,
+        material_matching=data.get("material_matching", False),
+        material_balance=data.get("material_balance", False),
+        target_material=data.get("material"),
+        print_matching=data.get("print_matching", False),
+        target_print=data.get("print"),
+    )
+
+    outfits = rerank_by_personality(outfits, profile)
 
     return jsonify({"outfits": outfits, "fallback": was_fallback})
 
@@ -499,6 +562,18 @@ def generate_outfit_with_base():
     material_matching = body.get("material_matching", False)
     material_balance  = body.get("material_balance", False)
     print_matching    = body.get("print_matching", False)
+    context = body.get("context")
+    profile = body.get("profile")
+
+    if context:
+        lat = context.get("lat")
+        lon = context.get("lon")
+        weather_ctx = build_context(lat=lat, lon=lon)
+        all_items = filter_items_by_context(all_items, weather_ctx)
+
+    if profile:
+        all_items = filter_items_by_profile(all_items, profile)
+        all_items = filter_items_by_physical_profile(all_items, profile)
 
     if not base_item or not all_items:
         return jsonify({"error": "base_item y all_items son obligatorios"}), 400
@@ -584,7 +659,15 @@ def generate_outfit_with_base():
     else:
         return jsonify({"error": "Tipo de prenda no soportado para base"}), 400
 
-    return jsonify({ "outfit": outfit })
+    # Score with compatibility model
+    if scorer.available:
+        items = [v for k, v in outfit.items() if k in ("superior", "inferior", "calzado", "completo")]
+        comp_score = scorer.score_outfit_from_items(items)
+        outfit["compatibility_score"] = round(comp_score, 4)
+        print(f"[ML] Base-outfit | score={comp_score:.4f} | items: {', '.join(i.get('type','?') for i in items)}")
+
+    outf = rerank_by_personality([outfit], profile)
+    return jsonify({ "outfit": outf[0] if outf else outfit })
 
 from profile_refiner import register_profile_routes
 register_profile_routes(app)

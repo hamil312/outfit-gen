@@ -6,6 +6,21 @@ level so the tests run fast without a GPU or model weights.
 import sys
 from unittest.mock import MagicMock
 
+# ── Mock compatibility_model before flaskAPI imports it ────────────────────
+mock_compat = MagicMock()
+mock_compat.scorer = MagicMock()
+mock_compat.scorer.available = False
+sys.modules["compatibility_model"] = mock_compat
+
+# ── Mock physical profile rules and personality ────────────────────────────
+mock_profile_rules = MagicMock()
+mock_profile_rules.filter_items_by_physical_profile = lambda items, profile: items
+sys.modules["profile_rules"] = mock_profile_rules
+
+mock_personality = MagicMock()
+mock_personality.rerank_by_personality = lambda outfits, profile: outfits
+sys.modules["personality"] = mock_personality
+
 # ── Mock heavy dependencies before importing flaskAPI ──────────────────────
 mock_torch = MagicMock()
 mock_torch.cuda.is_available.return_value = False
@@ -22,8 +37,12 @@ mock_kmeans = MagicMock()
 mock_sklearn.cluster = MagicMock()
 mock_sklearn.cluster.KMeans = mock_kmeans
 
+mock_torch_nn = MagicMock()
+mock_torch.nn = mock_torch_nn
+
 modules = {
     "torch": mock_torch,
+    "torch.nn": mock_torch_nn,
     "transformers": mock_transformers,
     "cv2": MagicMock(),
     "rembg": MagicMock(),

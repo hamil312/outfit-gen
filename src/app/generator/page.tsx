@@ -53,6 +53,10 @@ export default function Generator() {
   const [userClothes, setUserClothes] = useState<Clothing[]>([]);
   const [userId, setUserId] = useState<string>('');
   const [showNotificationModal, setShowNotificationModal] = useState(false);
+  const [useWeather, setUseWeather] = useState(false);
+  const [weatherInfo, setWeatherInfo] = useState<any>(null);
+  const [weatherLoading, setWeatherLoading] = useState(false);
+  const [weatherLocation, setWeatherLocation] = useState<{ lat: number; lon: number } | null>(null);
 
   // ── Modal-specific toggles (independent from sidebar) ──
   const [modalUseMaterial, setModalUseMaterial] = useState(false);
@@ -210,10 +214,24 @@ export default function Generator() {
   const STYLE_OPTIONS = ["Any", "Vintage", "Bohemian", "Minimalist", "Streetwear", "Preppy", "Classic", "Edgy", "Romantic", "Retro", "Avant-garde", "Punk", "Nautical"];
   const MATERIAL_OPTIONS = ["Any", "Cotton", "Denim", "Leather", "Wool", "Polyester", "Silk", "Linen", "Nylon", "Velvet", "Lace", "Chiffon", "Knit", "Fleece", "Suede", "Canvas"];
 
-  // Generar atuendos basados en los filtros seleccionados y mostrarlos.
-  const handleGenerate = async () => {
-    // Si ya hay outfits mostrados, el usuario está regenerando: registrar señal negativa
-    // sobre los outfits descartados. Fire-and-forget para no bloquear la UI.
+  const getWeather = async (lat: number, lon: number) => {
+    setWeatherLoading(true);
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_FLASK_API_URL || 'http://localhost:5000'}/api/context`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ lat, lon }),
+      });
+      if (res.ok) {
+        const ctx = await res.json();
+        setWeatherInfo(ctx);
+        setWeatherLocation({ lat, lon });
+      }
+    } catch { /* fallback */ }
+    setWeatherLoading(false);
+  };
+
+  const doGenerate = async (lat?: number, lon?: number) => {
     if (outfits.length > 0 && userId) {
       outfits.forEach(outfit => {
         profileController.recordInteraction(
@@ -231,10 +249,30 @@ export default function Generator() {
       selectedMaterial,
       usePrintMatching,
       selectedPrint,
+      useWeather,
+      lat && lon ? { lat, lon } : null,
     );
     setOutfits(Array.isArray(generated) ? generated : []);
     setIsFallback(fallback === true);
     setLoading(false);
+  };
+
+  const handleGenerate = async () => {
+    if (useWeather && !weatherLocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const { latitude: lat, longitude: lon } = pos.coords;
+          getWeather(lat, lon).then(() => {
+            setWeatherLocation({ lat, lon });
+            doGenerate(lat, lon);
+          });
+        },
+        () => { doGenerate(); },
+        { timeout: 5000 }
+      );
+      return;
+    }
+    doGenerate(weatherLocation?.lat, weatherLocation?.lon);
   };
 
   const openSaveModal = (outfit: any, index: number) => {
@@ -600,6 +638,42 @@ export default function Generator() {
                           </div>
                         ))}
                       </div>
+                    )}
+                  </div>
+                )}
+
+                <div className="gen-sidebar-divider" />
+
+                <p className="gen-field-label">Clima</p>
+
+                <label className="gen-toggle-row">
+                  <input
+                    type="checkbox"
+                    checked={useWeather}
+                    onChange={(e) => setUseWeather(e.target.checked)}
+                  />
+                  <span className="gen-toggle-track">
+                    <span className="gen-toggle-knob" />
+                  </span>
+                  <span className="gen-toggle-text">Usar clima actual</span>
+                </label>
+
+                {weatherLoading && (
+                  <p style={{ fontSize: 12, marginTop: 4, color: '#6b7280' }}>
+                    Obteniendo ubicación…
+                  </p>
+                )}
+
+                {weatherInfo && useWeather && (
+                  <div style={{ marginTop: 8, padding: '8px 10px', background: '#f3f4f6', borderRadius: 8, fontSize: 13 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span>{weatherInfo.temp}°C · {weatherInfo.condition}</span>
+                      <span style={{ textTransform: 'capitalize', fontWeight: 600, color: '#6b7280' }}>{weatherInfo.season}</span>
+                    </div>
+                    {weatherInfo.exclude_types?.length > 0 && (
+                      <p style={{ margin: '4px 0 0', color: '#9ca3af', fontSize: 11 }}>
+                        ✕ {weatherInfo.exclude_types.join(', ')}
+                      </p>
                     )}
                   </div>
                 )}

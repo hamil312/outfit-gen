@@ -19,6 +19,8 @@ export interface UserProfile {
   lastRefined?: string;
   styleKeyword?: string;
   dominantOccasion?: string;
+  skinTone?: string;
+  bodyType?: string;
 }
 
 export interface UserInteraction {

@@ -5,9 +5,9 @@ import { ID, Query } from 'appwrite';
 import { UserProfile, UserInteraction, defaultProfile } from '../models/UserProfile';
 
 const DB_ID         = process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID!;
-const PROFILES_COL  = 'userProfiles';
-const INTERACT_COL  = 'userInteractions';
-const FLASK_URL     = process.env.NEXT_PUBLIC_FLASK_URL || 'http://localhost:5000';
+const PROFILES_COL  = process.env.NEXT_PUBLIC_APPWRITE_USER_PROFILES_COLLECTION_ID!;
+const INTERACT_COL  = process.env.NEXT_PUBLIC_APPWRITE_USER_INTERACTIONS_COLLECTION_ID!;
+const FLASK_URL     = process.env.NEXT_PUBLIC_FLASK_API_URL || 'http://localhost:5000';
 
 // ─── Quiz answer types ────────────────────────────────────────────────────────
 export interface QuizAnswers {
@@ -163,6 +163,19 @@ export const profileController = {
     if (newCount % 5 === 0) {
       await this.triggerRefinement(userId, profile);
     }
+  },
+
+  // Guardar tono de piel detectado
+  async saveSkinTone(userId: string, skinTone: string): Promise<void> {
+    const profile = await this.getProfile(userId);
+    if (!profile) return;
+    await databases.updateDocument(DB_ID, PROFILES_COL, profile.$id!, { skinTone });
+  },
+
+  async saveBodyType(userId: string, bodyType: string): Promise<void> {
+    const profile = await this.getProfile(userId);
+    if (!profile) return;
+    await databases.updateDocument(DB_ID, PROFILES_COL, profile.$id!, { bodyType });
   },
 
   // Disparar el refinamiento en Flask
