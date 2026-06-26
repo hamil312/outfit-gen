@@ -49,6 +49,7 @@ export default function AppNavbar() {
   const navLinks = (
     <>
       <a href="/generator" className="nav-link-custom" onClick={closeMenu}>Empieza a generar</a>
+      <a href="/trip_planner" className="nav-link-custom" onClick={closeMenu}>Viajes</a>
       <a href="/calendar" className="nav-link-custom" onClick={closeMenu}>Calendario</a>
       <a href="/dashboard" className="nav-link-custom" onClick={closeMenu}>Resumen</a>
       <a href="/feed" className="nav-link-custom" onClick={closeMenu}>Feed</a>
