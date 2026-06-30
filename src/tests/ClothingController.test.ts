@@ -42,7 +42,7 @@ vi.mock("@/app/repositories/ClothingRepository", () => ({
   },
 }));
 
-import { clothingController } from "./ClothingController";
+import { clothingController } from "@/app/controllers/ClothingController";
 
 describe("ClothingController", () => {
   beforeEach(() => {
