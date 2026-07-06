@@ -717,6 +717,9 @@ app.register_blueprint(wardrobe_bp)
 from wardrobe_chatbot import chatbot_bp
 app.register_blueprint(chatbot_bp)
 
+from travel_planner import travel_bp
+app.register_blueprint(travel_bp)
+
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 5000))

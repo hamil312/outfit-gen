@@ -15,15 +15,17 @@ npm run test:watch # Run Vitest in watch mode
 
 ### Run a single test file
 ```bash
-npx vitest run src/app/controllers/ClothingController.test.ts
+npx vitest run src/tests/ClothingController.test.ts
 ```
 
 ### Python Flask API
 ```bash
 cd server
 pip install -r requirements.txt
+pip install -r requirements-dev.txt   # pytest (only needed to run tests)
 python flaskAPI.py              # Start on http://localhost:5000
-python -m pytest test_flaskAPI.py -v   # Run Python tests
+python -m pytest tests/ -v             # Run all Python tests
+python -m pytest tests/test_travel_planner.py -v   # Run a single test file
 ```
 
 ## Architecture
@@ -90,5 +92,5 @@ All required variables are in `.env`. The Flask URL is controlled by `NEXT_PUBLI
 
 ### Testing
 
-- Frontend: Vitest + jsdom + `@testing-library/react`. Test files are colocated with controllers (`*.test.ts`). Appwrite SDK and `fetch` are mocked with `vi.mock`.
-- Python: pytest in `server/test_flaskAPI.py`.
+- Frontend: Vitest + jsdom + `@testing-library/react`. Test files live in `src/tests/` (`*.test.ts`); they import the module under test via the `@/` alias. Appwrite SDK and `fetch` are mocked with `vi.mock`.
+- Python: pytest in `server/tests/` (`test_flaskAPI.py`, `test_profile_refiner.py`, `test_travel_planner.py`, `test_wardrobe_analyzer.py`, `test_wardrobe_chatbot.py`). `server/tests/conftest.py` adds `server/` to `sys.path` so the modules import regardless of the working directory. Network calls (OpenWeatherMap, Gemini, DummyJSON) and heavy ML deps are mocked.

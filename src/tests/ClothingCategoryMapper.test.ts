@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { mapClothingTypeToSection } from "./ClothingCategoryMapper";
+import { mapClothingTypeToSection } from "@/lib/ClothingCategoryMapper";
 
 describe("mapClothingTypeToSection", () => {
   it("returns superior for shirt", () => {
