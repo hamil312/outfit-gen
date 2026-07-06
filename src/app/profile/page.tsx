@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import ProtectedRoute from '@/app/components/ui/ProtectedRoute';
+import BodyTypeCapture from '@/app/components/ui/BodyTypeCapture';
 import { account, storage, ID } from '@/lib/appwrite';
 
 const MAX_FILE_SIZE = 200 * 1024;
@@ -28,14 +29,11 @@ export default function UserPage() {
   const [skinMessage, setSkinMessage] = useState<string | null>(null);
 
   // Body type state
-  const [bodyFile, setBodyFile] = useState<File | null>(null);
-  const [bodyPreview, setBodyPreview] = useState<string | null>(null);
-  const [bodyResult, setBodyResult] = useState<{
-    category: string; label: string; description: string; recommendations: string[];
-  } | null>(null);
   const [bodySaving, setBodySaving] = useState(false);
-  const [bodyAnalyzing, setBodyAnalyzing] = useState(false);
   const [bodyMessage, setBodyMessage] = useState<string | null>(null);
+  const [currentBodyType, setCurrentBodyType] = useState<string | null>(null);
+  const [bodyTypeMode, setBodyTypeMode] = useState<'view' | 'scan' | 'manual'>('view');
+  const [selectedManualBodyType, setSelectedManualBodyType] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -44,11 +42,17 @@ export default function UserPage() {
         setUser(userData);
         setNameInput(userData.name || '');
         
-        // Obtener URL de imagen de perfil si existe
         const profileImageId = userData.prefs?.profileImageId;
         if (profileImageId) {
           const imageUrl = `https://cloud.appwrite.io/v1/storage/buckets/${BUCKET_ID}/files/${profileImageId}/view?project=${process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID}`;
           setProfileImageUrl(imageUrl);
+        }
+
+        // Cargar tipo de cuerpo actual
+        const { profileController } = await import('@/app/controllers/ProfileController');
+        const profile = await profileController.getProfile(userData.$id);
+        if (profile?.bodyType) {
+          setCurrentBodyType(profile.bodyType);
         }
       } catch (err) {
         console.error('Error al obtener usuario:', err);
@@ -66,26 +70,6 @@ export default function UserPage() {
     setPreview(url);
     return () => URL.revokeObjectURL(url);
   }, [file]);
-
-  useEffect(() => {
-    if (!skinFile) {
-      setSkinPreview(null);
-      return;
-    }
-    const url = URL.createObjectURL(skinFile);
-    setSkinPreview(url);
-    return () => URL.revokeObjectURL(url);
-  }, [skinFile]);
-
-  useEffect(() => {
-    if (!bodyFile) {
-      setBodyPreview(null);
-      return;
-    }
-    const url = URL.createObjectURL(bodyFile);
-    setBodyPreview(url);
-    return () => URL.revokeObjectURL(url);
-  }, [bodyFile]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setMessage(null);
@@ -110,40 +94,15 @@ export default function UserPage() {
     setSkinResult(null);
     setSkinMessage(null);
   };
-
-  const handleBodyFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const f = e.target.files?.[0] ?? null;
-    if (!f) return setBodyFile(null);
-    setBodyFile(f);
-    setBodyResult(null);
-    setBodyMessage(null);
-  };
-
-  const handleAnalyzeBody = async () => {
-    if (!bodyFile) return;
-    setBodyAnalyzing(true);
-    setBodyMessage(null);
-    try {
-      const formData = new FormData();
-      formData.append('file', bodyFile);
-      const res = await fetch(`${process.env.NEXT_PUBLIC_FLASK_API_URL || 'http://localhost:5000'}/analyze-body-type`, {
-        method: 'POST',
-        body: formData,
-      });
-      if (!res.ok) { setBodyMessage('Error al analizar'); return; }
-      const data = await res.json();
-      setBodyResult(data);
-    } catch { setBodyMessage('Error de conexión con el servidor'); }
-    finally { setBodyAnalyzing(false); }
-  };
-
-  const handleSaveBodyType = async () => {
-    if (!bodyResult || !user) return;
+  const handleSaveBodyType = async (bodyType: string) => {
+    if (!user) return;
     setBodySaving(true);
     try {
       const { profileController } = await import('@/app/controllers/ProfileController');
-      await profileController.saveBodyType(user.$id, bodyResult.category);
+      await profileController.saveBodyType(user.$id, bodyType);
+      setCurrentBodyType(bodyType);
       setBodyMessage('Tipo de cuerpo guardado correctamente');
+      setBodyTypeMode('view');
     } catch { setBodyMessage('Error al guardar'); }
     finally { setBodySaving(false); }
   };
@@ -354,76 +313,106 @@ export default function UserPage() {
               <div className="profile-header">
                 <h2 className="profile-title" style={{ fontSize: 20 }}>Tipo de cuerpo</h2>
                 <p className="profile-subtitle">
-                  Sube una foto de cuerpo completo (de frente) para detectar tu tipo de cuerpo.
-                  La foto no se almacena, solo el resultado.
+                  Tu tipo de cuerpo ayuda a recomendar outfits que mejor se adapten a tu silueta.
                 </p>
               </div>
 
-              <div className="profile-form-group">
-                <label className="profile-label">Foto de cuerpo completo</label>
-                <label htmlFor="bodyFile" className="profile-file-label">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
-                    <circle cx="12" cy="13" r="4"></circle>
-                  </svg>
-                  <span className="profile-file-text">
-                    {bodyFile ? bodyFile.name : 'Sube una foto de cuerpo completo'}
-                  </span>
-                  <span className="profile-file-subtext">JPG o PNG, de frente, cuerpo completo</span>
-                </label>
-                <input
-                  id="bodyFile"
-                  type="file"
-                  className="profile-file-input"
-                  accept="image/png,image/jpeg,image/jpg"
-                  onChange={handleBodyFileChange}
-                />
+              {/* Current body type display */}
+              {currentBodyType && bodyTypeMode === 'view' && (
+                <div style={{ marginBottom: 16, padding: 12, borderRadius: 8, background: '#f0fdf4', border: '1px solid #bbf7d0' }}>
+                  <p style={{ margin: 0, fontWeight: 600, color: '#166534', fontSize: 15 }}>
+                    {currentBodyType === 'ectomorfo' ? 'Ectomorfo' :
+                     currentBodyType === 'endomorfo' ? 'Endomorfo' :
+                     currentBodyType === 'mesomorfo' ? 'Mesomorfo' : currentBodyType}
+                  </p>
+                  <p style={{ margin: '4px 0 0', fontSize: 13, color: '#374151' }}>
+                    {currentBodyType === 'ectomorfo' ? 'Cuerpo delgado, hombros estrechos, poca grasa corporal.' :
+                     currentBodyType === 'endomorfo' ? 'Cuerpo con tendencia a acumular grasa, complexión blanda.' :
+                     currentBodyType === 'mesomorfo' ? 'Cuerpo atlético, musculoso, hombros anchos.' : ''}
+                  </p>
+                </div>
+              )}
+
+              {/* Mode tabs */}
+              <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+                <button
+                  type="button"
+                  onClick={() => setBodyTypeMode('view')}
+                  className={`profile-btn ${bodyTypeMode === 'view' ? 'profile-btn-primary' : 'profile-btn-secondary'}`}
+                  style={{ fontSize: 13, padding: '6px 14px' }}
+                >
+                  {currentBodyType ? 'Ver actual' : 'Información'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setBodyTypeMode('scan'); setBodyMessage(null); }}
+                  className={`profile-btn ${bodyTypeMode === 'scan' ? 'profile-btn-primary' : 'profile-btn-secondary'}`}
+                  style={{ fontSize: 13, padding: '6px 14px' }}
+                >
+                  📷 Escanear
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setBodyTypeMode('manual'); setBodyMessage(null); }}
+                  className={`profile-btn ${bodyTypeMode === 'manual' ? 'profile-btn-primary' : 'profile-btn-secondary'}`}
+                  style={{ fontSize: 13, padding: '6px 14px' }}
+                >
+                  ✏️ Seleccionar manual
+                </button>
               </div>
 
-              {bodyPreview && (
-                <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start', marginBottom: 16 }}>
-                  <img
-                    src={bodyPreview}
-                    alt="Preview cuerpo"
-                    style={{ width: 100, height: 140, borderRadius: 8, objectFit: 'cover' }}
-                  />
-                  <div>
+              {/* Scan mode */}
+              {bodyTypeMode === 'scan' && (
+                <BodyTypeCapture
+                  compact={true}
+                  onComplete={handleSaveBodyType}
+                />
+              )}
+
+              {/* Manual selection */}
+              {bodyTypeMode === 'manual' && (
+                <div>
+                  <p style={{ fontSize: 14, color: '#6b7280', marginBottom: 12 }}>
+                    Selecciona el tipo de cuerpo que mejor describa tu silueta actual:
+                  </p>
+                  {['ectomorfo', 'endomorfo', 'mesomorfo'].map(bt => (
                     <button
-                      className="profile-btn profile-btn-primary"
-                      onClick={handleAnalyzeBody}
-                      disabled={bodyAnalyzing}
+                      key={bt}
+                      type="button"
+                      onClick={() => setSelectedManualBodyType(bt)}
+                      style={{
+                        display: 'block', width: '100%', textAlign: 'left', marginBottom: 8,
+                        padding: '12px 16px', borderRadius: 8, cursor: 'pointer',
+                        border: selectedManualBodyType === bt ? '2px solid #6366f1' : '1px solid #d1d5db',
+                        background: selectedManualBodyType === bt ? '#eef2ff' : '#fff',
+                      }}
                     >
-                      {bodyAnalyzing ? 'Analizando…' : 'Analizar tipo de cuerpo'}
+                      <span style={{ fontWeight: 600, fontSize: 15, display: 'block' }}>
+                        {bt === 'ectomorfo' ? 'Ectomorfo' : bt === 'endomorfo' ? 'Endomorfo' : 'Mesomorfo'}
+                      </span>
+                      <span style={{ fontSize: 12, color: '#6b7280' }}>
+                        {bt === 'ectomorfo' ? 'Delgado, hombros estrechos, poca grasa' :
+                         bt === 'endomorfo' ? 'Tendencia a acumular grasa, cuerpo blando' :
+                         'Atlético, musculoso, hombros anchos'}
+                      </span>
                     </button>
-
-                    {bodyResult && (
-                      <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
-                        <p style={{ fontWeight: 600, margin: 0 }}>{bodyResult.label}</p>
-                        <p style={{ fontSize: 13, color: '#6b7280', margin: 0 }}>{bodyResult.description}</p>
-                        {bodyResult.recommendations?.length > 0 && (
-                          <div style={{ fontSize: 12, color: '#4b5563' }}>
-                            <span style={{ fontWeight: 500 }}>Recomendaciones: </span>
-                            {bodyResult.recommendations.join(', ')}
-                          </div>
-                        )}
-                        <button
-                          className="profile-btn profile-btn-primary"
-                          onClick={handleSaveBodyType}
-                          disabled={bodySaving}
-                          style={{ fontSize: 13, padding: '6px 14px', alignSelf: 'flex-start' }}
-                        >
-                          {bodySaving ? 'Guardando…' : 'Guardar en mi perfil'}
-                        </button>
-                      </div>
-                    )}
-
-                    {bodyMessage && (
-                      <p style={{ marginTop: 8, fontSize: 13, color: bodyMessage.includes('Error') ? '#dc2626' : '#16a34a' }}>
-                        {bodyMessage}
-                      </p>
-                    )}
-                  </div>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => { if (selectedManualBodyType) handleSaveBodyType(selectedManualBodyType); }}
+                    disabled={!selectedManualBodyType || bodySaving}
+                    className="profile-btn profile-btn-primary"
+                    style={{ marginTop: 12, fontSize: 13, padding: '6px 14px' }}
+                  >
+                    {bodySaving ? 'Guardando…' : 'Guardar selección'}
+                  </button>
                 </div>
+              )}
+
+              {bodyMessage && (
+                <p style={{ marginTop: 12, fontSize: 13, color: bodyMessage.includes('Error') ? '#dc2626' : '#16a34a' }}>
+                  {bodyMessage}
+                </p>
               )}
             </div>
           </div>

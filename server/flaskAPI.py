@@ -17,6 +17,7 @@ import random
 from context_engine import build_context, filter_items_by_context, apply_profile_defaults, filter_items_by_profile
 from skin_tone import detect_skin_tone
 from body_type import detect_body_type
+from body_type_onnx import get_model as get_onnx_model
 from compatibility_model import scorer
 from profile_rules import filter_items_by_physical_profile
 from personality import rerank_by_personality
@@ -308,7 +309,8 @@ def _match_outfits(superiores, inferiores, calzados, completos,
     return outfits
 
 def generate_outfits(prendas, style=None, material_matching=False, material_balance=False,
-                     target_material=None, print_matching=False, target_print=None):
+                     target_material=None, print_matching=False, target_print=None,
+                     full_ml=False):
     """Generate outfits with optional style filter, material and print constraints."""
 
     # ── Style filter ──
@@ -333,8 +335,6 @@ def generate_outfits(prendas, style=None, material_matching=False, material_bala
         elif cat == "calzado":    calzados.append(item)
         elif cat == "completo":   completos.append(item)
 
-    outfits = []
-
     # ── Filter items by material / print target ──
     if target_material and target_material.lower() != "any":
         tm = target_material.lower()
@@ -344,6 +344,27 @@ def generate_outfits(prendas, style=None, material_matching=False, material_bala
         tp = target_print.lower()
         superiores = [s for s in superiores if s.get("print", "solid").lower() == tp]
         completos  = [c for c in completos  if c.get("print", "solid").lower() == tp]
+
+    # ── Full ML mode: skip rule-based filtering, score all combos with ML ──
+    if full_ml and scorer.available:
+        all_combos = []
+        for s in superiores:
+            for i in inferiores:
+                for c in calzados:
+                    all_combos.append({"superior": s, "inferior": i, "calzado": c})
+        for comp in completos:
+            for c in calzados:
+                all_combos.append({"completo": comp, "calzado": c})
+
+        if not all_combos:
+            return [], False
+
+        scored = scorer.rank_outfits(all_combos)
+        for i, (score, o) in enumerate(scored[:5]):
+            print(f"[ML-Full] Outfit {i+1} | score={score:.4f} | items: {', '.join(o.get(s, {}).get('type','?') for s in ('superior','inferior','calzado','completo') if s in o)}")
+        return [o for _, o in scored[:5]], False
+
+    outfits = []
 
     # ── Try progressively relaxed combinations ──
     combo_list = []
@@ -450,6 +471,19 @@ def analyze_body_type_endpoint():
     result = detect_body_type(image_bytes)
     return jsonify(result)
 
+@app.route("/classify-body-type", methods=["POST"])
+def classify_body_type_onnx():
+    file = request.files.get("file")
+    if not file:
+        return jsonify({"error": "No file provided"}), 400
+    model_variant = request.form.get("model", "default")
+    if model_variant not in ("default", "20_perc"):
+        return jsonify({"error": "Model must be 'default' or '20_perc'"}), 400
+    image_bytes = file.read()
+    model = get_onnx_model(model_variant)
+    result = model.predict(image_bytes)
+    return jsonify(result)
+
 @app.route("/analyze", methods=["POST"])
 def analyze():
     file = request.files["file"]
@@ -552,6 +586,7 @@ def generate_outfits_endpoint():
         target_material=data.get("material"),
         print_matching=data.get("print_matching", False),
         target_print=data.get("print"),
+        full_ml=data.get("full_ml", False),
     )
 
     outfits = rerank_by_personality(outfits, profile)

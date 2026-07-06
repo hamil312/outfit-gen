@@ -51,6 +51,7 @@ class OutfitScorer:
         self.model = None
         self.clip_model = clip_model
         self.clip_processor = clip_processor
+        self._emb_cache: dict[str, np.ndarray] = {}
         self._load()
 
     def _load(self):
@@ -71,15 +72,23 @@ class OutfitScorer:
     def available(self) -> bool:
         return self.model is not None and self.clip_model is not None
 
+    def _embedding_key(self, item: dict) -> str:
+        return f"{item.get('$id','')}:{item.get('type','')}:{item.get('color_name','')}:{item.get('material','')}:{item.get('print','')}"
+
     def _get_embedding(self, item: dict) -> Optional[np.ndarray]:
         if not self.clip_model or not self.clip_processor:
             return None
+        key = self._embedding_key(item)
+        if key in self._emb_cache:
+            return self._emb_cache[key]
         text = _item_to_text(item)
         try:
             inputs = self.clip_processor(text=[text], return_tensors="pt", padding=True, truncation=True).to(self.device)
             with torch.no_grad():
                 emb = self.clip_model.get_text_features(**inputs)
-            return emb.cpu().numpy().flatten()
+            emb_np = emb.cpu().numpy().flatten()
+            self._emb_cache[key] = emb_np
+            return emb_np
         except Exception:
             return None
 
