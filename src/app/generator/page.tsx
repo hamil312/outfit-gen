@@ -58,6 +58,7 @@ export default function Generator() {
   const [weatherLoading, setWeatherLoading] = useState(false);
   const [weatherLocation, setWeatherLocation] = useState<{ lat: number; lon: number } | null>(null);
   const [useFullML, setUseFullML] = useState(false);
+  const [useBodyType, setUseBodyType] = useState(true);
 
   // ── Modal-specific toggles (independent from sidebar) ──
   const [modalUseMaterial, setModalUseMaterial] = useState(false);
@@ -253,6 +254,7 @@ export default function Generator() {
       useWeather,
       lat && lon ? { lat, lon } : null,
       useFullML,
+      useBodyType,
     );
     setOutfits(Array.isArray(generated) ? generated : []);
     setIsFallback(fallback === true);
@@ -694,6 +696,18 @@ export default function Generator() {
                     <span className="gen-toggle-knob" />
                   </span>
                   <span className="gen-toggle-text">Full ML <span style={{fontSize:11,color:'#9ca3af'}}>(mejor puntuado)</span></span>
+                </label>
+
+                <label className="gen-toggle-row">
+                  <input
+                    type="checkbox"
+                    checked={useBodyType}
+                    onChange={(e) => setUseBodyType(e.target.checked)}
+                  />
+                  <span className="gen-toggle-track">
+                    <span className="gen-toggle-knob" />
+                  </span>
+                  <span className="gen-toggle-text">Tipo de cuerpo <span style={{fontSize:11,color:'#9ca3af'}}>(silueta)</span></span>
                 </label>
 
                 <div className="gen-sidebar-divider" />

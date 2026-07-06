@@ -21,6 +21,7 @@ from body_type_onnx import get_model as get_onnx_model
 from compatibility_model import scorer
 from profile_rules import filter_items_by_physical_profile
 from personality import rerank_by_personality
+from body_type_rules import rerank_by_body_type
 
 app = Flask(__name__)
 CORS(app, resources={
@@ -591,6 +592,10 @@ def generate_outfits_endpoint():
 
     outfits = rerank_by_personality(outfits, profile)
 
+    use_body_type = data.get("use_body_type", True)
+    if use_body_type:
+        outfits = rerank_by_body_type(outfits, profile)
+
     return jsonify({"outfits": outfits, "fallback": was_fallback})
 
 @app.route("/generate-outfit-with-base", methods=["POST"])
@@ -706,6 +711,7 @@ def generate_outfit_with_base():
         print(f"[ML] Base-outfit | score={comp_score:.4f} | items: {', '.join(i.get('type','?') for i in items)}")
 
     outf = rerank_by_personality([outfit], profile)
+    outf = rerank_by_body_type(outf, profile)
     return jsonify({ "outfit": outf[0] if outf else outfit })
 
 from profile_refiner import register_profile_routes

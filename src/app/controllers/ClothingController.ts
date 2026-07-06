@@ -136,6 +136,7 @@ export const clothingController = {
     useWeather = false,
     weatherLocation?: { lat: number; lon: number } | null,
     useFullML = false,
+    useBodyType = true,
   ) {
     try {
       const user = await account.get();
@@ -251,6 +252,7 @@ export const clothingController = {
         print_matching: usePrintMatching,
         print: selectedPrint,
         full_ml: useFullML,
+        use_body_type: useBodyType,
       };
       if (useWeather && weatherLocation) {
         body.context = weatherLocation;

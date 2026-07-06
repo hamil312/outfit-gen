@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Clothing } from "@/app/models/Clothing";
 import { FLASK_API_URL } from "@/lib/config";
 import { IoShirtOutline } from "react-icons/io5";
-import { BsStars } from "react-icons/bs";
+import { BsStars, BsCamera } from "react-icons/bs";
 
 const TYPE_OPTIONS = [
   { label: "Camisa", value: "shirt" },
@@ -53,6 +53,11 @@ export default function ClothingForm({
   const [file, setFile] = useState<File | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
+  const [showCamera, setShowCamera] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [form, setForm] = useState({
     name: initialValues.name || "",
@@ -115,6 +120,52 @@ export default function ClothingForm({
     }
   };
 
+  useEffect(() => {
+    return () => {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(t => t.stop());
+      }
+    };
+  }, []);
+
+  const stopCamera = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(t => t.stop());
+      streamRef.current = null;
+    }
+    setShowCamera(false);
+  };
+
+  const startCamera = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "environment", width: 640, height: 480 }
+      });
+      streamRef.current = stream;
+      setShowCamera(true);
+      setTimeout(() => {
+        if (videoRef.current) videoRef.current.srcObject = stream;
+      }, 100);
+    } catch {
+      alert("No se pudo acceder a la cámara. Usa la opción de subir imagen.");
+    }
+  };
+
+  const capturePhoto = () => {
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    if (!video || !canvas) return;
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    canvas.getContext("2d")!.drawImage(video, 0, 0);
+    canvas.toBlob((blob) => {
+      if (!blob) return;
+      stopCamera();
+      const file = new File([blob], "camera_photo.jpg", { type: "image/jpeg" });
+      handleFileChange(file);
+    }, "image/jpeg", 0.9);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -158,29 +209,47 @@ export default function ClothingForm({
       {/* Upload */}
       {mode === "create" && (
         <div className="cf-upload-area">
-          <label
-            className="cf-upload-label"
-            htmlFor="cf-file-input"
-            tabIndex={0}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                document.getElementById('cf-file-input')?.click();
-              }
-            }}
-          >
-            {preview ? (
+          {showCamera ? (
+            <div className="cf-camera-container">
+              <video ref={videoRef} autoPlay playsInline className="cf-camera-video" />
+              <div className="cf-camera-actions">
+                <button type="button" onClick={capturePhoto} className="cf-camera-btn cf-camera-capture">
+                  <BsCamera size={16} /> Tomar foto
+                </button>
+                <button type="button" onClick={stopCamera} className="cf-camera-btn cf-camera-cancel">
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          ) : preview ? (
+            <div className="cf-preview-container">
               <img src={preview} alt="Vista previa" className="cf-upload-preview" />
-            ) : (
-              <div className="cf-upload-placeholder">
-                <IoShirtOutline className="cf-upload-icon" />
+              <div className="cf-change-row">
+                <button type="button" onClick={startCamera} className="cf-change-btn">
+                  <BsCamera size={14} /> Tomar otra
+                </button>
+                <button type="button" onClick={() => fileInputRef.current?.click()} className="cf-change-btn">
+                  <IoShirtOutline size={14} /> Subir otra
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="cf-upload-options">
+              <button type="button" onClick={startCamera} className="cf-upload-option">
+                <BsCamera size={28} />
+                <span className="cf-upload-text">Tomar foto</span>
+                <span className="cf-upload-hint">Usa la cámara</span>
+              </button>
+              <button type="button" onClick={() => fileInputRef.current?.click()} className="cf-upload-option">
+                <IoShirtOutline size={28} />
                 <span className="cf-upload-text">Subir imagen</span>
                 <span className="cf-upload-hint">JPG, PNG, WEBP</span>
-              </div>
-            )}
-          </label>
+              </button>
+            </div>
+          )}
 
           <input
+            ref={fileInputRef}
             id="cf-file-input"
             type="file"
             accept="image/*"
@@ -189,6 +258,8 @@ export default function ClothingForm({
               handleFileChange(e.target.files?.[0] ?? null)
             }
           />
+
+          <canvas ref={canvasRef} style={{ display: "none" }} />
 
           {isAnalyzing && (
             <div className="cf-analyzing">
