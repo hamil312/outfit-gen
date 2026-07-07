@@ -54,6 +54,38 @@ table(Comment) {
   + created_at : string
 }
 
+' ─── Nuevas entidades ──────────────────────────────────────────────────────────
+table(UserProfile) {
+  + primary_key($id) : string
+  + userID : string [FK -> User]
+  + coord_identity : number
+  + coord_risk : number
+  + coord_formality : number
+  + coord_colorIntensity : number
+  + coord_trendOrientation : number
+  + coord_occasionDiversity : number
+  + profileVersion : number
+  + interactionsCount : number
+  + quizCompleted : boolean
+  + lastRefined : string
+  + styleKeyword : string
+  + dominantOccasion : string
+  + skinTone : string
+  + bodyType : string
+}
+
+table(UserInteraction) {
+  + primary_key($id) : string
+  + userID : string [FK -> User]
+  + outfitID : string [FK -> Outfit]
+  + action : string
+  + colorIntensity : number
+  + formalityLevel : number
+  + styleExperimental : number
+  + occasionType : string
+  + timestamp : string
+}
+
 table(User) {
   + primary_key($id) : string
   + name : string
@@ -65,9 +97,12 @@ User ||--o{ Clothing : "tiene"
 User ||--o{ Outfit : "genera"
 User ||--o{ Favourite : "marca"
 User ||--o{ Comment : "escribe"
+User ||--o| UserProfile : "tiene 1"
+User ||--o{ UserInteraction : "genera N"
 Outfit ||--o{ Favourite : "tiene"
 Outfit ||--o{ Comment : "recibe"
 Outfit ||--|{ Clothing : "contiene" \n(clothes[])
+Outfit ||--o{ UserInteraction : "recibe N"
 
 note bottom of Clothing
   userID → Appwrite Auth User
@@ -89,6 +124,23 @@ note bottom of Outfit
   clothes[] → IDs de Clothing
   occasion = contexto del outfit
   published → visible en galería pública
+end note
+
+note bottom of UserProfile
+  coord_* ∈ [0.0, 1.0]
+  profileVersion se incrementa en
+  cada refinamiento
+  skinTone → categoría Fitzpatrick
+  bodyType ∈ {ectomorfo, endomorfo,
+              mesomorfo}
+end note
+
+note bottom of UserInteraction
+  action ∈ {saved, discarded,
+            regenerated, liked,
+            published}
+  Se usa para refinar coordenadas
+  del perfil cada 5 interacciones
 end note
 
 @enduml

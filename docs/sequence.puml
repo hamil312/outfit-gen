@@ -3,22 +3,57 @@ actor Usuario
 participant Browser as "Browser UI\n(React + Next.js)"
 participant Appwrite as "Appwrite\n(Auth + DB + Storage)"
 participant Flask as "Flask API\n(Análisis + Generación)"
-participant ML as "Modelo CLIP\n(Fashion-CLIP)"
+participant CLIP as "FashionCLIP\n(Clasificación)"
+participant ONNX as "ONNX Body Type\n(detección corporal)"
+participant Refiner as "ProfileRefiner\n(Bayesian Update)"
 
 == Inicio de Sesión ==
 
 Usuario -> Browser: Ingresa credenciales\n(email + contraseña)
 Browser -> Appwrite: account.createEmailSession()
 Appwrite --> Browser: Sesión iniciada (token)
-Browser --> Usuario: Redirige al dashboard
+alt Quiz completado
+    Browser --> Usuario: Redirige al dashboard
+else Sin perfil / quiz pendiente
+    Browser --> Usuario: Redirige al onboarding
+end
 
-== Registro de Prenda ==
+== Registro y Onboarding ==
+
+Usuario -> Browser: Crea cuenta con\nemail + contraseña
+Browser -> Appwrite: account.create() +\naccount.createEmailSession()
+Browser -> Appwrite: databases.createDocument\n(createDefaultProfile)
+note right: Perfil neutro\ntodas las coords en 0.5
+Appwrite --> Browser: Perfil creado
+Browser --> Usuario: Redirige al onboarding
+
+Usuario -> Browser: Responde quiz de 7 pasos:\nmotivación, ropa nueva,\npaleta, estilo, ocasión,\ntendencia, contextos
+Browser -> Browser: quizToProfile(answers)\n→ 6 coordenadas en [0,1]
+Browser -> Appwrite: databases.updateDocument\n(saveQuizProfile)
+note right: coord_identity,\ncoord_risk, coord_formality,\ncoord_colorIntensity,\ncoord_trendOrientation,\ncoord_occasionDiversity
+Appwrite --> Browser: Perfil actualizado
+Browser --> Usuario: Muestra paso de tipo de cuerpo
+
+alt Usuario quiere detectar cuerpo
+    Usuario -> Browser: Sube foto de cuerpo completo
+    Browser -> Flask: POST /classify-body-type\n(imagen)
+    Flask -> ONNX: model.predict(image_bytes)
+    ONNX --> Flask: ectomorfo / endomorfo /\nmesomorfo + confianza
+    Flask --> Browser: Resultado
+    Browser -> Appwrite: databases.updateDocument\n(saveBodyType)
+    Appwrite --> Browser: BodyType guardado
+else Usuario salta el paso
+end
+Browser --> Usuario: Redirige al home
+
+== Registro de Prenda (con validación por modelo) ==
 
 Usuario -> Browser: Selecciona imagen + datos
 Browser -> Browser: Compresión a WebP\n(compressToWebP)
 Browser -> Flask: POST /analyze\n(imagen comprimida)
-Flask -> ML: CLIPProcessor + CLIPModel\n(classify)
-ML --> Flask: type, color_name, material,\nprint, style, occasion
+Flask -> CLIP: CLIPProcessor + CLIPModel\n(classify)
+CLIP --> Flask: type, color_name, material,\nprint, style, occasion
+note right: Validación y extracción\nde atributos mediante\nFashionCLIP embbeding
 Flask --> Browser: Resultado del análisis
 Browser -> Appwrite: storage.createFile\n(subir WebP)
 Appwrite --> Browser: image ID ($id)
@@ -34,6 +69,7 @@ Browser -> Browser: Filtra prendas según\ncolor/contexto/estilo
 alt Encontró prenda base
     Browser -> Flask: POST /generate-outfit-with-base\n(prenda base + items + toggles)
     Flask -> Flask: pick_by_occasion / pick_basic /\npick_with_constraints
+    note right: Validación de compatibilidad:\nreglas de color, material,\nestampado y ocasión
     Flask --> Browser: Outfit completo
     Browser --> Usuario: Muestra outfit
 else Sin filtros específicos
@@ -52,5 +88,29 @@ Browser -> Flask: POST /generate-outfit-with-base\n(prenda elegida + items + tog
 Flask -> Flask: _by_occasion() + pick()\n(color + material + print según toggles)
 Flask --> Browser: Outfit generado
 Browser --> Usuario: Muestra resultado
+
+== Refinamiento de Perfil por Interacciones ==
+
+Usuario -> Browser: Reacciona a un outfit:\n(guardar, descartar, gustar,\nregenerar, publicar)
+Browser -> Browser: Extrae features:\ncolorIntensity, formalityLevel,\nstyleExperimental, occasionType
+Browser -> Appwrite: databases.createDocument\n(recordInteraction)
+Appwrite --> Browser: Interacción registrada
+Browser -> Appwrite: databases.updateDocument\n(incrementa interactionsCount)
+Appwrite --> Browser: interactionsCount + 1
+
+alt Cada 5 interacciones
+    Browser -> Appwrite: databases.listDocuments\n(últimas 20 interacciones)
+    Appwrite --> Browser: Interactions list
+    Browser -> Flask: POST /refine-profile\n(currentProfile + interactions)
+    Flask -> Refiner: refine_profile()
+    Refiner -> Refiner: compute_weight(action)
+    Refiner -> Refiner: resolve_signal(values,\nprior, alpha)
+    note right: Bayesian update con\nlearning rate decreciente:\nalpha = 1/(1+0.1*n)
+    Refiner --> Flask: Coordenadas actualizadas
+    Flask --> Browser: Perfil refinado
+    Browser -> Appwrite: databases.updateDocument\n(guarda nuevas coordenadas)
+    Appwrite --> Browser: Perfil actualizado
+end
+Browser --> Usuario: Recomendaciones más precisas
 
 @enduml

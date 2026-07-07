@@ -2,6 +2,7 @@
 
 skinparam classAttributeIconSize 0
 
+' ─── Task: Agregar perfil de usuario y sus interacciones ──────────────────────
 class Clothing {
   + $id: string
   + userID: string
@@ -54,6 +55,39 @@ class Favourite {
   + outfitID: string
 }
 
+' ─── Nuevas entidades: UserProfile y UserInteraction ─────────────────────────
+class UserProfile {
+  + $id: string
+  + userId: string
+  + coord_identity: number
+  + coord_risk: number
+  + coord_formality: number
+  + coord_colorIntensity: number
+  + coord_trendOrientation: number
+  + coord_occasionDiversity: number
+  + profileVersion: number
+  + interactionsCount: number
+  + quizCompleted: boolean
+  + lastRefined: string
+  + styleKeyword: string
+  + dominantOccasion: string
+  + skinTone: string
+  + bodyType: string
+}
+
+class UserInteraction {
+  + $id: string
+  + userId: string
+  + outfitId: string
+  + action: string
+  + colorIntensity: number
+  + formalityLevel: number
+  + styleExperimental: number
+  + occasionType: string
+  + timestamp: string
+}
+
+' ─── Controladores ─────────────────────────────────────────────────────────────
 class ClothingController {
   - repository: ClothingRepository
   - provider: AnalysisProvider
@@ -88,6 +122,19 @@ class FavouriteController {
   + getUserFavourites(userID): Promise<Favourite[]>
 }
 
+' ─── Nuevo Controlador de perfil ──────────────────────────────────────────────
+class ProfileController {
+  + createDefaultProfile(userId): Promise<UserProfile>
+  + saveQuizProfile(userId, answers): Promise<UserProfile>
+  + getProfile(userId): Promise<UserProfile>
+  + hasCompletedQuiz(userId): Promise<boolean>
+  + recordInteraction(userId, outfitId, action, features): Promise<void>
+  + saveSkinTone(userId, skinTone): Promise<void>
+  + saveBodyType(userId, bodyType): Promise<void>
+  + triggerRefinement(userId, profile): Promise<void>
+}
+
+' ─── Repositorios ──────────────────────────────────────────────────────────────
 class ClothingRepository {
   + list(userID): Promise<Clothing[]>
   + create(data): Promise<Clothing>
@@ -117,10 +164,14 @@ class FavouriteRepository {
   + getByUserAndOutfit(userID, outfitID): Promise<Favourite|null>
 }
 
+' ─── Backend Flask ─────────────────────────────────────────────────────────────
 class FlaskAPI {
   + POST /analyze: classify()
   + POST /generate-outfits: generate()
   + POST /generate-outfit-with-base: generateWithBase()
+  + POST /classify-body-type: classify_body_type_onnx()
+  + POST /analyze-skin-tone: analyze_skin_tone_endpoint()
+  + POST /refine-profile: refine_profile_endpoint()
   .. Funciones internas ..
   + _categorize(type): str
   + color_compatible(c1, c2): bool
@@ -131,39 +182,67 @@ class FlaskAPI {
   + _match_outfits(items, params): list
 }
 
+class ProfileRefiner {
+  + refine_profile(currentProfile, interactions): dict
+  + bayesian_update(prior, signal, alpha): float
+  + resolve_signal(values, prior, alpha): float
+  + compute_weight(action): float
+  + clamp(value): float
+}
+
 class ClothingCategoryMapper {
   + {static} mapTypeToCategory(type): string
   + {static} getAvailableCategories(): string[]
 }
 
+' ─── Relaciones entre entidades de datos y repositorios ───────────────────────
 ClothingRepository --> "Appwrite DB" : databases
 OutfitRepository --> "Appwrite DB" : databases
 CommentRepository --> "Appwrite DB" : databases
 FavouriteRepository --> "Appwrite DB" : databases
+ProfileController --> "Appwrite DB" : databases (profile + interactions)
 
+' ─── Controladores → Repositorios / APIs ──────────────────────────────────────
 ClothingController --> ClothingRepository
 ClothingController --> FlaskAPI : HTTP (fetch)
 OutfitController --> OutfitRepository
 CommentController --> CommentRepository
 FavouriteController --> FavouriteRepository
+ProfileController --> FlaskAPI : HTTP (POST /refine-profile)
 
+' ─── Controladores → Entidades ────────────────────────────────────────────────
 ClothingController --> Clothing : crea/retorna
 OutfitController --> Outfit : crea/retorna
 CommentController --> Comment : crea/retorna
 FavouriteController --> Favourite : retorna
+ProfileController --> UserProfile : crea/recupera/refina
+ProfileController --> UserInteraction : registra
 
+' ─── Repositorios → Entidades ─────────────────────────────────────────────────
 ClothingRepository --> Clothing : retorna
 OutfitRepository --> Outfit : retorna
 CommentRepository --> Comment : retorna
 FavouriteRepository --> Favourite : retorna
 
+' ─── Utilidades ────────────────────────────────────────────────────────────────
 ClothingCategoryMapper ..> Clothing : mapTypeToCategory
 
-FlaskAPI --> "CLIP Model" : classify()
+' ─── Modelos ML ────────────────────────────────────────────────────────────────
+FlaskAPI --> "FashionCLIP" : classify()
+FlaskAPI --> "ONNX Body Type" : /classify-body-type
+FlaskAPI --> "Skin Tone Detector" : /analyze-skin-tone
+ProfileRefiner ..> FlaskAPI : registra /refine-profile
 
+' ─── Usuario → Controladores ──────────────────────────────────────────────────
 User --> ClothingController : userId
 User --> OutfitController : userId
 User --> CommentController : userId
 User --> FavouriteController : userId
+User --> ProfileController : userId / interacciones
+
+' ─── Relaciones Entidad ────────────────────────────────────────────────────────
+User --> UserProfile : tiene 1
+User --> UserInteraction : genera N
+Outfit --> UserInteraction : recibe N
 
 @enduml

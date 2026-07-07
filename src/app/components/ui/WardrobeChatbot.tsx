@@ -8,7 +8,7 @@ import { profileController } from '@/app/controllers/ProfileController';
 import { useAuth } from '@/app/context/AuthContext';
 import styles from './WardrobeChatbot.module.css';
 
-const FLASK_URL = process.env.NEXT_PUBLIC_FLASK_URL || 'http://localhost:5000';
+const FLASK_URL = process.env.NEXT_PUBLIC_FLASK_API_URL || 'http://localhost:5000';
 
 const QUICK_QUESTIONS = [
   '¿Cuál es mi estilo?',
