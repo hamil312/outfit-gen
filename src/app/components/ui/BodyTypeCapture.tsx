@@ -56,8 +56,14 @@ export default function BodyTypeCapture({
       setTimeout(() => {
         if (videoRef.current) videoRef.current.srcObject = stream;
       }, 100);
-    } catch {
-      setError("No se pudo acceder a la cámara. Usa la opción de subir foto.");
+    } catch (err: any) {
+      if (err?.name === "NotAllowedError") {
+        setError("Permiso de cámara denegado. Verifica los permisos del navegador o usa la opción de subir foto.");
+      } else if (err?.name === "NotFoundError") {
+        setError("No se encontró ninguna cámara en este dispositivo. Usa la opción de subir foto.");
+      } else {
+        setError("No se pudo acceder a la cámara. Usa la opción de subir foto.");
+      }
     }
   };
 

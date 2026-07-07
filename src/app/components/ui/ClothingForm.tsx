@@ -136,7 +136,10 @@ export default function ClothingForm({
     setShowCamera(false);
   };
 
+  const [cameraError, setCameraError] = useState<string | null>(null);
+
   const startCamera = async () => {
+    setCameraError(null);
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: "environment", width: 640, height: 480 }
@@ -146,8 +149,14 @@ export default function ClothingForm({
       setTimeout(() => {
         if (videoRef.current) videoRef.current.srcObject = stream;
       }, 100);
-    } catch {
-      alert("No se pudo acceder a la cámara. Usa la opción de subir imagen.");
+    } catch (err: any) {
+      if (err?.name === "NotAllowedError") {
+        setCameraError("Permiso de cámara denegado. Verifica los permisos del navegador o usa la opción de subir imagen.");
+      } else if (err?.name === "NotFoundError") {
+        setCameraError("No se encontró ninguna cámara en este dispositivo. Usa la opción de subir imagen.");
+      } else {
+        setCameraError("No se pudo acceder a la cámara. Usa la opción de subir imagen.");
+      }
     }
   };
 
@@ -209,6 +218,14 @@ export default function ClothingForm({
       {/* Upload */}
       {mode === "create" && (
         <div className="cf-upload-area">
+          {cameraError && (
+            <div style={{ marginBottom: 12, padding: "8px 12px", borderRadius: 8, background: "#fef2f2", border: "1px solid #fecaca", color: "#dc2626", fontSize: 13, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span>{cameraError}</span>
+              <button type="button" onClick={() => setCameraError(null)} className="profile-btn profile-btn-secondary" style={{ fontSize: 12, padding: "2px 10px", marginLeft: 8 }}>
+                OK
+              </button>
+            </div>
+          )}
           {showCamera ? (
             <div className="cf-camera-container">
               <video ref={videoRef} autoPlay playsInline className="cf-camera-video" />
