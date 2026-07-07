@@ -34,6 +34,9 @@ export default function UserPage() {
   const [currentBodyType, setCurrentBodyType] = useState<string | null>(null);
   const [bodyTypeMode, setBodyTypeMode] = useState<'view' | 'scan' | 'manual'>('view');
   const [selectedManualBodyType, setSelectedManualBodyType] = useState<string | null>(null);
+  // Onboarding / profile existence
+  const [hasProfile, setHasProfile] = useState<boolean | null>(null);
+  const [quizCompleted, setQuizCompleted] = useState(false);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -48,9 +51,11 @@ export default function UserPage() {
           setProfileImageUrl(imageUrl);
         }
 
-        // Cargar tipo de cuerpo actual
+        // Cargar perfil y tipo de cuerpo actual
         const { profileController } = await import('@/app/controllers/ProfileController');
         const profile = await profileController.getProfile(userData.$id);
+        setHasProfile(profile !== null);
+        setQuizCompleted(profile?.quizCompleted ?? false);
         if (profile?.bodyType) {
           setCurrentBodyType(profile.bodyType);
         }
@@ -306,6 +311,51 @@ export default function UserPage() {
               <p className="profile-avatar-label">Imagen actual</p>
             </div>
           </div>
+
+          {/* ── Onboarding banner (usuarios sin perfil) ── */}
+          {hasProfile === false && (
+            <div className="profile-card" style={{ marginTop: 24, border: '2px solid #f59e0b', background: '#fffbeb' }}>
+              <div className="profile-content">
+                <div className="profile-header">
+                  <h2 className="profile-title" style={{ fontSize: 20 }}>Perfil incompleto</h2>
+                  <p className="profile-subtitle">
+                    No has completado el registro de preferencias. Realiza el cuestionario para
+                    obtener recomendaciones personalizadas y guardar tu tipo de cuerpo y tono de piel.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  className="profile-btn profile-btn-primary"
+                  onClick={() => router.push('/onboarding')}
+                  style={{ fontSize: 15, padding: '10px 24px' }}
+                >
+                  Completar registro →
+                </button>
+              </div>
+            </div>
+          )}
+
+          {!quizCompleted && hasProfile === true && (
+            <div className="profile-card" style={{ marginTop: 24, border: '2px solid #f59e0b', background: '#fffbeb' }}>
+              <div className="profile-content">
+                <div className="profile-header">
+                  <h2 className="profile-title" style={{ fontSize: 20 }}>Cuestionario de preferencias pendiente</h2>
+                  <p className="profile-subtitle">
+                    Aún no has completado el cuestionario de estilo. Puedes hacerlo ahora para
+                    obtener mejores recomendaciones.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  className="profile-btn profile-btn-primary"
+                  onClick={() => router.push('/onboarding')}
+                  style={{ fontSize: 15, padding: '10px 24px' }}
+                >
+                  Ir al cuestionario →
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* ── Body Type Section ── */}
           <div className="profile-card" style={{ marginTop: 24 }}>

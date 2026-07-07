@@ -167,14 +167,18 @@ export const profileController = {
 
   // Guardar tono de piel detectado
   async saveSkinTone(userId: string, skinTone: string): Promise<void> {
-    const profile = await this.getProfile(userId);
-    if (!profile) return;
+    let profile = await this.getProfile(userId);
+    if (!profile) {
+      profile = await this.createDefaultProfile(userId);
+    }
     await databases.updateDocument(DB_ID, PROFILES_COL, profile.$id!, { skinTone });
   },
 
   async saveBodyType(userId: string, bodyType: string): Promise<void> {
-    const profile = await this.getProfile(userId);
-    if (!profile) return;
+    let profile = await this.getProfile(userId);
+    if (!profile) {
+      profile = await this.createDefaultProfile(userId);
+    }
     await databases.updateDocument(DB_ID, PROFILES_COL, profile.$id!, { bodyType });
   },
 
