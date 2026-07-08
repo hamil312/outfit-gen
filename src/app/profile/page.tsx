@@ -95,7 +95,9 @@ export default function UserPage() {
   const handleSkinFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0] ?? null;
     if (!f) return setSkinFile(null);
+    if (skinPreview) URL.revokeObjectURL(skinPreview);
     setSkinFile(f);
+    setSkinPreview(URL.createObjectURL(f));
     setSkinResult(null);
     setSkinMessage(null);
   };
